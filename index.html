@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-coWork</title>
+    <title>Hệ Thống Quản Trị Công Việc v2.0 — Google Sheets & AI Gemini</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
@@ -115,8 +115,10 @@
                     </button>
                     <button onclick="switchView('config'); switchConfigSubTab('api')" id="btn-connect-folder" class="flex items-center space-x-2 text-xs font-mono px-3 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/40 transition shadow-[0_0_10px_rgba(182,255,46,0.1)]">
                         <span id="storage-icon">☁️</span>
+                        <span id="sync-status-dot" class="w-1.5 h-1.5 rounded-full bg-[#353945] flex-shrink-0"></span>
                         <span id="folder-status-text">Cấu Hình Sheets API</span>
                     </button>
+                    <button onclick="reloadFromSheets()" id="btn-header-reload" title="Tải lại từ Google Sheets" class="hidden text-[#B6FF2E] hover:text-white text-sm transition leading-none px-1">&#x21BB;</button>
                     <div class="w-10 h-10 rounded-xl bg-[#353945] border border-[#353945] flex items-center justify-center font-bold text-[#B6FF2E]">
                         QA
                     </div>
@@ -297,12 +299,6 @@
                             </button>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <!-- Sync status -->
-                            <div class="flex items-center gap-2 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2">
-                                <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-[#353945] flex-shrink-0"></span>
-                                <span id="sync-status-text" class="text-[10px] text-[#777E90] font-mono">Chưa kết nối Sheets</span>
-                                <button onclick="reloadFromSheets()" title="Tải lại từ Google Sheets" class="ml-1 text-[#B6FF2E] hover:text-white text-sm transition leading-none">&#x21BB;</button>
-                            </div>
                             <button onclick="generateAiTasksSuggest()" class="px-3 py-2 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold text-xs hover:bg-[#B6FF2E]/25 transition flex items-center gap-1.5">
                                 <span>&#x2728;</span><span>AI Đề Xuất</span>
                             </button>
@@ -344,7 +340,7 @@
                                         </select>
                                     </div>
                                     <div id="task-area-workshop-wrap" class="hidden mt-2">
-                                        <select id="task-area-workshop-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                        <select id="task-area-workshop-input" onchange="onAreaWorkshopChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
                                             <option value="">-- Toàn nhà máy (không chọn xưởng) --</option>
                                         </select>
                                     </div>
@@ -731,6 +727,7 @@
                         <button onclick="switchConfigSubTab('factory')" id="cfg-tab-factory" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">🏭 Nhà Máy & Xưởng</button>
                         <button onclick="switchConfigSubTab('dept')" id="cfg-tab-dept" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">🏢 Phòng Ban & Tổ Đội</button>
                         <button onclick="switchConfigSubTab('contacts')" id="cfg-tab-contacts" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">🤝 Đối Tác</button>
+                        <button onclick="switchConfigSubTab('personnel')" id="cfg-tab-personnel" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">👤 Nhân Sự</button>
                     </div>
 
                     <!-- TAB API: Google Sheets + Gemini Key -->
@@ -889,6 +886,81 @@
                         </div>
                     </div>
 
+                    <div id="cfg-subview-personnel" class="grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
+                        <div class="bg-[#14161C] p-5 rounded-2xl border border-[#B6FF2E]/30 space-y-4 h-fit">
+                            <h4 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">👤 Thêm Nhân Sự Mới</h4>
+                            <div class="space-y-3 text-xs">
+                                <div>
+                                    <label class="block text-[#777E90] mb-1">THUỘC VỀ</label>
+                                    <select id="personnel-scope-input" onchange="onPersonnelScopeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
+                                        <option value="factory">🏭 Nhà máy (chung, không riêng xưởng)</option>
+                                        <option value="workshop">🏗️ Xưởng cụ thể</option>
+                                        <option value="dept">🏢 Phòng ban</option>
+                                        <option value="team">🛠️ Tổ chuyên trách</option>
+                                        <option value="partner">🤝 Đối tác</option>
+                                    </select>
+                                </div>
+
+                                <div id="personnel-factory-wrap">
+                                    <label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label>
+                                    <select id="personnel-factory-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
+                                </div>
+
+                                <div id="personnel-workshop-wrap" class="hidden space-y-3">
+                                    <div>
+                                        <label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label>
+                                        <select id="personnel-ws-factory-input" onchange="onPersonnelFactoryChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[#777E90] mb-1">CHỌN XƯỞNG</label>
+                                        <select id="personnel-workshop-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
+                                    </div>
+                                </div>
+
+                                <div id="personnel-unit-wrap" class="hidden">
+                                    <label class="block text-[#777E90] mb-1">CHỌN ĐƠN VỊ</label>
+                                    <select id="personnel-unit-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
+                                </div>
+
+                                <div class="border-t border-[#353945] pt-3 space-y-3">
+                                    <div>
+                                        <label class="block text-[#777E90] mb-1">HỌ TÊN <span class="text-rose-400">*</span></label>
+                                        <input id="personnel-name-input" type="text" placeholder="Nhập họ tên..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[#777E90] mb-1">CHỨC VỤ</label>
+                                        <input id="personnel-role-input" type="text" placeholder="Ví dụ: Trưởng phòng, Kỹ sư..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[#777E90] mb-1">SỐ ĐIỆN THOẠI</label>
+                                        <input id="personnel-phone-input" type="text" placeholder="0901 234 567" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[#777E90] mb-1">EMAIL</label>
+                                        <input id="personnel-email-input" type="email" placeholder="ten@congty.com" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
+                                    </div>
+                                </div>
+                                <button onclick="addPersonnelUnified()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">💾 Lưu Nhân Sự</button>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-2 space-y-3">
+                            <div class="flex items-center justify-between bg-[#14161C] p-3 rounded-2xl border border-[#353945]">
+                                <span class="text-xs font-bold text-[#F4F5F6]">📇 Danh Mục Nhân Sự — <span id="cfg-personnel-count" class="text-[#B6FF2E]">0 người</span></span>
+                                <select id="personnel-filter-input" onchange="renderPersonnelDirectory()" class="bg-[#23262F] border border-[#353945] rounded-xl px-3 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
+                                    <option value="all">Tất cả</option>
+                                    <option value="factory">🏭 Nhà máy / Xưởng</option>
+                                    <option value="dept">🏢 Phòng ban</option>
+                                    <option value="team">🛠️ Tổ chuyên trách</option>
+                                    <option value="partner">🤝 Đối tác</option>
+                                </select>
+                            </div>
+                            <div id="cfg-personnel-list">
+                                <!-- Render từ JS -->
+                            </div>
+                        </div>
+                    </div>
+
                 </section>
 
             </div>
@@ -980,6 +1052,14 @@
         // Chuyển dữ liệu cấu hình từ bản cũ (phòng ban/tổ đội là chuỗi tên, danh bạ là 1 danh sách phẳng)
         // sang cấu trúc mới (đơn vị có danh sách nhân sự namecard bên trong), để không mất dữ liệu đã lưu trước đó.
         function migrateLegacyConfig() {
+            if ((state.config.factories || []).some(f => (f.workshops || []).some(w => typeof w === 'string') || f.members === undefined)) {
+                state.config.factories = (state.config.factories || []).map(f => ({
+                    id: f.id,
+                    name: f.name,
+                    members: f.members || [],
+                    workshops: (f.workshops || []).map((w, i) => typeof w === 'string' ? { id: f.id + '-WS' + i, name: w, members: [] } : w)
+                }));
+            }
             if ((state.config.departments || []).some(d => typeof d === 'string')) {
                 state.config.departments = state.config.departments.map((d, i) => ({ id: 'D' + i, name: d, members: [] }));
             }
@@ -1105,6 +1185,63 @@
             return rows;
         }
 
+        // --- Nhà máy: nhân sự có 2 cấp (thuộc cả nhà máy / thuộc 1 xưởng cụ thể) ---
+        function buildFactoriesFromRows(rows) {
+            const facMap = {};
+            const facOrder = [];
+            (rows || []).forEach(r => {
+                const facId = r.facId;
+                if (!facId) return;
+                let fac = facMap[facId];
+                if (!fac) {
+                    fac = { id: facId, name: r.facName || '', members: [], workshops: [], _wsMap: {} };
+                    facMap[facId] = fac;
+                    facOrder.push(fac);
+                }
+                if (r.scope === 'workshop' && (r.wsId || r.wsName)) {
+                    const wsId = r.wsId || r.wsName;
+                    let ws = fac._wsMap[wsId];
+                    if (!ws) {
+                        ws = { id: wsId, name: r.wsName || '', members: [] };
+                        fac._wsMap[wsId] = ws;
+                        fac.workshops.push(ws);
+                    }
+                    if (r.memberId || r.memberName) {
+                        ws.members.push({
+                            id: r.memberId || 'M' + Math.random().toString(36).substr(2, 4),
+                            name: r.memberName || '', role: r.memberRole || '', phone: r.memberPhone || '', email: r.memberEmail || ''
+                        });
+                    }
+                } else if (r.memberId || r.memberName) {
+                    fac.members.push({
+                        id: r.memberId || 'M' + Math.random().toString(36).substr(2, 4),
+                        name: r.memberName || '', role: r.memberRole || '', phone: r.memberPhone || '', email: r.memberEmail || ''
+                    });
+                }
+            });
+            facOrder.forEach(f => delete f._wsMap);
+            return facOrder;
+        }
+
+        function flattenFactoriesToRows(factories) {
+            const rows = [];
+            (factories || []).forEach(fac => {
+                if (fac.members && fac.members.length > 0) {
+                    fac.members.forEach(m => rows.push([fac.id, fac.name, 'factory', '', '', m.id, m.name, m.role || '', m.phone || '', m.email || '']));
+                } else {
+                    rows.push([fac.id, fac.name, 'factory', '', '', '', '', '', '', '']);
+                }
+                (fac.workshops || []).forEach(ws => {
+                    if (ws.members && ws.members.length > 0) {
+                        ws.members.forEach(m => rows.push([fac.id, fac.name, 'workshop', ws.id, ws.name, m.id, m.name, m.role || '', m.phone || '', m.email || '']));
+                    } else {
+                        rows.push([fac.id, fac.name, 'workshop', ws.id, ws.name, '', '', '', '', '']);
+                    }
+                });
+            });
+            return rows;
+        }
+
         // --- Load từ Sheets ---
         async function loadStateFromSheets() {
             const tasksData = await sheetsGet('danh_sach_cong_viec');
@@ -1152,11 +1289,17 @@
 
             const facData = await sheetsGet('cau_hinh_nha_may');
             if (facData) {
-                state.config.factories = facData.map(r => ({
-                    id: r.id || 'F' + Math.random().toString(36).substr(2, 4),
-                    name: r.name || '',
-                    workshops: r.workshops ? r.workshops.split(';').filter(w => w) : []
-                }));
+                const isLegacyFac = facData.some(r => r.workshops !== undefined && r.facId === undefined);
+                if (isLegacyFac) {
+                    state.config.factories = facData.map(r => ({
+                        id: r.id || 'F' + Math.random().toString(36).substr(2, 4),
+                        name: r.name || '',
+                        members: [],
+                        workshops: (r.workshops ? r.workshops.split(';').filter(w => w) : []).map((w, i) => ({ id: (r.id || 'F') + '-WS' + i, name: w, members: [] }))
+                    }));
+                } else {
+                    state.config.factories = buildFactoriesFromRows(facData);
+                }
             }
 
             const deptData = await sheetsGet('cau_hinh_phong_ban');
@@ -1192,27 +1335,34 @@
             saveToLocalStorage();
         }
 
-        // --- Indicator trạng thái sync ---
+        // --- Indicator trạng thái sync (hiển thị ngay trên nút Sheets ở header trên cùng) ---
         function setSyncStatus(status, msg) {
             const dot  = document.getElementById('sync-status-dot');
-            const text = document.getElementById('sync-status-text');
+            const text = document.getElementById('folder-status-text');
+            const reloadBtn = document.getElementById('btn-header-reload');
             if (!dot || !text) return;
+
+            if (reloadBtn) reloadBtn.classList.toggle('hidden', !state.sheetsUrl);
+
             if (status === 'syncing') {
-                dot.className    = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse flex-shrink-0';
-                text.textContent = 'Dang luu...';
+                dot.className    = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0';
+                text.textContent = 'Đang lưu...';
             } else if (status === 'ok') {
-                dot.className    = 'w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0';
+                dot.className    = 'w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0';
                 const n = new Date();
-                text.textContent = 'Da luu ' + String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0') + ':' + String(n.getSeconds()).padStart(2,'0');
+                text.textContent = 'Sheets: Đã lưu ' + String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0') + ':' + String(n.getSeconds()).padStart(2,'0');
             } else if (status === 'error') {
-                dot.className    = 'w-2 h-2 rounded-full bg-rose-400 flex-shrink-0';
-                text.textContent = 'Loi luu' + (msg ? ': ' + msg : '');
+                dot.className    = 'w-1.5 h-1.5 rounded-full bg-rose-400 flex-shrink-0';
+                text.textContent = 'Lỗi lưu' + (msg ? ': ' + msg : '');
             } else if (status === 'pending') {
-                dot.className    = 'w-2 h-2 rounded-full bg-orange-400 animate-pulse flex-shrink-0';
-                text.textContent = 'Cho dong bo (offline)';
+                dot.className    = 'w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse flex-shrink-0';
+                text.textContent = 'Chờ đồng bộ (offline)';
+            } else if (state.sheetsUrl) {
+                dot.className    = 'w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0';
+                text.textContent = 'Sheets: Đã kết nối';
             } else {
-                dot.className    = 'w-2 h-2 rounded-full bg-[#353945] flex-shrink-0';
-                text.textContent = 'Luu cuc bo';
+                dot.className    = 'w-1.5 h-1.5 rounded-full bg-[#353945] flex-shrink-0';
+                text.textContent = 'Cấu Hình Sheets API';
             }
         }
 
@@ -1244,8 +1394,8 @@
                 state.logs.map(l => [l.id,l.timestamp,l.author,l.text])
             );
             await sheetsPost('cau_hinh_nha_may',
-                ['id','name','workshops'],
-                state.config.factories.map(f => [f.id,f.name,(f.workshops||[]).join(';')])
+                ['facId','facName','scope','wsId','wsName','memberId','memberName','memberRole','memberPhone','memberEmail'],
+                flattenFactoriesToRows(state.config.factories)
             );
             const deptRows = [
                 ...flattenUnitsToRows(state.config.departments).map(r => ['department', ...r]),
@@ -1946,7 +2096,7 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 tabBtn.classList.remove('text-[#777E90]', 'hover:text-[#F4F5F6]', 'font-medium');
             }
 
-            ['api','factory','dept','contacts'].forEach(sub => {
+            ['api','factory','dept','contacts','personnel'].forEach(sub => {
                 const el = document.getElementById(`cfg-subview-${sub}`);
                 if (el) el.classList.add('hidden');
             });
@@ -1970,13 +2120,138 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             return [];
         }
 
-        // Gộp toàn bộ nhân sự trong Phòng ban/Tổ đội/Đối tác thành 1 danh sách phẳng (dùng cho Phân quyền)
+        // Gộp toàn bộ nhân sự trong Nhà máy/Xưởng/Phòng ban/Tổ đội/Đối tác thành 1 danh sách phẳng
+        // Mỗi phần tử có `ref` để biết chính xác nó thuộc đâu (dùng khi xóa từ danh mục tổng hợp)
         function getAllPersonnel() {
             const list = [];
-            (state.config.departments || []).forEach(d => (d.members || []).forEach(m => list.push({ ...m, unit: d.name, unitLabel: '🏢 ' + d.name })));
-            (state.config.specialTeams || []).forEach(t => (t.members || []).forEach(m => list.push({ ...m, unit: t.name, unitLabel: '🛠️ ' + t.name })));
-            (state.config.partners || []).forEach(p => (p.members || []).forEach(m => list.push({ ...m, unit: p.name, unitLabel: '🤝 ' + p.name })));
+            (state.config.factories || []).forEach(f => {
+                (f.members || []).forEach(m => list.push({ ...m, unit: f.name, unitLabel: '🏭 ' + f.name, ref: { kind: 'factory', facId: f.id } }));
+                (f.workshops || []).forEach(ws => (ws.members || []).forEach(m => list.push({ ...m, unit: f.name + ' / ' + ws.name, unitLabel: '🏭 ' + f.name + ' / 🏗️ ' + ws.name, ref: { kind: 'workshop', facId: f.id, wsId: ws.id } })));
+            });
+            (state.config.departments || []).forEach(d => (d.members || []).forEach(m => list.push({ ...m, unit: d.name, unitLabel: '🏢 ' + d.name, ref: { kind: 'dept', unitId: d.id } })));
+            (state.config.specialTeams || []).forEach(t => (t.members || []).forEach(m => list.push({ ...m, unit: t.name, unitLabel: '🛠️ ' + t.name, ref: { kind: 'team', unitId: t.id } })));
+            (state.config.partners || []).forEach(p => (p.members || []).forEach(m => list.push({ ...m, unit: p.name, unitLabel: '🤝 ' + p.name, ref: { kind: 'partner', unitId: p.id } })));
             return list;
+        }
+
+        function deletePersonnelByRef(ref, memberId) {
+            if (ref.kind === 'factory') deleteFactoryMember(ref.facId, memberId);
+            else if (ref.kind === 'workshop') deleteWorkshopMember(ref.facId, ref.wsId, memberId);
+            else if (ref.kind === 'partner') deletePartnerMember(ref.unitId, memberId);
+            else deleteUnitMember(ref.kind, ref.unitId, memberId);
+        }
+
+        // Đổi hiển thị form thêm nhân sự tùy theo "Thuộc về" đang chọn
+        function onPersonnelScopeChange() {
+            const scope = document.getElementById('personnel-scope-input').value;
+            document.getElementById('personnel-factory-wrap').classList.toggle('hidden', scope !== 'factory');
+            document.getElementById('personnel-workshop-wrap').classList.toggle('hidden', scope !== 'workshop');
+            document.getElementById('personnel-unit-wrap').classList.toggle('hidden', !['dept','team','partner'].includes(scope));
+
+            if (scope === 'factory') {
+                const sel = document.getElementById('personnel-factory-input');
+                sel.innerHTML = (state.config.factories || []).map(f => `<option value="${f.id}">${f.name}</option>`).join('') || '<option value="">-- Chưa có nhà máy, vào tab Nhà Máy & Xưởng để thêm --</option>';
+            } else if (scope === 'workshop') {
+                const facSel = document.getElementById('personnel-ws-factory-input');
+                facSel.innerHTML = (state.config.factories || []).map(f => `<option value="${f.id}">${f.name}</option>`).join('') || '<option value="">-- Chưa có nhà máy --</option>';
+                onPersonnelFactoryChange();
+            } else if (['dept','team','partner'].includes(scope)) {
+                const sel = document.getElementById('personnel-unit-input');
+                const list = scope === 'dept' ? state.config.departments : (scope === 'team' ? state.config.specialTeams : state.config.partners);
+                sel.innerHTML = (list || []).map(u => `<option value="${u.id}">${u.name}</option>`).join('') || '<option value="">-- Chưa có đơn vị, vào tab tương ứng để thêm --</option>';
+            }
+        }
+
+        function onPersonnelFactoryChange() {
+            const facId = document.getElementById('personnel-ws-factory-input').value;
+            const fac = (state.config.factories || []).find(f => f.id === facId);
+            const wsSel = document.getElementById('personnel-workshop-input');
+            const items = fac ? (fac.workshops || []) : [];
+            wsSel.innerHTML = items.length > 0
+                ? items.map(w => `<option value="${w.id}">${w.name}</option>`).join('')
+                : '<option value="">-- Nhà máy này chưa có xưởng --</option>';
+        }
+
+        // Thêm nhân sự vào đúng đơn vị đã chọn (1 form duy nhất cho mọi loại đơn vị)
+        function addPersonnelUnified() {
+            const scope = document.getElementById('personnel-scope-input').value;
+            const nameInput  = document.getElementById('personnel-name-input');
+            const roleInput  = document.getElementById('personnel-role-input');
+            const phoneInput = document.getElementById('personnel-phone-input');
+            const emailInput = document.getElementById('personnel-email-input');
+
+            const name = nameInput.value.trim();
+            if (!name) return showNotification('Vui lòng nhập họ tên!', 'error');
+
+            const member = {
+                id: 'M' + Date.now(),
+                name,
+                role: roleInput.value.trim(),
+                phone: phoneInput.value.trim(),
+                email: emailInput.value.trim()
+            };
+
+            let ok = false;
+            if (scope === 'factory') {
+                const fac = state.config.factories.find(f => f.id === document.getElementById('personnel-factory-input').value);
+                if (fac) { fac.members.push(member); ok = true; }
+            } else if (scope === 'workshop') {
+                const fac = state.config.factories.find(f => f.id === document.getElementById('personnel-ws-factory-input').value);
+                const ws = fac && fac.workshops.find(w => w.id === document.getElementById('personnel-workshop-input').value);
+                if (ws) { ws.members.push(member); ok = true; }
+            } else {
+                const list = scope === 'dept' ? state.config.departments : (scope === 'team' ? state.config.specialTeams : state.config.partners);
+                const unit = (list || []).find(u => u.id === document.getElementById('personnel-unit-input').value);
+                if (unit) { unit.members.push(member); ok = true; }
+            }
+
+            if (!ok) return showNotification('Vui lòng chọn đầy đủ đơn vị (Nhà máy/Xưởng/Phòng ban/Tổ/Đối tác)!', 'error');
+
+            nameInput.value = ''; roleInput.value = ''; phoneInput.value = ''; emailInput.value = '';
+            showNotification('Đã thêm nhân sự mới!', 'success');
+            renderConfigView();
+            syncStateToCSV();
+        }
+
+        // Danh mục tổng hợp toàn bộ nhân sự, có lọc theo loại đơn vị
+        function renderPersonnelDirectory() {
+            const container = document.getElementById('cfg-personnel-list');
+            if (!container) return;
+            const filterEl = document.getElementById('personnel-filter-input');
+            const filter = filterEl ? filterEl.value : 'all';
+
+            let list = getAllPersonnel();
+            if (filter !== 'all') {
+                list = list.filter(p => filter === 'factory' ? (p.ref.kind === 'factory' || p.ref.kind === 'workshop') : p.ref.kind === filter);
+            }
+
+            const countEl = document.getElementById('cfg-personnel-count');
+            if (countEl) countEl.innerText = `${list.length} người`;
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-[#14161C] p-8 rounded-2xl border border-[#353945] text-center text-[#777E90] text-xs">
+                        👤 Chưa có nhân sự nào phù hợp. Hãy thêm mới ở form bên trái!
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${list.map(p => `
+                <div class="bg-[#14161C] border border-[#353945] rounded-xl p-3 space-y-1">
+                    <div class="flex items-center justify-between">
+                        <h5 class="font-bold text-xs text-[#F4F5F6]">${p.name}</h5>
+                        <button onclick='deletePersonnelByRef(${JSON.stringify(p.ref)}, "${p.id}")' class="text-rose-400 hover:text-rose-300 text-[10px] px-1.5 py-0.5 bg-[#23262F] rounded-lg border border-[#353945]">Xóa</button>
+                    </div>
+                    ${p.role ? `<p class="text-[10px] text-[#B6FF2E]">${p.role}</p>` : ''}
+                    <p class="text-[10px] text-[#777E90]">${p.unitLabel}</p>
+                    <div class="text-[10px] text-[#777E90] space-y-0.5">
+                        ${p.phone ? `<p>📞 ${p.phone}</p>` : ''}
+                        ${p.email ? `<p>✉️ ${p.email}</p>` : ''}
+                        ${(!p.phone && !p.email) ? '<p class="italic">Chưa có SĐT/Email</p>' : ''}
+                    </div>
+                </div>
+            `).join('')}</div>`;
         }
 
         function onAreaTypeChange() {
@@ -2018,9 +2293,10 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 const fac = (state.config.factories || []).find(f => f.name === value);
                 if (fac && fac.workshops && fac.workshops.length > 0) {
                     workshopSelect.innerHTML = '<option value="">-- Toàn nhà máy (không chọn xưởng) --</option>'
-                        + fac.workshops.map(w => `<option value="${w}">${w}</option>`).join('');
+                        + fac.workshops.map(w => `<option value="${w.name}">${w.name}</option>`).join('');
                     workshopWrap.classList.remove('hidden');
                 }
+                refreshFactoryPersonOptions(fac);
             } else if ((type === 'unit' || type === 'partner') && value) {
                 const unit = getAllUnits(type).find(u => u.name === value);
                 if (unit && unit.members && unit.members.length > 0) {
@@ -2028,6 +2304,34 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                         + unit.members.map(m => `<option value="${m.name}">${m.name}${m.role ? ' — ' + m.role : ''}</option>`).join('');
                     personWrap.classList.remove('hidden');
                 }
+            }
+        }
+
+        // Khi đổi lựa chọn Xưởng (bên trong Nhà máy) thì làm mới danh sách người phụ trách tương ứng
+        function onAreaWorkshopChange() {
+            const facName = document.getElementById('task-area-value-input').value;
+            const fac = (state.config.factories || []).find(f => f.name === facName);
+            if (fac) refreshFactoryPersonOptions(fac);
+        }
+
+        function refreshFactoryPersonOptions(fac) {
+            const personWrap = document.getElementById('task-area-person-wrap');
+            const personSelect = document.getElementById('task-area-person-input');
+            if (!fac) { personWrap.classList.add('hidden'); return; }
+
+            const wsName = document.getElementById('task-area-workshop-input').value;
+            let members = fac.members || [];
+            if (wsName) {
+                const ws = (fac.workshops || []).find(w => w.name === wsName);
+                members = ws ? (ws.members || []) : [];
+            }
+
+            if (members.length > 0) {
+                personSelect.innerHTML = '<option value="">-- Cả khu vực (không chọn người cụ thể) --</option>'
+                    + members.map(m => `<option value="${m.name}">${m.name}${m.role ? ' — ' + m.role : ''}</option>`).join('');
+                personWrap.classList.remove('hidden');
+            } else {
+                personWrap.classList.add('hidden');
             }
         }
 
@@ -2321,13 +2625,38 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                                 </h4>
                                 <button onclick="deleteFactory('${fac.id}')" class="text-rose-400 hover:text-rose-300 text-xs">Xóa</button>
                             </div>
+
                             <div class="space-y-2">
-                                <span class="text-[10px] font-mono text-[#777E90]">DANH SÁCH PHÂN XƯỞNG THUỘC NHÀ MÁY:</span>
-                                <div class="flex flex-wrap gap-2">
-                                    ${(fac.workshops || []).map(w => `<span class="bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs px-2.5 py-1 rounded-xl flex items-center gap-1.5">${w} <button onclick="deleteWorkshop('${fac.id}', '${w}')" class="text-[#777E90] hover:text-rose-400 font-bold ml-1">✕</button></span>`).join('')}
+                                <span class="text-[10px] font-mono text-[#777E90]">NHÂN SỰ THUỘC NHÀ MÁY (không riêng xưởng nào):</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    ${(fac.members || []).length > 0
+                                        ? fac.members.map(m => renderMemberCard(m, `deleteFactoryMember('${fac.id}', '${m.id}')`)).join('')
+                                        : `<span class="text-[11px] text-[#777E90] italic sm:col-span-2">Chưa có nhân sự cấp nhà máy.</span>`
+                                    }
                                 </div>
                             </div>
-                            <div class="flex gap-2 pt-2">
+
+                            <div class="space-y-2">
+                                <span class="text-[10px] font-mono text-[#777E90]">DANH SÁCH PHÂN XƯỞNG THUỘC NHÀ MÁY:</span>
+                                <div class="space-y-2">
+                                    ${(fac.workshops || []).length > 0 ? fac.workshops.map(ws => `
+                                        <div class="bg-[#23262F] border border-[#353945] rounded-xl p-3 space-y-2">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-xs font-semibold text-[#F4F5F6]">🏗️ ${ws.name}</span>
+                                                <button onclick="deleteWorkshop('${fac.id}', '${ws.id}')" class="text-[#777E90] hover:text-rose-400 text-[10px] font-bold">Xóa xưởng</button>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                ${(ws.members || []).length > 0
+                                                    ? ws.members.map(m => renderMemberCard(m, `deleteWorkshopMember('${fac.id}', '${ws.id}', '${m.id}')`)).join('')
+                                                    : `<span class="text-[10px] text-[#777E90] italic sm:col-span-2">Chưa có nhân sự trong xưởng này.</span>`
+                                                }
+                                            </div>
+                                        </div>
+                                    `).join('') : `<span class="text-[11px] text-[#777E90] italic">Chưa có phân xưởng nào.</span>`}
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 pt-2 border-t border-[#353945]">
                                 <input id="cfg-ws-input-${fac.id}" type="text" placeholder="Nhập tên phân xưởng mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
                                 <button onclick="addWorkshop('${fac.id}')" class="bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 text-xs px-3 py-1.5 rounded-xl hover:bg-[#B6FF2E]/10 font-semibold">+ Thêm Xưởng</button>
                             </div>
@@ -2344,6 +2673,9 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             document.getElementById('cfg-team-count').innerText = `${state.config.specialTeams.length} tổ đội`;
 
             renderPartnerCards();
+
+            renderPersonnelDirectory();
+            if (document.getElementById('personnel-scope-input')) onPersonnelScopeChange();
         }
 
         // Namecard nhân sự dùng chung cho phòng ban/tổ đội/đối tác
@@ -2388,16 +2720,9 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         ${(u.members || []).length > 0
                             ? u.members.map(m => renderMemberCard(m, `deleteUnitMember('${kind}', '${u.id}', '${m.id}')`)).join('')
-                            : `<span class="text-[11px] text-[#777E90] italic sm:col-span-2">Chưa có nhân sự nào trong đơn vị này.</span>`
+                            : `<span class="text-[11px] text-[#777E90] italic sm:col-span-2">Chưa có nhân sự nào trong đơn vị này. Vào tab 👤 Nhân Sự để thêm.</span>`
                         }
                     </div>
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#353945]">
-                        <input id="cfg-mem-name-${kind}-${u.id}" type="text" placeholder="Họ tên..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                        <input id="cfg-mem-role-${kind}-${u.id}" type="text" placeholder="Chức vụ..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                        <input id="cfg-mem-phone-${kind}-${u.id}" type="text" placeholder="Số điện thoại..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                        <input id="cfg-mem-email-${kind}-${u.id}" type="email" placeholder="Email..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                    </div>
-                    <button onclick="addUnitMember('${kind}', '${u.id}')" class="w-full py-2 rounded-xl bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 text-xs font-semibold hover:bg-[#B6FF2E]/10">+ Thêm Nhân Sự</button>
                 `;
                 container.appendChild(card);
             });
@@ -2431,16 +2756,9 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         ${(p.members || []).length > 0
                             ? p.members.map(m => renderMemberCard(m, `deletePartnerMember('${p.id}', '${m.id}')`)).join('')
-                            : `<span class="text-[11px] text-[#777E90] italic sm:col-span-2">Chưa có người liên hệ nào cho đơn vị này.</span>`
+                            : `<span class="text-[11px] text-[#777E90] italic sm:col-span-2">Chưa có người liên hệ nào cho đơn vị này. Vào tab 👤 Nhân Sự để thêm.</span>`
                         }
                     </div>
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#353945]">
-                        <input id="cfg-pmem-name-${p.id}" type="text" placeholder="Họ tên..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                        <input id="cfg-pmem-role-${p.id}" type="text" placeholder="Chức vụ..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                        <input id="cfg-pmem-phone-${p.id}" type="text" placeholder="Số điện thoại..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                        <input id="cfg-pmem-email-${p.id}" type="email" placeholder="Email..." class="bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                    </div>
-                    <button onclick="addPartnerMember('${p.id}')" class="w-full py-2 rounded-xl bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 text-xs font-semibold hover:bg-[#B6FF2E]/10">+ Thêm Người Liên Hệ</button>
                 `;
                 container.appendChild(card);
             });
@@ -2696,8 +3014,9 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             if (!val) return showNotification('Vui lòng nhập tên nhà máy!', 'error');
 
             state.config.factories.push({
-                id: 'F' + (state.config.factories.length + 1),
+                id: 'F' + Date.now(),
                 name: val,
+                members: [],
                 workshops: []
             });
             input.value = '';
@@ -2720,7 +3039,7 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
 
             const fac = state.config.factories.find(f => f.id === facId);
             if (fac) {
-                fac.workshops.push(val);
+                fac.workshops.push({ id: 'WS' + Date.now(), name: val, members: [] });
                 input.value = '';
                 showNotification('Đã thêm phân xưởng!', 'success');
                 renderConfigView();
@@ -2728,11 +3047,32 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             }
         }
 
-        function deleteWorkshop(facId, wsName) {
+        function deleteWorkshop(facId, wsId) {
             const fac = state.config.factories.find(f => f.id === facId);
             if (fac) {
-                fac.workshops = fac.workshops.filter(w => w !== wsName);
+                fac.workshops = fac.workshops.filter(w => w.id !== wsId);
                 showNotification('Đã xóa phân xưởng!', 'success');
+                renderConfigView();
+                syncStateToCSV();
+            }
+        }
+
+        function deleteFactoryMember(facId, memberId) {
+            const fac = state.config.factories.find(f => f.id === facId);
+            if (fac) {
+                fac.members = fac.members.filter(m => m.id !== memberId);
+                showNotification('Đã xóa nhân sự!', 'success');
+                renderConfigView();
+                syncStateToCSV();
+            }
+        }
+
+        function deleteWorkshopMember(facId, wsId, memberId) {
+            const fac = state.config.factories.find(f => f.id === facId);
+            const ws = fac && fac.workshops.find(w => w.id === wsId);
+            if (ws) {
+                ws.members = ws.members.filter(m => m.id !== memberId);
+                showNotification('Đã xóa nhân sự!', 'success');
                 renderConfigView();
                 syncStateToCSV();
             }
@@ -2778,31 +3118,6 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             syncStateToCSV();
         }
 
-        function addUnitMember(kind, unitId) {
-            const unit = getUnitList(kind).find(u => u.id === unitId);
-            if (!unit) return;
-
-            const nameInput  = document.getElementById(`cfg-mem-name-${kind}-${unitId}`);
-            const roleInput  = document.getElementById(`cfg-mem-role-${kind}-${unitId}`);
-            const phoneInput = document.getElementById(`cfg-mem-phone-${kind}-${unitId}`);
-            const emailInput = document.getElementById(`cfg-mem-email-${kind}-${unitId}`);
-
-            const name = nameInput.value.trim();
-            if (!name) return showNotification('Vui lòng nhập họ tên nhân sự!', 'error');
-
-            unit.members.push({
-                id: 'M' + Date.now(),
-                name,
-                role: roleInput.value.trim(),
-                phone: phoneInput.value.trim(),
-                email: emailInput.value.trim()
-            });
-
-            showNotification('Đã thêm nhân sự vào đơn vị!', 'success');
-            renderConfigView();
-            syncStateToCSV();
-        }
-
         function deleteUnitMember(kind, unitId, memberId) {
             const unit = getUnitList(kind).find(u => u.id === unitId);
             if (!unit) return;
@@ -2828,31 +3143,6 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
         function deletePartner(id) {
             state.config.partners = state.config.partners.filter(p => p.id !== id);
             showNotification('Đã xóa đơn vị đối tác!', 'success');
-            renderConfigView();
-            syncStateToCSV();
-        }
-
-        function addPartnerMember(partnerId) {
-            const partner = state.config.partners.find(p => p.id === partnerId);
-            if (!partner) return;
-
-            const nameInput  = document.getElementById(`cfg-pmem-name-${partnerId}`);
-            const roleInput  = document.getElementById(`cfg-pmem-role-${partnerId}`);
-            const phoneInput = document.getElementById(`cfg-pmem-phone-${partnerId}`);
-            const emailInput = document.getElementById(`cfg-pmem-email-${partnerId}`);
-
-            const name = nameInput.value.trim();
-            if (!name) return showNotification('Vui lòng nhập họ tên người liên hệ!', 'error');
-
-            partner.members.push({
-                id: 'M' + Date.now(),
-                name,
-                role: roleInput.value.trim(),
-                phone: phoneInput.value.trim(),
-                email: emailInput.value.trim()
-            });
-
-            showNotification('Đã thêm người liên hệ (namecard) mới!', 'success');
             renderConfigView();
             syncStateToCSV();
         }
