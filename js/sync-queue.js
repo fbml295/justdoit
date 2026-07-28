@@ -144,19 +144,28 @@
         function updateStorageModeUI(sheetsConnected) {
             const dot  = document.getElementById('storage-mode-dot');
             const text = document.getElementById('storage-mode-text');
+            const fileLink = document.getElementById('storage-mode-file-link');
             const badge = document.getElementById('sheets-status-badge');
             const icon  = document.getElementById('storage-icon');
             const statusText = document.getElementById('folder-status-text');
-            if (sheetsConnected) {
+
+            if (sheetsConnected && activeSpreadsheetId) {
                 const who = (typeof googleUserProfile !== 'undefined' && googleUserProfile) ? googleUserProfile.email : '';
+                const fileName = activeSpreadsheetName || '(không rõ tên file)';
                 if (dot)  { dot.className  = 'w-2 h-2 rounded-full bg-emerald-400'; }
-                if (text) { text.className = 'text-emerald-400'; text.textContent = 'Google Sheets (đã đăng nhập' + (who ? ' — ' + who : '') + ')'; }
+                if (text) { text.className = 'text-emerald-400'; text.textContent = 'Đang kết nối Google Sheets' + (who ? ' — ' + who : ''); }
+                if (fileLink) {
+                    fileLink.classList.remove('hidden');
+                    fileLink.href = 'https://docs.google.com/spreadsheets/d/' + activeSpreadsheetId + '/edit';
+                    fileLink.textContent = '📄 ' + fileName + ' (mở trong Google Sheets ↗)';
+                }
                 if (badge){ badge.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'; badge.textContent = '✅ Đã kết nối'; }
                 if (icon) icon.textContent = '☁️';
                 if (statusText) statusText.textContent = 'Sheets: Đã kết nối';
             } else {
                 if (dot)  { dot.className  = 'w-2 h-2 rounded-full bg-amber-400'; }
-                if (text) { text.className = 'text-[#777E90]'; text.textContent = 'localStorage (chỉ trình duyệt này, chưa đăng nhập Google)'; }
+                if (text) { text.className = 'text-[#777E90]'; text.textContent = 'Chưa kết nối — dữ liệu chỉ lưu tạm trong trình duyệt này (localStorage)'; }
+                if (fileLink) { fileLink.classList.add('hidden'); fileLink.href = '#'; fileLink.textContent = ''; }
                 if (badge){ badge.className = 'text-[10px] px-2 py-0.5 rounded font-mono bg-[#353945] text-[#777E90]'; badge.textContent = 'Chưa kết nối'; }
                 if (icon) icon.textContent = '💾';
                 if (statusText) statusText.textContent = 'Đăng Nhập Google';
