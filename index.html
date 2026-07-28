@@ -724,16 +724,20 @@
                                     </div>
 
                                     <button onclick="forceLoadFromSheets()" class="w-full px-4 py-2.5 rounded-xl bg-[#353945] text-[#B6FF2E] font-bold border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10 transition">🔄 Tải Lại Từ Sheets</button>
-                                    <div id="sheets-test-result" class="hidden text-[11px] p-3 rounded-xl bg-[#23262F] border border-[#353945] text-[#777E90] font-mono"></div>
+                                    <div id="sheets-test-result" class="hidden text-[11px] p-3 rounded-xl bg-[#23262F] border border-[#353945] text-[#777E90] font-mono whitespace-pre-wrap"></div>
                                 </div>
-                                <div class="bg-[#23262F] rounded-xl p-4 border border-[#353945] space-y-2">
-                                    <p class="text-[10px] font-mono text-[#B6FF2E] font-bold uppercase tracking-wider">Hướng dẫn nhanh:</p>
-                                    <ol class="text-[10px] text-[#777E90] space-y-1.5 list-decimal pl-4">
-                                        <li>Điền <span class="text-[#F4F5F6] font-mono">CLIENT_ID</span> và <span class="text-[#F4F5F6] font-mono">DRIVE_FOLDER_ID</span> trong file <span class="text-[#F4F5F6] font-mono">js/google-config.js</span> (xem README.md)</li>
-                                        <li>Đảm bảo bạn đã được cấp quyền chỉnh sửa (share) vào thư mục Drive chứa Google Sheet</li>
-                                        <li>Bấm "Đăng Nhập Bằng Google" ở trên, chọn đúng tài khoản đã được cấp quyền</li>
-                                        <li>App sẽ tự tìm file Google Sheet trong thư mục đó và tải dữ liệu</li>
-                                    </ol>
+
+                                <!-- Trạng thái kết nối -->
+                                <div class="border-t border-[#353945] pt-4 space-y-2">
+                                    <p class="text-[10px] font-mono text-[#B6FF2E] font-bold uppercase tracking-wider">Trạng thái kết nối:</p>
+                                    <div id="storage-mode-indicator" class="text-xs p-3 rounded-xl bg-[#23262F] border border-[#353945] space-y-1.5">
+                                        <div class="flex items-center gap-2">
+                                            <span id="storage-mode-dot" class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                            <span id="storage-mode-text" class="text-[#777E90]">Chưa kết nối — dữ liệu chỉ lưu tạm trong trình duyệt này (localStorage)</span>
+                                        </div>
+                                        <a id="storage-mode-file-link" href="#" target="_blank" class="hidden text-[11px] text-[#B6FF2E] underline pl-4 break-all"></a>
+                                    </div>
+                                    <button onclick="exportAllToJSON()" class="w-full py-2 rounded-xl bg-[#353945] text-[#777E90] font-medium text-[11px] border border-[#353945] hover:text-[#F4F5F6] transition">📥 Xuất toàn bộ dữ liệu ra JSON</button>
                                 </div>
                             </div>
 
@@ -763,18 +767,6 @@
                                     <div class="bg-[#23262F] rounded-xl p-3 border border-[#353945]">
                                         <p class="text-[10px] text-amber-400 font-mono">⚠️ Key lưu trong localStorage của trình duyệt này, không gửi đi đâu khác. Mỗi máy/trình duyệt cần nhập lại.</p>
                                     </div>
-                                </div>
-
-                                <!-- Trạng thái lưu trữ -->
-                                <div class="border-t border-[#353945] pt-4 space-y-2">
-                                    <p class="text-[10px] font-mono text-[#B6FF2E] font-bold uppercase tracking-wider">Chế độ lưu trữ hiện tại:</p>
-                                    <div id="storage-mode-indicator" class="text-xs p-3 rounded-xl bg-[#23262F] border border-[#353945]">
-                                        <div class="flex items-center gap-2">
-                                            <span id="storage-mode-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-                                            <span id="storage-mode-text" class="text-[#777E90]">localStorage (chỉ trình duyệt này)</span>
-                                        </div>
-                                    </div>
-                                    <button onclick="exportAllToJSON()" class="w-full py-2 rounded-xl bg-[#353945] text-[#777E90] font-medium text-[11px] border border-[#353945] hover:text-[#F4F5F6] transition">📥 Xuất toàn bộ dữ liệu ra JSON</button>
                                 </div>
                             </div>
                         </div>
