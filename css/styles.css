@@ -1,0 +1,38 @@
+:root {
+            --color-graphite: #23262F;
+            --color-graphite-dark: #14161C;
+            --color-graphite-light: #353945;
+            --color-lime-spark: #B6FF2E;
+            --color-lime-spark-dim: rgba(182, 255, 46, 0.15);
+            --color-text-light: #F4F5F6;
+            --color-text-muted: #777E90;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-graphite);
+            color: var(--color-text-light);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--color-graphite-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-graphite-light);
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-lime-spark);
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(182, 255, 46, 0.25);
+        }
