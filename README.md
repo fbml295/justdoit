@@ -130,6 +130,15 @@ const GOOGLE_CONFIG = {
 - **Lỗi 401 / "phiên đăng nhập hết hạn":** access token của Google chỉ có hạn khoảng
   1 giờ. App tự phát hiện và yêu cầu đăng nhập lại khi cần — bấm lại nút "Đăng Nhập
   Bằng Google" là được, không mất dữ liệu.
+- **Lỗi `401: invalid_client` (flowName=GeneralOAuthFlow):** lỗi này luôn có nghĩa là
+  giá trị `CLIENT_ID` trong `js/google-config.js` chưa đúng. Kiểm tra lại:
+  - Đã thay đúng chuỗi placeholder `DÁN_CLIENT_ID_CỦA_BẠN_VÀO_ĐÂY...` bằng Client ID
+    thật copy từ Google Cloud Console chưa?
+  - Client ID có bị dính dấu nháy thừa, khoảng trắng, hoặc bị cắt ngắn khi copy không?
+  - Client ID đó có đúng loại **Web application** không (không phải Android/iOS/Desktop)?
+  - Client ID đó còn tồn tại trong Google Cloud Console không (chưa bị xoá/thu hồi)?
+  App sẽ tự phát hiện nếu `CLIENT_ID` còn để nguyên placeholder và báo lỗi rõ ràng
+  ngay trong khối kết quả của tab Kết Nối API, thay vì để lỗi kỹ thuật của Google hiện ra.
 - **Không tìm thấy Google Sheet:** kiểm tra lại `DRIVE_FOLDER_ID` trong
   `js/google-config.js`, và đảm bảo tài khoản đang đăng nhập đã được share quyền vào
   đúng thư mục đó.
