@@ -18,5 +18,5 @@ const GOOGLE_CONFIG = {
     //    khỏi phải tự tìm trong thư mục ở trên. Để trống ('') thì app sẽ tự tìm file
     //    Google Sheet ĐẦU TIÊN tìm thấy trong DRIVE_FOLDER_ID.
     //    Lấy từ URL file Sheet: https://docs.google.com/spreadsheets/d/ĐÂY_LÀ_SPREADSHEET_ID/edit
-    SPREADSHEET_ID: ''
+    SPREADSHEET_ID: '1qTXFqlBP75u1Mjgrs-xcjHhAj_bdAh_XfspvzJVakLs'
 };
