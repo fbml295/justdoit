@@ -442,3 +442,102 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             if (targetSub) targetSub.classList.remove('hidden');
         }
 
+        // =============================================================
+        // AI SUGGEST — Gợi ý tự động các trường khi tạo Công việc mới
+        // (service riêng biệt: chỉ lo gọi Gemini + xử lý dữ liệu, KHÔNG đụng tới DOM/UI.
+        //  Phần wiring UI — debounce, điền vào ô, hint, nút bấm — nằm trong js/tasks.js)
+        // =============================================================
+
+        const AI_SUGGEST_TIMEOUT_MS = 20000; // 20 giây / lần gọi
+        const AI_SUGGEST_MAX_RETRY = 1;      // thử thêm tối đa 1 lần nếu lỗi mạng/timeout
+        const AI_SUGGEST_SYSTEM_INSTRUCTION =
+            'Bạn là chuyên gia quản lý dự án và cải tiến doanh nghiệp. Nhiệm vụ: phân tích tên công việc được cung cấp, ' +
+            'sinh mục tiêu theo nguyên tắc SMART, đề xuất mô tả công việc, đề xuất kết quả mong đợi, xác định mức ưu tiên ' +
+            'theo ma trận Eisenhower (diễn đạt bằng 1 câu ngắn gọn, ví dụ "Quan trọng nhưng không khẩn cấp"), xác định ' +
+            'danh mục phù hợp, và sinh các thẻ (tags) liên quan. CHỈ trả về JSON hợp lệ theo đúng cấu trúc yêu cầu, ' +
+            'KHÔNG dùng Markdown (không bọc trong dấu ```), KHÔNG giải thích thêm bất kỳ nội dung nào ngoài JSON.';
+
+        function buildAiSuggestPrompt(title) {
+            return `Tên công việc: "${title}"
+
+Hãy trả về DUY NHẤT 1 object JSON với đúng cấu trúc sau (không thêm trường nào khác, không thêm chú thích):
+{
+  "objective": "Mục tiêu SMART cho công việc này",
+  "description": "Mô tả chi tiết công việc cần làm",
+  "expected_result": "Kết quả mong đợi cụ thể, có thể đo lường",
+  "priority": "Mức ưu tiên theo ma trận Eisenhower, diễn đạt ngắn gọn bằng tiếng Việt",
+  "category": "Danh mục phù hợp cho công việc này",
+  "tags": ["thẻ 1", "thẻ 2", "thẻ 3"]
+}`;
+        }
+
+        // Cache theo đúng tên công việc (đã trim) — tên giống hệt lần trước thì không gọi lại API
+        const aiSuggestCache = {};
+
+        function _aiLog(...args)  { console.log('[AI Suggest]', ...args); }
+        function _aiWarn(...args) { console.warn('[AI Suggest]', ...args); }
+
+        function _aiWithTimeout(promise, ms) {
+            let timer;
+            const timeoutPromise = new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error('Hết thời gian chờ phản hồi từ Gemini (timeout)')), ms);
+            });
+            return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+        }
+
+        function _parseAiSuggestJson(rawText) {
+            if (!rawText) throw new Error('Gemini trả về nội dung rỗng');
+            let text = rawText.trim();
+            // Phòng trường hợp model vẫn bọc trong ```json ... ``` dù đã dặn không dùng Markdown
+            const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+            if (fenceMatch) text = fenceMatch[1].trim();
+            // Lấy đúng phần từ dấu { đầu tiên tới } cuối cùng, phòng model thêm chữ thừa trước/sau
+            const firstBrace = text.indexOf('{');
+            const lastBrace = text.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                text = text.substring(firstBrace, lastBrace + 1);
+            }
+            const json = JSON.parse(text);
+            return {
+                objective:       typeof json.objective === 'string' ? json.objective.trim() : '',
+                description:     typeof json.description === 'string' ? json.description.trim() : '',
+                expected_result: typeof json.expected_result === 'string' ? json.expected_result.trim() : '',
+                priority:        typeof json.priority === 'string' ? json.priority.trim() : '',
+                category:        typeof json.category === 'string' ? json.category.trim() : '',
+                tags: Array.isArray(json.tags) ? json.tags.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : []
+            };
+        }
+
+        // Service chính: phân tích tên công việc, trả về gợi ý các trường.
+        // Có cache theo tên công việc, timeout, retry và log — không đụng tới DOM.
+        // opts.forceRefresh = true -> bỏ qua cache, luôn gọi lại API (dùng cho nút "Gợi ý lại")
+        async function aiSuggestTaskFields(title, opts) {
+            opts = opts || {};
+            const key = (title || '').trim();
+            if (!key) throw new Error('Tên công việc rỗng');
+
+            if (!opts.forceRefresh && aiSuggestCache[key]) {
+                _aiLog('Dùng cache cho:', key);
+                return aiSuggestCache[key];
+            }
+
+            const prompt = buildAiSuggestPrompt(key);
+            let lastError = null;
+
+            for (let attempt = 0; attempt <= AI_SUGGEST_MAX_RETRY; attempt++) {
+                try {
+                    _aiLog(`Gọi Gemini phân tích (lần thử ${attempt + 1}/${AI_SUGGEST_MAX_RETRY + 1}):`, key);
+                    const rawText = await _aiWithTimeout(fetchGeminiText(prompt, AI_SUGGEST_SYSTEM_INSTRUCTION), AI_SUGGEST_TIMEOUT_MS);
+                    const result = _parseAiSuggestJson(rawText);
+                    aiSuggestCache[key] = result;
+                    _aiLog('Kết quả:', result);
+                    return result;
+                } catch (e) {
+                    lastError = e;
+                    _aiWarn(`Lần thử ${attempt + 1} thất bại:`, e.message || e);
+                }
+            }
+
+            throw lastError || new Error('Không lấy được gợi ý từ Gemini');
+        }
+

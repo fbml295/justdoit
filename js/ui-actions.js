@@ -53,6 +53,10 @@
         async function createNewTask() {
             const titleInput      = document.getElementById('task-title-input');
             const descInput       = document.getElementById('task-desc-input');
+            const objectiveInput  = document.getElementById('task-objective-input');
+            const expectedResultInput = document.getElementById('task-expected-result-input');
+            const categoryInput   = document.getElementById('task-category-input');
+            const tagsInput       = document.getElementById('task-tags-input');
             const areaTypeInput   = document.getElementById('task-area-type-input');
             const areaValueInput  = document.getElementById('task-area-value-input');
             const areaWorkshopInput = document.getElementById('task-area-workshop-input');
@@ -91,18 +95,27 @@
                 startdate:   startInput ? (startInput.value || today) : today,
                 deadline:    deadlineInput ? deadlineInput.value : '',
                 gtask:       gtaskToggle ? gtaskToggle.checked : false,
-                createdAt:   new Date().toISOString()
+                createdAt:   new Date().toISOString(),
+                objective:       objectiveInput ? objectiveInput.value.trim() : '',
+                expectedResult:  expectedResultInput ? expectedResultInput.value.trim() : '',
+                category:        categoryInput ? categoryInput.value.trim() : '',
+                tags:            tagsInput ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : []
             };
 
             state.tasks.unshift(newTask);
             titleInput.value = '';
             if (descInput)     descInput.value = '';
+            if (objectiveInput)      objectiveInput.value = '';
+            if (expectedResultInput) expectedResultInput.value = '';
+            if (categoryInput)       categoryInput.value = '';
+            if (tagsInput)           tagsInput.value = '';
             if (startInput)    startInput.value = '';
             if (deadlineInput) deadlineInput.value = '';
             if (gtaskToggle)   gtaskToggle.checked = false;
             setFormPriority('Q2');
             relInput.value = 'my-task';
             onRelationChange();
+            resetAiSuggestState(); // xoá gợi ý AI cũ + trạng thái theo dõi chỉnh sửa tay, chuẩn bị cho công việc tiếp theo
 
             renderTasks(); renderCalendar(); updateDashboardMetrics();
             saveToLocalStorage();

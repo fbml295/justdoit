@@ -185,7 +185,11 @@
                     startdate:    r.startdate || '',
                     deadline:     r.deadline || '',
                     gtask:        r.gtask === '1',
-                    createdAt:    r.createdAt || ''
+                    createdAt:    r.createdAt || '',
+                    objective:       r.objective || '',
+                    expectedResult:  r.expectedResult || '',
+                    category:        r.category || '',
+                    tags:            r.tags ? r.tags.split(';').filter(t => t) : []
                 }));
             }
 
@@ -303,8 +307,8 @@
             if (!state.sheetsUrl) return false;
             try {
                 return await sheetsPost('danh_sach_cong_viec',
-                    ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt'],
-                    state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||''])
+                    ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt','objective','expectedResult','category','tags'],
+                    state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||'', t.objective||'', t.expectedResult||'', t.category||'', (t.tags||[]).join(';')])
                 );
             } catch(e) { return false; }
         }
@@ -314,8 +318,8 @@
             if (!state.sheetsUrl) return;
 
             await sheetsPost('danh_sach_cong_viec',
-                ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt'],
-                state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||''])
+                ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt','objective','expectedResult','category','tags'],
+                state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||'', t.objective||'', t.expectedResult||'', t.category||'', (t.tags||[]).join(';')])
             );
             await sheetsPost('sang_kien_kaizen',
                 ['id','type','title','desc','status','progress'],

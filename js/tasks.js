@@ -450,3 +450,155 @@
             });
         }
 
+        // =============================================================
+        // AI SUGGEST — UI wiring cho tab "Khởi Tạo Công Việc Mới"
+        // Chỉ lo: debounce, điền vào ô, hiện hint, theo dõi chỉnh sửa tay, nút bấm.
+        // Việc gọi Gemini thực sự nằm ở service aiSuggestTaskFields() trong js/gemini-api.js.
+        // =============================================================
+
+        const AI_SUGGEST_DEBOUNCE_MS = 700; // trong khoảng 500-800ms theo yêu cầu
+
+        // Ánh xạ field gợi ý AI <-> ô input + dòng hint tương ứng trên form
+        const AI_SUGGEST_FIELD_MAP = {
+            description:     { inputId: 'task-desc-input',            hintId: 'task-desc-ai-hint' },
+            objective:       { inputId: 'task-objective-input',       hintId: 'task-objective-ai-hint' },
+            expected_result: { inputId: 'task-expected-result-input', hintId: 'task-expected-result-ai-hint' },
+            category:        { inputId: 'task-category-input',        hintId: 'task-category-ai-hint' },
+            tags:            { inputId: 'task-tags-input',             hintId: 'task-tags-ai-hint' }
+        };
+
+        let _aiLastSuggestion = null; // kết quả gợi ý AI gần nhất (dùng cho nút "Áp dụng gợi ý")
+        // Giá trị AI đã điền gần nhất cho từng ô — dùng để phát hiện người dùng có tự sửa tay hay không
+        const _aiLastAppliedValue = { description: '', objective: '', expected_result: '', category: '', tags: '' };
+
+        function _aiFieldValue(key, suggestion) {
+            if (key === 'tags') return (suggestion.tags || []).join(', ');
+            return suggestion[key] || '';
+        }
+
+        // Ô đang có nội dung KHÁC với gợi ý AI lần trước đã điền => coi là người dùng đã tự sửa tay
+        function _isFieldUserEdited(key) {
+            const cfg = AI_SUGGEST_FIELD_MAP[key];
+            const el = document.getElementById(cfg.inputId);
+            if (!el) return false;
+            const current = (el.value || '').trim();
+            if (!current) return false; // rỗng thì chưa có gì để coi là đã sửa
+            return current !== _aiLastAppliedValue[key];
+        }
+
+        function setAiStatus(text, type) {
+            const el = document.getElementById('task-ai-status');
+            if (!el) return;
+            if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
+            el.classList.remove('hidden');
+            el.textContent = text;
+            el.className = 'text-[10px] ' + (type === 'error' ? 'text-amber-400' : type === 'loading' ? 'text-[#777E90]' : 'text-emerald-400');
+        }
+
+        function renderAiHints(suggestion) {
+            Object.keys(AI_SUGGEST_FIELD_MAP).forEach(key => {
+                const cfg = AI_SUGGEST_FIELD_MAP[key];
+                const hintEl = document.getElementById(cfg.hintId);
+                if (!hintEl) return;
+                const span = hintEl.querySelector('span');
+                const val = _aiFieldValue(key, suggestion);
+                if (val) {
+                    hintEl.classList.remove('hidden');
+                    if (span) span.textContent = val;
+                }
+            });
+        }
+
+        // Điền gợi ý AI vào các ô ĐANG RỖNG hoặc CHƯA BỊ SỬA TAY — không ghi đè nội dung người dùng đã tự nhập.
+        // Các ô đã bị sửa tay vẫn được hiện dòng hint bên dưới để tham khảo (theo đúng yêu cầu).
+        function autoFillAiSuggestion(suggestion) {
+            Object.keys(AI_SUGGEST_FIELD_MAP).forEach(key => {
+                const cfg = AI_SUGGEST_FIELD_MAP[key];
+                const el = document.getElementById(cfg.inputId);
+                if (!el) return;
+                if (_isFieldUserEdited(key)) return; // đã sửa tay -> không tự ghi đè
+                const val = _aiFieldValue(key, suggestion);
+                el.value = val;
+                _aiLastAppliedValue[key] = val;
+            });
+            renderAiHints(suggestion);
+        }
+
+        // Nút [Áp dụng gợi ý]: ghi đè TOÀN BỘ bằng gợi ý AI gần nhất.
+        // Hỏi xác nhận trước nếu phát hiện có ô đã bị người dùng sửa tay.
+        function applyAiSuggestToFields() {
+            if (!_aiLastSuggestion) {
+                showNotification('Chưa có gợi ý AI nào để áp dụng. Hãy nhập Tên công việc trước.', 'error');
+                return;
+            }
+            const editedFields = Object.keys(AI_SUGGEST_FIELD_MAP).filter(k => _isFieldUserEdited(k));
+
+            const doApply = () => {
+                Object.keys(AI_SUGGEST_FIELD_MAP).forEach(key => {
+                    const cfg = AI_SUGGEST_FIELD_MAP[key];
+                    const el = document.getElementById(cfg.inputId);
+                    if (!el) return;
+                    const val = _aiFieldValue(key, _aiLastSuggestion);
+                    el.value = val;
+                    _aiLastAppliedValue[key] = val;
+                });
+                renderAiHints(_aiLastSuggestion);
+                showNotification('Đã áp dụng gợi ý AI vào các ô!', 'success');
+            };
+
+            if (editedFields.length > 0) {
+                confirmAction('Một số ô bạn đã tự chỉnh sửa (' + editedFields.length + ' ô). Áp dụng gợi ý AI sẽ GHI ĐÈ nội dung bạn đã sửa. Tiếp tục?', doApply);
+            } else {
+                doApply();
+            }
+        }
+
+        // Nút [✨ Gợi ý lại]: bỏ qua cache, luôn gọi lại Gemini cho đúng tên công việc hiện tại
+        async function reTriggerAiSuggest() {
+            const titleInput = document.getElementById('task-title-input');
+            const title = titleInput ? titleInput.value.trim() : '';
+            if (!title) {
+                showNotification('Vui lòng nhập Tên công việc trước.', 'error');
+                return;
+            }
+            await runAiSuggest(title, { forceRefresh: true });
+        }
+
+        async function runAiSuggest(title, opts) {
+            setAiStatus('⏳ Đang phân tích công việc...', 'loading');
+            try {
+                const suggestion = await aiSuggestTaskFields(title, opts);
+                _aiLastSuggestion = suggestion;
+                autoFillAiSuggestion(suggestion);
+                setAiStatus('✨ Đã có gợi ý từ Gemini', 'success');
+            } catch (e) {
+                console.warn('[AI Suggest] Lỗi khi lấy gợi ý:', e);
+                setAiStatus('⚠ Không lấy được gợi ý từ Gemini.', 'error');
+            }
+        }
+
+        // Gọi sau khi tạo xong 1 công việc, để chuẩn bị sạch sẽ cho công việc tiếp theo
+        function resetAiSuggestState() {
+            _aiLastSuggestion = null;
+            Object.keys(_aiLastAppliedValue).forEach(k => _aiLastAppliedValue[k] = '');
+            Object.values(AI_SUGGEST_FIELD_MAP).forEach(cfg => {
+                const hintEl = document.getElementById(cfg.hintId);
+                if (hintEl) hintEl.classList.add('hidden');
+            });
+            setAiStatus(null);
+        }
+
+        // Debounce 500-800ms sau khi người dùng dừng gõ ở ô "Tên công việc" -> tự động gọi AI Suggest.
+        // Tên công việc giống hệt lần trước -> lấy từ cache (xử lý trong aiSuggestTaskFields()), không gọi lại API.
+        (function initAiSuggestTitleListener() {
+            const titleInput = document.getElementById('task-title-input');
+            if (!titleInput) return;
+            let debounceTimer = null;
+            titleInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                const title = titleInput.value.trim();
+                if (!title) { resetAiSuggestState(); return; }
+                debounceTimer = setTimeout(() => { runAiSuggest(title); }, AI_SUGGEST_DEBOUNCE_MS);
+            });
+        })();
+
