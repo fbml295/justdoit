@@ -1,40 +1,7 @@
         async function boot() {
             bootLoadSettings();
-            initGoogleAuth(); // khởi tạo nút Đăng nhập Google + tự khôi phục phiên đăng nhập cũ (nếu còn hạn)
-
-            const hasLocal = loadFromLocalStorage();
-            if (hasLocal) {
-                renderTasks(); renderInitiatives(); renderLogs(); renderConfigView(); renderCalendar(); updateDashboardMetrics();
-            }
-
-            if (state.sheetsUrl) {
-                // Nếu có dữ liệu đang chờ đồng bộ (do lần trước mất mạng) → thử đẩy lên trước
-                if (hasPendingSync()) {
-                    setSyncStatus('syncing');
-                    const pushOk = await syncStateToSheets();
-                    if (pushOk) { clearPendingSync(); showNotification('✅ Đã đồng bộ dữ liệu tạm lên Google Sheets!', 'success'); }
-                }
-
-                setSyncStatus('syncing');
-                try {
-                    await loadStateFromSheets();
-                    renderTasks(); renderInitiatives(); renderLogs(); renderConfigView(); renderCalendar(); updateDashboardMetrics();
-                    setSyncStatus('ok');
-                } catch(e) {
-                    markPendingSync();
-                    setSyncStatus('pending');
-                    showNotification('⚠️ Không thể đồng bộ Sheets, đang dùng dữ liệu cục bộ.', 'error');
-                }
-            } else {
-                setSyncStatus('idle');
-                if (!hasLocal) {
-                    switchView('config');
-                    switchConfigSubTab('api');
-                    showNotification('Chào mừng! Hãy đăng nhập Google để bắt đầu.', 'success');
-                }
-            }
-
-            updateDashboardMetrics();
+            loadFromLocalStorage(); // khôi phục cache cục bộ để hiện ngay lập tức SAU KHI mở khoá (không hiện gì lúc này vì màn hình còn đang bị chặn)
+            initGoogleAuth(); // tự lo toàn bộ: hiện nút đăng nhập, khôi phục phiên cũ, và MỞ KHOÁ #app-main-content khi kết nối xong
         }
 
         // Tự động thử đồng bộ lại + kéo dữ liệu mới khi người dùng quay lại tab

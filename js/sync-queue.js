@@ -48,9 +48,11 @@
                 showNotification('Chưa đăng nhập Google hoặc chưa tìm thấy Google Sheet. Vào tab Kết Nối API.', 'error');
                 return;
             }
+            setSyncStatus('syncing');
             showNotification('Đang tải dữ liệu từ Google Sheets...', 'success');
             await loadStateFromSheets();
             renderTasks(); renderInitiatives(); renderLogs(); renderConfigView(); renderCalendar(); updateDashboardMetrics();
+            setSyncStatus('ok');
             showNotification('Đã tải xong dữ liệu từ Google Sheets!', 'success');
         }
 

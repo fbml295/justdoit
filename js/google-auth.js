@@ -1,11 +1,12 @@
 // =============================================================
-// ĐĂNG NHẬP GOOGLE
+// ĐĂNG NHẬP GOOGLE + CHẶN MÀN HÌNH CHÍNH (login gate)
 // Bước 1: dùng ĐÚNG nút chính thức "Sign in with Google" (google.accounts.id) để xác
-//         thực danh tính người dùng — nút này do Google tự vẽ ra, không phải nút tự
-//         thiết kế, nên ổn định và quen thuộc với người dùng hơn.
+//         thực danh tính người dùng.
 // Bước 2: ngay sau khi đăng nhập xong, xin thêm quyền truy cập Sheets + Drive
-//         (google.accounts.oauth2) để đọc/ghi dữ liệu — thay thế hoàn toàn Apps Script
-//         Web App trung gian của bản cũ.
+//         (google.accounts.oauth2) để đọc/ghi dữ liệu.
+// Chỉ khi CẢ 2 bước trên thành công VÀ tìm thấy đúng file Google Sheet trong thư mục
+// đã cấu hình, nội dung chính của app (#app-main-content) mới được hiện ra. Trước đó,
+// người dùng luôn thấy màn hình chặn #login-gate.
 // =============================================================
 
 const GOOGLE_OAUTH_SCOPES = [
@@ -18,6 +19,28 @@ const LS_GOOGLE_TOKEN = 'wms_google_token';
 let googleAccessToken = null;   // access token OAuth hiện tại (dùng gọi Sheets/Drive API)
 let googleTokenClient = null;   // token client của Google Identity Services (xin access token)
 let googleUserProfile = null;   // { name, email, picture, ... }
+
+// --- Hiện/ẩn màn hình chặn vs. nội dung chính ---
+function showAppContent() {
+    const gate = document.getElementById('login-gate');
+    const main = document.getElementById('app-main-content');
+    if (gate) gate.classList.add('hidden');
+    if (main) main.classList.remove('hidden');
+}
+
+function showLoginGate() {
+    const gate = document.getElementById('login-gate');
+    const main = document.getElementById('app-main-content');
+    if (main) main.classList.add('hidden');
+    if (gate) gate.classList.remove('hidden');
+}
+
+function setLoginGateLoading(text) {
+    const el = document.getElementById('login-gate-loading');
+    if (!el) return;
+    if (text) { el.classList.remove('hidden'); el.textContent = text; }
+    else { el.classList.add('hidden'); }
+}
 
 // Client ID chưa được điền / còn để nguyên placeholder trong js/google-config.js
 function isClientIdConfigured() {
@@ -33,11 +56,12 @@ function initGoogleAuth() {
     }
 
     if (!isClientIdConfigured()) {
+        setLoginGateLoading(null);
         showGoogleConfigError('Chưa điền CLIENT_ID hợp lệ trong file js/google-config.js (xem README.md, mục "Thiết lập Google").');
         return;
     }
 
-    // --- Bước 1: nút "Sign in with Google" chính thức ---
+    // --- Bước 1: nút "Sign in with Google" chính thức, đặt ở màn hình chặn ---
     google.accounts.id.initialize({
         client_id: GOOGLE_CONFIG.CLIENT_ID,
         callback: handleGoogleIdentityResponse,
@@ -56,6 +80,7 @@ function initGoogleAuth() {
             width: 280
         });
     }
+    setLoginGateLoading(null); // đã vẽ xong nút -> ẩn chữ "Đang chuẩn bị..."
 
     // --- Bước 2: token client để xin quyền Sheets/Drive (access token) ---
     googleTokenClient = google.accounts.oauth2.initTokenClient({
@@ -77,7 +102,7 @@ function handleGoogleIdentityResponse(response) {
         console.warn('Không đọc được thông tin từ ID token Google:', e);
     }
     updateGoogleAuthUI();
-    showNotification('Đăng nhập Google thành công! Đang xin quyền truy cập Sheets/Drive...', 'success');
+    setLoginGateLoading('⏳ Đăng nhập thành công, đang xin quyền truy cập Sheets/Drive...');
 
     // Đăng nhập xong -> xin ngay quyền (access token) để đọc/ghi Sheets + Drive
     if (googleTokenClient) {
@@ -85,7 +110,8 @@ function handleGoogleIdentityResponse(response) {
     }
 }
 
-// Đã có access token (đủ quyền Sheets/Drive) -> tìm file Sheet và tải dữ liệu
+// Đã có access token (đủ quyền Sheets/Drive) -> tìm file Sheet và tải dữ liệu.
+// CHỈ khi bước này xong xuôi, nội dung chính của app mới được hiện ra.
 async function handleGoogleTokenResponse(response) {
     if (response.error) {
         showGoogleConfigError('Không xin được quyền truy cập Google Sheets/Drive: ' + response.error
@@ -100,12 +126,18 @@ async function handleGoogleTokenResponse(response) {
 
     if (!googleUserProfile) await fetchGoogleUserProfile();
     updateGoogleAuthUI();
+    setLoginGateLoading('⏳ Đang tìm file Google Sheet trong thư mục đã cấu hình...');
 
     const spreadsheetId = await initSpreadsheetTarget();
     if (spreadsheetId) {
         state.sheetsUrl = spreadsheetId; // tái sử dụng field này làm cờ "đã kết nối" (xem ghi chú trong state.js)
         updateStorageModeUI(true);
+        setLoginGateLoading('⏳ Đang tải dữ liệu...');
         await forceLoadFromSheets();
+        setLoginGateLoading(null);
+        showAppContent(); // MỞ KHOÁ nội dung chính — chỉ tới đây mới cho xem app
+    } else {
+        setLoginGateLoading(null); // showGoogleConfigError() (gọi trong initSpreadsheetTarget) đã hiện lý do cụ thể
     }
 }
 
@@ -119,7 +151,7 @@ function signInWithGoogle() {
     googleTokenClient.requestAccessToken({ prompt: googleAccessToken ? '' : 'consent' });
 }
 
-// Bấm nút "Đăng xuất"
+// Bấm nút "Đăng xuất" (trong tab Cấu Hình) -> khoá lại app, hiện màn hình chặn
 function signOutGoogle() {
     if (googleAccessToken && window.google?.accounts?.oauth2?.revoke) {
         google.accounts.oauth2.revoke(googleAccessToken, () => {});
@@ -130,34 +162,48 @@ function signOutGoogle() {
     googleAccessToken = null;
     googleUserProfile = null;
     activeSpreadsheetId = null;
+    activeSpreadsheetName = null;
     state.sheetsUrl = '';
     localStorage.removeItem(LS_GOOGLE_TOKEN);
     updateGoogleAuthUI();
     updateStorageModeUI(false);
-    showNotification('Đã đăng xuất Google. Dữ liệu tạm thời chỉ lưu trong trình duyệt này.', 'success');
+    showLoginGate();
+    showNotification('Đã đăng xuất Google.', 'success');
 }
 
 // Khôi phục phiên đăng nhập cũ (nếu access token đã lưu còn hạn) khi mở lại trang
 function restoreGoogleSession() {
     const raw = localStorage.getItem(LS_GOOGLE_TOKEN);
-    if (!raw) return;
+    if (!raw) {
+        setLoginGateLoading(null);
+        return;
+    }
     try {
         const saved = JSON.parse(raw);
         if (saved.token && saved.expiresAt > Date.now()) {
             googleAccessToken = saved.token;
+            setLoginGateLoading('⏳ Đang khôi phục phiên đăng nhập trước đó...');
             fetchGoogleUserProfile().then(async () => {
                 updateGoogleAuthUI();
                 const spreadsheetId = await initSpreadsheetTarget();
                 if (spreadsheetId) {
                     state.sheetsUrl = spreadsheetId;
                     updateStorageModeUI(true);
+                    setLoginGateLoading('⏳ Đang tải dữ liệu...');
                     await forceLoadFromSheets();
+                    setLoginGateLoading(null);
+                    showAppContent();
+                } else {
+                    setLoginGateLoading(null);
                 }
             });
         } else {
             localStorage.removeItem(LS_GOOGLE_TOKEN);
+            setLoginGateLoading(null);
         }
-    } catch (e) { /* dữ liệu lưu bị hỏng, bỏ qua */ }
+    } catch (e) {
+        setLoginGateLoading(null);
+    }
 }
 
 async function fetchGoogleUserProfile() {
@@ -172,14 +218,18 @@ async function fetchGoogleUserProfile() {
     }
 }
 
-// Hiện lỗi cấu hình rõ ràng ngay trong khối kết quả của tab Kết Nối API,
-// thay vì để lỗi kỹ thuật khó hiểu của Google hiện ra
+// Hiện lỗi rõ ràng — nếu app CHƯA mở khoá (còn đang ở màn hình chặn) thì hiện ngay tại
+// đó; nếu app ĐÃ mở khoá rồi (đang ở trong tab Kết Nối API) thì hiện trong ô kết quả
+// của tab đó, đỡ phải khoá lại app chỉ vì 1 lỗi nhỏ khi thao tác sau này (ví dụ bấm
+// "Tải Lại Từ Sheets" mà token vừa hết hạn).
 function showGoogleConfigError(message) {
     showNotification(message, 'error');
-    const resultBox = document.getElementById('sheets-test-result');
+    const mainHidden = document.getElementById('app-main-content')?.classList.contains('hidden');
+    const boxId = mainHidden ? 'login-gate-status' : 'sheets-test-result';
+    const resultBox = document.getElementById(boxId);
     if (resultBox) {
         resultBox.classList.remove('hidden');
-        resultBox.className = 'text-[11px] p-3 rounded-xl bg-[#23262F] border border-rose-500/50 text-rose-400 font-mono whitespace-pre-wrap';
+        resultBox.className = 'text-[11px] p-3 rounded-xl bg-[#23262F] border border-rose-500/50 text-rose-400 font-mono whitespace-pre-wrap' + (boxId === 'login-gate-status' ? ' text-left' : '');
         resultBox.textContent = '❌ ' + message;
     }
 }
@@ -187,13 +237,11 @@ function showGoogleConfigError(message) {
 // Cập nhật hiển thị tên/ảnh người dùng + nút đăng xuất trong tab Kết Nối API
 function updateGoogleAuthUI() {
     const signedIn = !!googleUserProfile;
-    const btnContainer = document.getElementById('g_id_signin_button');
     const signOutBtn = document.getElementById('btn-google-signout');
     const nameEl     = document.getElementById('google-user-name');
     const emailEl    = document.getElementById('google-user-email');
     const avatarEl   = document.getElementById('google-user-avatar');
 
-    if (btnContainer) btnContainer.classList.toggle('hidden', signedIn);
     if (signOutBtn) signOutBtn.classList.toggle('hidden', !signedIn);
     if (nameEl)  nameEl.textContent  = googleUserProfile ? googleUserProfile.name  : '';
     if (emailEl) emailEl.textContent = googleUserProfile ? googleUserProfile.email : '';
