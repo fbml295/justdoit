@@ -1,12 +1,10 @@
 // =============================================================
-// ĐĂNG NHẬP GOOGLE + CHẶN MÀN HÌNH CHÍNH (login gate)
-// Bước 1: dùng ĐÚNG nút chính thức "Sign in with Google" (google.accounts.id) để xác
-//         thực danh tính người dùng.
-// Bước 2: ngay sau khi đăng nhập xong, xin thêm quyền truy cập Sheets + Drive
-//         (google.accounts.oauth2) để đọc/ghi dữ liệu.
-// Chỉ khi CẢ 2 bước trên thành công VÀ tìm thấy đúng file Google Sheet trong thư mục
-// đã cấu hình, nội dung chính của app (#app-main-content) mới được hiện ra. Trước đó,
-// người dùng luôn thấy màn hình chặn #login-gate.
+// ĐĂNG NHẬP GOOGLE (gộp 1 bước) + CHẶN MÀN HÌNH CHÍNH (login gate)
+// Dùng google.accounts.oauth2 (OAuth2 token client) để vừa đăng nhập vừa xin quyền
+// truy cập Sheets/Drive trong CÙNG 1 cửa sổ Google — chỉ hiện 1 lần, không hỏi 2 lần.
+// Chỉ khi đăng nhập xong VÀ tìm thấy đúng file Google Sheet trong thư mục đã cấu hình,
+// nội dung chính của app (#app-main-content) mới được hiện ra. Trước đó, người dùng
+// luôn thấy màn hình chặn #login-gate.
 // =============================================================
 
 const GOOGLE_OAUTH_SCOPES = [
@@ -50,7 +48,7 @@ function isClientIdConfigured() {
 
 // Gọi 1 lần khi trang tải xong (boot()), sau khi thư viện GIS (accounts.google.com/gsi/client) đã sẵn sàng
 function initGoogleAuth() {
-    if (!window.google || !google.accounts || !google.accounts.id || !google.accounts.oauth2) {
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
         setTimeout(initGoogleAuth, 500); // script CDN có thể tải chậm hơn, thử lại sau nửa giây
         return;
     }
@@ -61,60 +59,31 @@ function initGoogleAuth() {
         return;
     }
 
-    // --- Bước 1: nút "Sign in with Google" chính thức, đặt ở màn hình chặn ---
-    google.accounts.id.initialize({
-        client_id: GOOGLE_CONFIG.CLIENT_ID,
-        callback: handleGoogleIdentityResponse,
-        auto_select: false
-    });
-
-    const btnContainer = document.getElementById('g_id_signin_button');
-    if (btnContainer) {
-        btnContainer.innerHTML = '';
-        google.accounts.id.renderButton(btnContainer, {
-            type: 'standard',
-            theme: 'filled_black',
-            size: 'large',
-            shape: 'pill',
-            text: 'signin_with',
-            width: 280
-        });
-    }
-    setLoginGateLoading(null); // đã vẽ xong nút -> ẩn chữ "Đang chuẩn bị..."
-
-    // --- Bước 2: token client để xin quyền Sheets/Drive (access token) ---
+    // Token client: 1 cửa sổ Google duy nhất, vừa chọn tài khoản vừa xin quyền Sheets/Drive
     googleTokenClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CONFIG.CLIENT_ID,
         scope: GOOGLE_OAUTH_SCOPES,
         callback: handleGoogleTokenResponse
     });
 
+    setLoginGateLoading(null); // sẵn sàng -> ẩn chữ "Đang chuẩn bị...", hiện nút bấm
     restoreGoogleSession();
 }
 
-// Người dùng bấm xong nút "Sign in with Google" chính thức -> có ID token định danh
-function handleGoogleIdentityResponse(response) {
-    try {
-        const payloadBase64 = response.credential.split('.')[1];
-        const payload = JSON.parse(decodeURIComponent(escape(atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/')))));
-        googleUserProfile = { name: payload.name, email: payload.email, picture: payload.picture };
-    } catch (e) {
-        console.warn('Không đọc được thông tin từ ID token Google:', e);
+// Bấm nút "Đăng Nhập Bằng Google" ở màn hình chặn (hoặc nút dự phòng trong tab Cấu Hình)
+function signInWithGoogle() {
+    if (!googleTokenClient) {
+        showNotification('Google Identity Services chưa sẵn sàng, thử tải lại trang.', 'error');
+        return;
     }
-    updateGoogleAuthUI();
-    setLoginGateLoading('⏳ Đăng nhập thành công, đang xin quyền truy cập Sheets/Drive...');
-
-    // Đăng nhập xong -> xin ngay quyền (access token) để đọc/ghi Sheets + Drive
-    if (googleTokenClient) {
-        googleTokenClient.requestAccessToken({ prompt: googleAccessToken ? '' : 'consent' });
-    }
+    googleTokenClient.requestAccessToken({ prompt: googleAccessToken ? '' : 'consent' });
 }
 
-// Đã có access token (đủ quyền Sheets/Drive) -> tìm file Sheet và tải dữ liệu.
-// CHỈ khi bước này xong xuôi, nội dung chính của app mới được hiện ra.
+// Đã có access token (đủ quyền Sheets/Drive) -> lấy thông tin tài khoản, tìm file Sheet
+// và tải dữ liệu. CHỈ khi bước này xong xuôi, nội dung chính của app mới được hiện ra.
 async function handleGoogleTokenResponse(response) {
     if (response.error) {
-        showGoogleConfigError('Không xin được quyền truy cập Google Sheets/Drive: ' + response.error
+        showGoogleConfigError('Đăng nhập/cấp quyền Google thất bại: ' + response.error
             + '. Kiểm tra lại CLIENT_ID trong js/google-config.js và Authorized JavaScript origins trong Google Cloud Console.');
         return;
     }
@@ -124,10 +93,11 @@ async function handleGoogleTokenResponse(response) {
         expiresAt: Date.now() + (Number(response.expires_in || 3500) * 1000)
     }));
 
-    if (!googleUserProfile) await fetchGoogleUserProfile();
+    setLoginGateLoading('⏳ Đăng nhập thành công, đang lấy thông tin tài khoản...');
+    await fetchGoogleUserProfile();
     updateGoogleAuthUI();
-    setLoginGateLoading('⏳ Đang tìm file Google Sheet trong thư mục đã cấu hình...');
 
+    setLoginGateLoading('⏳ Đang tìm file Google Sheet trong thư mục đã cấu hình...');
     const spreadsheetId = await initSpreadsheetTarget();
     if (spreadsheetId) {
         state.sheetsUrl = spreadsheetId; // tái sử dụng field này làm cờ "đã kết nối" (xem ghi chú trong state.js)
@@ -141,23 +111,10 @@ async function handleGoogleTokenResponse(response) {
     }
 }
 
-// Nút dự phòng: xin lại quyền truy cập Sheets/Drive (ví dụ khi access token hết hạn
-// nhưng người dùng vẫn còn đăng nhập Google trên trình duyệt)
-function signInWithGoogle() {
-    if (!googleTokenClient) {
-        showNotification('Google Identity Services chưa sẵn sàng, thử tải lại trang.', 'error');
-        return;
-    }
-    googleTokenClient.requestAccessToken({ prompt: googleAccessToken ? '' : 'consent' });
-}
-
 // Bấm nút "Đăng xuất" (trong tab Cấu Hình) -> khoá lại app, hiện màn hình chặn
 function signOutGoogle() {
     if (googleAccessToken && window.google?.accounts?.oauth2?.revoke) {
         google.accounts.oauth2.revoke(googleAccessToken, () => {});
-    }
-    if (window.google?.accounts?.id?.disableAutoSelect) {
-        google.accounts.id.disableAutoSelect();
     }
     googleAccessToken = null;
     googleUserProfile = null;
