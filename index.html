@@ -16,7 +16,26 @@
 </head>
 <body>
 
+    <!-- ===================== MÀN HÌNH ĐĂNG NHẬP (chặn app cho tới khi kết nối xong) ===================== -->
+    <div id="login-gate" class="fixed inset-0 z-[999] bg-[#0D0E12] flex items-center justify-center p-6">
+        <div class="max-w-sm w-full bg-[#14161C] border border-[#B6FF2E]/30 rounded-2xl p-8 space-y-5 text-center shadow-[0_0_30px_rgba(182,255,46,0.08)]">
+            <div class="text-4xl">🏭</div>
+            <div>
+                <h1 class="text-base font-bold text-[#F4F5F6]">Hệ Thống Quản Trị Công Việc</h1>
+                <p class="text-[11px] text-[#777E90] mt-1">Đăng nhập bằng Google để tiếp tục</p>
+            </div>
 
+            <div id="login-gate-loading" class="text-[11px] text-[#777E90] font-mono">⏳ Đang chuẩn bị đăng nhập Google...</div>
+            <div id="g_id_signin_button" class="flex justify-center"></div>
+
+            <div id="login-gate-status" class="hidden text-[11px] p-3 rounded-xl bg-[#23262F] border border-rose-500/50 text-rose-400 font-mono whitespace-pre-wrap text-left"></div>
+
+            <p class="text-[10px] text-[#777E90]">Chỉ tài khoản đã được cấp quyền truy cập vào thư mục dữ liệu mới xem được nội dung bên trong.</p>
+        </div>
+    </div>
+
+    <!-- ===================== NỘI DUNG CHÍNH CỦA APP (chỉ hiện sau khi đăng nhập + kết nối Sheet thành công) ===================== -->
+    <div id="app-main-content" class="hidden">
     <div class="flex min-h-screen">
         
         <!-- SIDEBAR (MÁY TÍNH & TABLET - COMPACT ICON RAIL) -->
@@ -710,7 +729,7 @@
                                     <span id="sheets-status-badge" class="text-[10px] px-2 py-0.5 rounded font-mono bg-[#353945] text-[#777E90]">Chưa kết nối</span>
                                 </div>
                                 <div class="space-y-3 text-xs">
-                                    <div id="g_id_signin_button" class="flex justify-center"></div>
+                                    <p class="text-[10px] text-[#777E90]">Bạn đã đăng nhập Google (xem thông tin tài khoản bên dưới). Muốn đổi tài khoản khác, hãy đăng xuất rồi tải lại trang.</p>
 
                                     <div id="btn-google-signout" class="hidden flex items-center justify-between bg-[#23262F] rounded-xl p-3 border border-[#353945]">
                                         <div class="flex items-center gap-2 min-w-0">
@@ -956,6 +975,7 @@
             </button>
         </nav>
 
+    </div>
     </div>
 
     
