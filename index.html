@@ -308,11 +308,44 @@
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
                                     <input id="task-title-input" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
+                                    <div class="flex items-center justify-between mt-1">
+                                        <p id="task-ai-status" class="text-[10px] text-[#777E90] hidden"></p>
+                                        <div class="flex gap-2 ml-auto">
+                                            <button type="button" onclick="reTriggerAiSuggest()" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#B6FF2E] border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10">✨ Gợi ý lại</button>
+                                            <button type="button" onclick="applyAiSuggestToFields()" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#777E90] border border-[#353945] hover:text-[#F4F5F6]">Áp dụng gợi ý</button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <!-- Nội dung chi tiết -->
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">NỘI DUNG CHI TIẾT</label>
                                     <textarea id="task-desc-input" rows="2" placeholder="Mô tả chi tiết, yêu cầu, kết quả mong đợi..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition resize-none text-[11px]"></textarea>
+                                    <p id="task-desc-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý từ Gemini: <span></span></p>
+                                </div>
+                                <!-- Mục tiêu (AI gợi ý) -->
+                                <div>
+                                    <label class="block font-medium text-[#777E90] mb-1">MỤC TIÊU</label>
+                                    <textarea id="task-objective-input" rows="2" placeholder="Mục tiêu SMART cho công việc này..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition resize-none text-[11px]"></textarea>
+                                    <p id="task-objective-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý từ Gemini: <span></span></p>
+                                </div>
+                                <!-- Kết quả mong đợi (AI gợi ý) -->
+                                <div>
+                                    <label class="block font-medium text-[#777E90] mb-1">KẾT QUẢ MONG ĐỢI</label>
+                                    <textarea id="task-expected-result-input" rows="2" placeholder="Kết quả cụ thể, có thể đo lường được..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition resize-none text-[11px]"></textarea>
+                                    <p id="task-expected-result-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý từ Gemini: <span></span></p>
+                                </div>
+                                <!-- Danh mục + Thẻ (AI gợi ý) -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
+                                        <input id="task-category-input" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                        <p id="task-category-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý: <span></span></p>
+                                    </div>
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách bằng dấu phẩy)</label>
+                                        <input id="task-tags-input" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                        <p id="task-tags-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý: <span></span></p>
+                                    </div>
                                 </div>
                                 <!-- Khu vực - chọn 2 bước -->
                                 <div>
