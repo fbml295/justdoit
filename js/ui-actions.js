@@ -99,7 +99,8 @@
                 objective:       objectiveInput ? objectiveInput.value.trim() : '',
                 expectedResult:  expectedResultInput ? expectedResultInput.value.trim() : '',
                 category:        categoryInput ? categoryInput.value.trim() : '',
-                tags:            tagsInput ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : []
+                tags:            tagsInput ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : [],
+                plan:            _planDraft ? JSON.parse(JSON.stringify(_planDraft)) : null
             };
 
             state.tasks.unshift(newTask);
@@ -116,6 +117,7 @@
             relInput.value = 'my-task';
             onRelationChange();
             resetAiSuggestState(); // xoá gợi ý AI cũ + trạng thái theo dõi chỉnh sửa tay, chuẩn bị cho công việc tiếp theo
+            resetAiPlanState();    // xoá kế hoạch nháp AI Planning, chuẩn bị cho công việc tiếp theo
 
             renderTasks(); renderCalendar(); updateDashboardMetrics();
             saveToLocalStorage();

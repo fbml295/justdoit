@@ -423,6 +423,7 @@
                             <div class="min-w-0">
                                 <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
                                 ${descHtml}
+                                ${renderTaskPlanSection(task)}
                             </div>
                         </div>
                         <!-- NGĂN PHẢI - hẹp hơn: thông tin còn lại -->
@@ -601,4 +602,291 @@
                 debounceTimer = setTimeout(() => { runAiSuggest(title); }, AI_SUGGEST_DEBOUNCE_MS);
             });
         })();
+
+        // =============================================================
+        // 🧠 AI PROJECT PLANNING ASSISTANT
+        // AI chỉ GỢI Ý (SMART/Pareto/Eisenhower/Action Plan/KPI/Rủi ro/Biện pháp/Hồ sơ).
+        // Người dùng tick chọn mục cần dùng -> bấm "Thêm Vào Kế Hoạch" mới thực sự được
+        // thêm vào kế hoạch nháp (đi kèm công việc khi tạo). Sau khi thêm, mỗi mục có
+        // trạng thái riêng (⬜ Chưa thực hiện / 🔄 Đang thực hiện / ✅ Hoàn thành), bấm để
+        // đổi trạng thái theo vòng. Có thể xoá bất cứ lúc nào. Dashboard tự cập nhật theo
+        // thời gian thực. Không nhóm nào bị trộn lẫn với nhóm khác.
+        // =============================================================
+
+        const PLAN_GROUP_DEFS = [
+            { key: 'pareto',      aiKey: 'pareto',       label: '📊 Pareto' },
+            { key: 'actionPlan',  aiKey: 'action_plan',  label: '🪜 Action Plan' },
+            { key: 'kpi',         aiKey: 'kpi',           label: '🎯 KPI' },
+            { key: 'risks',       aiKey: 'risks',         label: '⚠️ Rủi ro' },
+            { key: 'mitigations', aiKey: 'mitigations',   label: '🛡️ Biện pháp' },
+            { key: 'documents',   aiKey: 'documents',     label: '📁 Hồ sơ' }
+        ];
+        const PLAN_EISENHOWER_DEFS = [
+            { key: 'doNow',     aiKey: 'do_now',    label: '🔥 Làm ngay' },
+            { key: 'schedule',  aiKey: 'schedule',   label: '📅 Lên lịch' },
+            { key: 'delegate',  aiKey: 'delegate',   label: '🤝 Giao người khác' },
+            { key: 'eliminate', aiKey: 'eliminate',  label: '🚫 Không ưu tiên' }
+        ];
+
+        function emptyPlanGroups() {
+            return {
+                pareto: [], actionPlan: [], kpi: [], risks: [], mitigations: [], documents: [],
+                eisenhower: { doNow: [], schedule: [], delegate: [], eliminate: [] }
+            };
+        }
+
+        let _planDraft = null;          // { groups: {...} } — kế hoạch nháp, sẽ gắn vào công việc khi tạo
+        let _lastPlanSuggestion = null; // gợi ý AI gốc gần nhất (để đọc checkbox khi bấm "Thêm Vào Kế Hoạch")
+
+        function _planAllGroupArrays(plan) {
+            return [
+                plan.groups.pareto, plan.groups.actionPlan, plan.groups.kpi,
+                plan.groups.risks, plan.groups.mitigations, plan.groups.documents,
+                plan.groups.eisenhower.doNow, plan.groups.eisenhower.schedule,
+                plan.groups.eisenhower.delegate, plan.groups.eisenhower.eliminate
+            ];
+        }
+        function _findPlanItem(plan, itemId) {
+            for (const arr of _planAllGroupArrays(plan)) {
+                const idx = arr.findIndex(i => i.id === itemId);
+                if (idx !== -1) return { arr, idx };
+            }
+            return null;
+        }
+        function calcPlanProgress(plan) {
+            if (!plan) return { total: 0, done: 0, progress: 0, pending: 0, percent: 0 };
+            const all = _planAllGroupArrays(plan).flat();
+            const total = all.length;
+            const done = all.filter(i => i.status === 'done').length;
+            const progress = all.filter(i => i.status === 'progress').length;
+            return { total, done, progress, pending: total - done - progress, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
+        }
+        function planStatusIcon(status) { return status === 'done' ? '✅' : status === 'progress' ? '🔄' : '⬜'; }
+        function planNextStatus(status) { return status === 'pending' ? 'progress' : status === 'progress' ? 'done' : 'pending'; }
+
+        function setAiPlanStatus(text, type) {
+            const el = document.getElementById('ai-plan-status');
+            if (!el) return;
+            if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
+            el.classList.remove('hidden');
+            el.textContent = text;
+            el.className = 'text-[10px] ' + (type === 'error' ? 'text-amber-400' : type === 'loading' ? 'text-[#777E90]' : 'text-emerald-400');
+        }
+
+        // Render 1 nhóm gợi ý AI (checkbox, chưa thêm vào kế hoạch)
+        function _renderAiPlanSuggestionGroup(containerId, items, groupKey, subKey) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (!items || items.length === 0) {
+                container.innerHTML = '<p class="text-[10px] text-[#777E90] italic">Không có gợi ý.</p>';
+                return;
+            }
+            const idPrefix = 'ai-plan-check-' + groupKey + (subKey ? '-' + subKey : '');
+            container.innerHTML = items.map((text, i) => `
+                <label class="flex items-start gap-2 py-0.5 text-[11px] text-[#F4F5F6] cursor-pointer hover:bg-[#14161C] rounded-lg px-1.5 -mx-1.5">
+                    <input type="checkbox" id="${idPrefix}-${i}" data-text="${text.replace(/"/g, '&quot;')}" class="mt-0.5 w-3.5 h-3.5 rounded accent-[#B6FF2E] flex-shrink-0">
+                    <span>${text}</span>
+                </label>
+            `).join('');
+        }
+
+        function renderAiPlanSuggestions(suggestion) {
+            const smartEl = document.getElementById('ai-plan-smart-text');
+            if (smartEl) smartEl.textContent = suggestion.smart || '(không có)';
+
+            PLAN_GROUP_DEFS.forEach(def => {
+                _renderAiPlanSuggestionGroup('ai-plan-list-' + def.key, suggestion[def.aiKey], def.key);
+            });
+            PLAN_EISENHOWER_DEFS.forEach(def => {
+                _renderAiPlanSuggestionGroup('ai-plan-list-eisenhower-' + def.key, (suggestion.eisenhower || {})[def.aiKey], 'eisenhower', def.key);
+            });
+
+            const block = document.getElementById('ai-plan-suggestions-block');
+            if (block) block.classList.remove('hidden');
+        }
+
+        // Nút [🧠 Phân Tích Kế Hoạch AI] — kích hoạt thủ công (không tự động), vì đây là
+        // 1 lần gọi AI nặng hơn nhiều (8 nhóm gợi ý cùng lúc) so với AI Suggest đơn giản.
+        async function triggerAiPlanAnalysis() {
+            const titleInput = document.getElementById('task-title-input');
+            const title = titleInput ? titleInput.value.trim() : '';
+            if (!title) { showNotification('Vui lòng nhập Tên công việc trước.', 'error'); return; }
+
+            setAiPlanStatus('⏳ Đang phân tích kế hoạch...', 'loading');
+            try {
+                const suggestion = await aiGeneratePlan(title);
+                _lastPlanSuggestion = suggestion;
+                renderAiPlanSuggestions(suggestion);
+                setAiPlanStatus('✨ Đã có gợi ý kế hoạch từ Gemini — tick chọn mục cần dùng rồi bấm "Thêm Vào Kế Hoạch"', 'success');
+            } catch (e) {
+                console.warn('[AI Plan] Lỗi khi lấy gợi ý:', e);
+                setAiPlanStatus('⚠ Không lấy được gợi ý từ Gemini.', 'error');
+            }
+        }
+
+        // Nút [➕ Thêm Vào Kế Hoạch] — chỉ những mục ĐÃ TICK mới được thêm vào kế hoạch nháp.
+        // Mỗi nhóm lưu riêng biệt, không trộn lẫn.
+        function addCheckedSuggestionsToPlan() {
+            if (!_planDraft) _planDraft = { groups: emptyPlanGroups() };
+            let addedCount = 0;
+
+            const addFromGroup = (targetArr, idPrefix) => {
+                document.querySelectorAll(`input[id^="${idPrefix}-"]:checked`).forEach(cb => {
+                    const text = cb.dataset.text;
+                    if (!text) return;
+                    if (!targetArr.some(it => it.text === text)) {
+                        targetArr.push({ id: 'PI' + Date.now() + Math.random().toString(36).substr(2, 4), text, status: 'pending' });
+                        addedCount++;
+                    }
+                    cb.checked = false;
+                });
+            };
+
+            PLAN_GROUP_DEFS.forEach(def => addFromGroup(_planDraft.groups[def.key], 'ai-plan-check-' + def.key));
+            PLAN_EISENHOWER_DEFS.forEach(def => addFromGroup(_planDraft.groups.eisenhower[def.key], 'ai-plan-check-eisenhower-' + def.key));
+
+            if (addedCount === 0) { showNotification('Chưa tick chọn mục nào để thêm vào kế hoạch.', 'error'); return; }
+            showNotification('Đã thêm ' + addedCount + ' mục vào kế hoạch!', 'success');
+            renderPlanDraftPreview();
+        }
+
+        // Hiện danh sách 1 nhóm dạng checklist có thể đổi trạng thái + xoá (dùng chung cho
+        // cả kế hoạch nháp lúc đang tạo VÀ kế hoạch đã lưu kèm công việc)
+        function renderPlanChecklistGroup(items, toggleFnName, deleteFnName, ownerId) {
+            if (!items || items.length === 0) return '';
+            return items.map(it => `
+                <div class="flex items-center gap-2 py-0.5 text-[11px] text-[#F4F5F6]">
+                    <button type="button" onclick="${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
+                    <span class="flex-1 ${it.status === 'done' ? 'line-through text-[#777E90]' : ''}">${it.text}</span>
+                    <button type="button" onclick="${deleteFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="text-[#777E90] hover:text-rose-400 flex-shrink-0 text-[10px]">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function renderPlanDraftPreview() {
+            const block = document.getElementById('ai-plan-draft-block');
+            const groupsEl = document.getElementById('ai-plan-draft-groups');
+            const progressEl = document.getElementById('ai-plan-draft-progress');
+            if (!block || !groupsEl) return;
+
+            if (!_planDraft) { block.classList.add('hidden'); return; }
+            const progress = calcPlanProgress(_planDraft);
+            if (progress.total === 0) { block.classList.add('hidden'); return; }
+
+            block.classList.remove('hidden');
+            if (progressEl) progressEl.textContent = `${progress.done}/${progress.total} · ${progress.percent}%`;
+
+            let html = '';
+            PLAN_GROUP_DEFS.forEach(def => {
+                const items = _planDraft.groups[def.key];
+                if (items.length === 0) return;
+                html += `<div class="bg-[#23262F] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">${def.label}</p>${renderPlanChecklistGroup(items, 'toggleDraftItem', 'deleteDraftItem')}</div>`;
+            });
+            PLAN_EISENHOWER_DEFS.forEach(def => {
+                const items = _planDraft.groups.eisenhower[def.key];
+                if (items.length === 0) return;
+                html += `<div class="bg-[#23262F] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ Eisenhower — ${def.label}</p>${renderPlanChecklistGroup(items, 'toggleDraftItem', 'deleteDraftItem')}</div>`;
+            });
+            groupsEl.innerHTML = html;
+        }
+
+        function toggleDraftItem(itemId) {
+            if (!_planDraft) return;
+            const found = _findPlanItem(_planDraft, itemId);
+            if (found) { found.arr[found.idx].status = planNextStatus(found.arr[found.idx].status); renderPlanDraftPreview(); }
+        }
+        function deleteDraftItem(itemId) {
+            if (!_planDraft) return;
+            const found = _findPlanItem(_planDraft, itemId);
+            if (found) { found.arr.splice(found.idx, 1); renderPlanDraftPreview(); }
+        }
+
+        // Gọi sau khi tạo công việc thành công, để chuẩn bị sạch cho công việc tiếp theo
+        function resetAiPlanState() {
+            _planDraft = null;
+            _lastPlanSuggestion = null;
+            const suggestBlock = document.getElementById('ai-plan-suggestions-block');
+            const draftBlock = document.getElementById('ai-plan-draft-block');
+            if (suggestBlock) suggestBlock.classList.add('hidden');
+            if (draftBlock) draftBlock.classList.add('hidden');
+            setAiPlanStatus(null);
+        }
+
+        // --- Theo dõi kế hoạch của 1 công việc ĐÃ TẠO (trong thẻ công việc ở danh sách) ---
+        function toggleTaskPlanItem(taskId, itemId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task || !task.plan) return;
+            const found = _findPlanItem(task.plan, itemId);
+            if (found) {
+                found.arr[found.idx].status = planNextStatus(found.arr[found.idx].status);
+                renderTasks(); saveToLocalStorage(); trySyncTasks();
+            }
+        }
+        function deleteTaskPlanItem(taskId, itemId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task || !task.plan) return;
+            const found = _findPlanItem(task.plan, itemId);
+            if (found) {
+                found.arr.splice(found.idx, 1);
+                renderTasks(); saveToLocalStorage(); trySyncTasks();
+            }
+        }
+        function addManualPlanItem(taskId, groupSelectId, inputId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            if (!task.plan) task.plan = { groups: emptyPlanGroups() };
+            const groupSelect = document.getElementById(groupSelectId);
+            const input = document.getElementById(inputId);
+            const text = input ? input.value.trim() : '';
+            if (!text) { showNotification('Vui lòng nhập nội dung mục cần thêm.', 'error'); return; }
+
+            const groupVal = groupSelect ? groupSelect.value : 'actionPlan';
+            const newItem = { id: 'PI' + Date.now() + Math.random().toString(36).substr(2, 4), text, status: 'pending' };
+            if (groupVal.startsWith('eisenhower.')) {
+                task.plan.groups.eisenhower[groupVal.split('.')[1]].push(newItem);
+            } else {
+                task.plan.groups[groupVal].push(newItem);
+            }
+            input.value = '';
+            renderTasks(); saveToLocalStorage(); trySyncTasks();
+        }
+
+        // Render toàn bộ kế hoạch của 1 công việc đã tạo (dùng trong thẻ công việc, xem renderTasks())
+        function renderTaskPlanSection(task) {
+            if (!task.plan) return '';
+            const progress = calcPlanProgress(task.plan);
+            if (progress.total === 0) return '';
+
+            let groupsHtml = '';
+            PLAN_GROUP_DEFS.forEach(def => {
+                const items = task.plan.groups[def.key];
+                if (!items || items.length === 0) return;
+                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', task.id)}</div>`;
+            });
+            PLAN_EISENHOWER_DEFS.forEach(def => {
+                const items = task.plan.groups.eisenhower[def.key];
+                if (!items || items.length === 0) return;
+                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ ${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', task.id)}</div>`;
+            });
+
+            const selectId = 'plan-add-group-' + task.id;
+            const inputId = 'plan-add-input-' + task.id;
+            const allGroupOptions = PLAN_GROUP_DEFS.map(d => `<option value="${d.key}">${d.label}</option>`)
+                .concat(PLAN_EISENHOWER_DEFS.map(d => `<option value="eisenhower.${d.key}">⏰ ${d.label}</option>`)).join('');
+
+            return `
+                <details class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
+                    <summary class="cursor-pointer text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
+                        <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
+                        <span class="text-[#F4F5F6]">${progress.percent}%</span>
+                    </summary>
+                    <div class="mt-2 space-y-1.5">${groupsHtml}</div>
+                    <div class="mt-2 flex gap-1.5">
+                        <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
+                        <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
+                        <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                    </div>
+                </details>
+            `;
+        }
 

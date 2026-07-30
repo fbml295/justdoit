@@ -541,3 +541,104 @@ Hãy trả về DUY NHẤT 1 object JSON với đúng cấu trúc sau (không th
             throw lastError || new Error('Không lấy được gợi ý từ Gemini');
         }
 
+        // =============================================================
+        // AI PLANNING — sinh gợi ý lập kế hoạch đầy đủ (SMART/Pareto/Eisenhower/
+        // Action Plan/KPI/Rủi ro/Biện pháp/Hồ sơ) cho tab "Khởi Tạo Công Việc Mới".
+        // Service riêng biệt, không đụng tới DOM — phần UI nằm ở js/tasks.js.
+        // =============================================================
+
+        const AI_PLAN_TIMEOUT_MS = 30000; // nặng hơn AI Suggest thường (8 nhóm cùng lúc) -> cho thêm thời gian
+        const AI_PLAN_MAX_RETRY = 1;
+        const AI_PLAN_SYSTEM_INSTRUCTION =
+            'Bạn là chuyên gia quản lý dự án và cải tiến doanh nghiệp, thành thạo các phương pháp SMART, nguyên tắc ' +
+            'Pareto (80/20), ma trận Eisenhower, lập Action Plan, xây dựng KPI, quản trị rủi ro. Nhiệm vụ: phân tích tên ' +
+            'công việc được cung cấp và sinh ra đầy đủ các nhóm gợi ý lập kế hoạch theo đúng cấu trúc JSON yêu cầu. ' +
+            'CHỈ trả về JSON hợp lệ, KHÔNG dùng Markdown (không bọc trong dấu ```), KHÔNG giải thích thêm bất kỳ nội dung ' +
+            'nào ngoài JSON. Mỗi mục trong các danh sách là 1 câu ngắn gọn, cụ thể, có thể dùng làm 1 dòng việc cần làm.';
+
+        function buildAiPlanPrompt(title) {
+            return `Tên công việc: "${title}"
+
+Hãy trả về DUY NHẤT 1 object JSON với đúng cấu trúc sau (không thêm trường nào khác, không thêm chú thích):
+{
+  "smart": "Mục tiêu SMART viết thành 1 đoạn ngắn",
+  "pareto": ["việc quan trọng nhất 1", "việc quan trọng nhất 2", "..."],
+  "eisenhower": {
+    "do_now": ["việc cần làm ngay 1", "..."],
+    "schedule": ["việc nên lên lịch 1", "..."],
+    "delegate": ["việc nên giao người khác 1", "..."],
+    "eliminate": ["việc không cần ưu tiên 1", "..."]
+  },
+  "action_plan": ["bước 1", "bước 2", "..."],
+  "kpi": ["chỉ số KPI 1", "..."],
+  "risks": ["rủi ro 1", "..."],
+  "mitigations": ["biện pháp phòng ngừa 1", "..."],
+  "documents": ["hồ sơ/tài liệu cần chuẩn bị 1", "..."]
+}
+Mỗi danh sách nên có khoảng 3-6 mục, ngắn gọn, thực tế, phù hợp với môi trường nhà máy/bảo trì công nghiệp.`;
+        }
+
+        const aiPlanCache = {};
+
+        function _parseAiPlanJson(rawText) {
+            if (!rawText) throw new Error('Gemini trả về nội dung rỗng');
+            let text = rawText.trim();
+            const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+            if (fenceMatch) text = fenceMatch[1].trim();
+            const firstBrace = text.indexOf('{');
+            const lastBrace = text.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                text = text.substring(firstBrace, lastBrace + 1);
+            }
+            const json = JSON.parse(text);
+            const asStrList = (v) => Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()) : [];
+            const eh = json.eisenhower || {};
+            return {
+                smart: typeof json.smart === 'string' ? json.smart.trim() : '',
+                pareto: asStrList(json.pareto),
+                eisenhower: {
+                    do_now: asStrList(eh.do_now),
+                    schedule: asStrList(eh.schedule),
+                    delegate: asStrList(eh.delegate),
+                    eliminate: asStrList(eh.eliminate)
+                },
+                action_plan: asStrList(json.action_plan),
+                kpi: asStrList(json.kpi),
+                risks: asStrList(json.risks),
+                mitigations: asStrList(json.mitigations),
+                documents: asStrList(json.documents)
+            };
+        }
+
+        // Service chính: phân tích tên công việc, trả về đầy đủ gợi ý lập kế hoạch.
+        // Có cache riêng (khác cache của aiSuggestTaskFields), timeout, retry, log — không đụng DOM.
+        async function aiGeneratePlan(title, opts) {
+            opts = opts || {};
+            const key = (title || '').trim();
+            if (!key) throw new Error('Tên công việc rỗng');
+
+            if (!opts.forceRefresh && aiPlanCache[key]) {
+                _aiLog('[Plan] Dùng cache cho:', key);
+                return aiPlanCache[key];
+            }
+
+            const prompt = buildAiPlanPrompt(key);
+            let lastError = null;
+
+            for (let attempt = 0; attempt <= AI_PLAN_MAX_RETRY; attempt++) {
+                try {
+                    _aiLog(`[Plan] Gọi Gemini lập kế hoạch (lần thử ${attempt + 1}/${AI_PLAN_MAX_RETRY + 1}):`, key);
+                    const rawText = await _aiWithTimeout(fetchGeminiText(prompt, AI_PLAN_SYSTEM_INSTRUCTION), AI_PLAN_TIMEOUT_MS);
+                    const result = _parseAiPlanJson(rawText);
+                    aiPlanCache[key] = result;
+                    _aiLog('[Plan] Kết quả:', result);
+                    return result;
+                } catch (e) {
+                    lastError = e;
+                    _aiWarn(`[Plan] Lần thử ${attempt + 1} thất bại:`, e.message || e);
+                }
+            }
+
+            throw lastError || new Error('Không lấy được gợi ý kế hoạch từ Gemini');
+        }
+
