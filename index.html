@@ -347,6 +347,76 @@
                                         <p id="task-tags-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý: <span></span></p>
                                     </div>
                                 </div>
+                                <!-- ============================================================= -->
+                                <!-- 🧠 AI PROJECT PLANNING ASSISTANT (SMART/Pareto/Eisenhower/Action Plan/KPI/Rủi ro/Biện pháp/Hồ sơ) -->
+                                <!-- ============================================================= -->
+                                <div class="border-t-2 border-dashed border-[#353945] pt-3 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-xs font-bold text-[#B6FF2E] flex items-center gap-1.5">🧠 AI Lập Kế Hoạch</h4>
+                                        <button type="button" onclick="triggerAiPlanAnalysis()" class="text-[11px] px-3 py-1.5 rounded-lg bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold hover:bg-[#B6FF2E]/25">🧠 Phân Tích Kế Hoạch AI</button>
+                                    </div>
+                                    <p id="ai-plan-status" class="hidden text-[10px] text-[#777E90]"></p>
+
+                                    <!-- Gợi ý AI (chưa thêm vào kế hoạch) -->
+                                    <div id="ai-plan-suggestions-block" class="hidden space-y-2 bg-[#0D0E12] rounded-xl p-3 border border-[#353945]">
+                                        <div class="bg-[#23262F] rounded-lg p-2.5">
+                                            <p class="text-[10px] font-bold text-[#B6FF2E] mb-1">🎯 SMART</p>
+                                            <p id="ai-plan-smart-text" class="text-[11px] text-[#F4F5F6] leading-relaxed"></p>
+                                        </div>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5" open>
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📊 Pareto — Việc quan trọng nhất</summary>
+                                            <div id="ai-plan-list-pareto" class="mt-1.5 space-y-0.5"></div>
+                                        </details>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5">
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⏰ Eisenhower — Ưu tiên theo nhóm</summary>
+                                            <div class="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">🔥 Làm ngay</p><div id="ai-plan-list-eisenhower-doNow" class="space-y-0.5"></div></div>
+                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">📅 Lên lịch</p><div id="ai-plan-list-eisenhower-schedule" class="space-y-0.5"></div></div>
+                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">🤝 Giao người khác</p><div id="ai-plan-list-eisenhower-delegate" class="space-y-0.5"></div></div>
+                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">🚫 Không ưu tiên</p><div id="ai-plan-list-eisenhower-eliminate" class="space-y-0.5"></div></div>
+                                            </div>
+                                        </details>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5">
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🪜 Action Plan — Các bước thực hiện</summary>
+                                            <div id="ai-plan-list-actionPlan" class="mt-1.5 space-y-0.5"></div>
+                                        </details>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5">
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🎯 KPI</summary>
+                                            <div id="ai-plan-list-kpi" class="mt-1.5 space-y-0.5"></div>
+                                        </details>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5">
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⚠️ Rủi ro</summary>
+                                            <div id="ai-plan-list-risks" class="mt-1.5 space-y-0.5"></div>
+                                        </details>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5">
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🛡️ Biện pháp</summary>
+                                            <div id="ai-plan-list-mitigations" class="mt-1.5 space-y-0.5"></div>
+                                        </details>
+
+                                        <details class="bg-[#23262F] rounded-lg p-2.5">
+                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📁 Hồ sơ cần chuẩn bị</summary>
+                                            <div id="ai-plan-list-documents" class="mt-1.5 space-y-0.5"></div>
+                                        </details>
+
+                                        <button type="button" onclick="addCheckedSuggestionsToPlan()" class="w-full py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90">➕ Thêm Vào Kế Hoạch</button>
+                                    </div>
+
+                                    <!-- Kế hoạch nháp (đã chọn, đi kèm công việc khi tạo) + Dashboard tiến độ -->
+                                    <div id="ai-plan-draft-block" class="hidden space-y-2">
+                                        <div class="flex items-center justify-between bg-[#23262F] rounded-xl p-2.5 border border-[#353945]">
+                                            <span class="text-[10px] font-bold text-[#F4F5F6]">📋 Kế hoạch (sẽ lưu kèm công việc này)</span>
+                                            <span id="ai-plan-draft-progress" class="text-[10px] text-[#B6FF2E] font-mono"></span>
+                                        </div>
+                                        <div id="ai-plan-draft-groups" class="space-y-1.5"></div>
+                                    </div>
+                                </div>
+
                                 <!-- Khu vực - chọn 2 bước -->
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">KHU VỰC</label>
