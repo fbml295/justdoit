@@ -308,45 +308,8 @@
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
                                     <input id="task-title-input" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
-                                    <div class="flex items-center justify-between mt-1">
-                                        <p id="task-ai-status" class="text-[10px] text-[#777E90] hidden"></p>
-                                        <div class="flex gap-2 ml-auto">
-                                            <button type="button" onclick="reTriggerAiSuggest()" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#B6FF2E] border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10">✨ Gợi ý lại</button>
-                                            <button type="button" onclick="applyAiSuggestToFields()" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#777E90] border border-[#353945] hover:text-[#F4F5F6]">Áp dụng gợi ý</button>
-                                        </div>
-                                    </div>
                                 </div>
-                                <!-- Nội dung chi tiết -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">NỘI DUNG CHI TIẾT</label>
-                                    <textarea id="task-desc-input" rows="2" placeholder="Mô tả chi tiết, yêu cầu, kết quả mong đợi..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition resize-none text-[11px]"></textarea>
-                                    <p id="task-desc-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý từ Gemini: <span></span></p>
-                                </div>
-                                <!-- Mục tiêu (AI gợi ý) -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">MỤC TIÊU</label>
-                                    <textarea id="task-objective-input" rows="2" placeholder="Mục tiêu SMART cho công việc này..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition resize-none text-[11px]"></textarea>
-                                    <p id="task-objective-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý từ Gemini: <span></span></p>
-                                </div>
-                                <!-- Kết quả mong đợi (AI gợi ý) -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">KẾT QUẢ MONG ĐỢI</label>
-                                    <textarea id="task-expected-result-input" rows="2" placeholder="Kết quả cụ thể, có thể đo lường được..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition resize-none text-[11px]"></textarea>
-                                    <p id="task-expected-result-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý từ Gemini: <span></span></p>
-                                </div>
-                                <!-- Danh mục + Thẻ (AI gợi ý) -->
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
-                                        <input id="task-category-input" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                        <p id="task-category-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý: <span></span></p>
-                                    </div>
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách bằng dấu phẩy)</label>
-                                        <input id="task-tags-input" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                        <p id="task-tags-ai-hint" class="hidden text-[10px] text-[#777E90] mt-1 italic">✨ Gợi ý: <span></span></p>
-                                    </div>
-                                </div>
+
                                 <!-- ============================================================= -->
                                 <!-- 🧠 AI PROJECT PLANNING ASSISTANT (SMART/Pareto/Eisenhower/Action Plan/KPI/Rủi ro/Biện pháp/Hồ sơ) -->
                                 <!-- ============================================================= -->
@@ -357,8 +320,9 @@
                                     </div>
                                     <p id="ai-plan-status" class="hidden text-[10px] text-[#777E90]"></p>
 
-                                    <!-- Gợi ý AI (chưa thêm vào kế hoạch) -->
+                                    <!-- Gợi ý AI — tick chọn mục cần dùng, sẽ tự lấy vào kế hoạch khi bấm "Làm Việc Đi!" bên dưới -->
                                     <div id="ai-plan-suggestions-block" class="hidden space-y-2 bg-[#0D0E12] rounded-xl p-3 border border-[#353945]">
+                                        <p class="text-[10px] text-[#777E90] italic">✓ Tick chọn mục muốn dùng — các mục đã tick sẽ tự động thành checklist theo dõi của công việc khi bạn bấm "Làm Việc Đi!"</p>
                                         <div class="bg-[#23262F] rounded-lg p-2.5">
                                             <p class="text-[10px] font-bold text-[#B6FF2E] mb-1">🎯 SMART</p>
                                             <p id="ai-plan-smart-text" class="text-[11px] text-[#F4F5F6] leading-relaxed"></p>
@@ -403,17 +367,6 @@
                                             <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📁 Hồ sơ cần chuẩn bị</summary>
                                             <div id="ai-plan-list-documents" class="mt-1.5 space-y-0.5"></div>
                                         </details>
-
-                                        <button type="button" onclick="addCheckedSuggestionsToPlan()" class="w-full py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90">➕ Thêm Vào Kế Hoạch</button>
-                                    </div>
-
-                                    <!-- Kế hoạch nháp (đã chọn, đi kèm công việc khi tạo) + Dashboard tiến độ -->
-                                    <div id="ai-plan-draft-block" class="hidden space-y-2">
-                                        <div class="flex items-center justify-between bg-[#23262F] rounded-xl p-2.5 border border-[#353945]">
-                                            <span class="text-[10px] font-bold text-[#F4F5F6]">📋 Kế hoạch (sẽ lưu kèm công việc này)</span>
-                                            <span id="ai-plan-draft-progress" class="text-[10px] text-[#B6FF2E] font-mono"></span>
-                                        </div>
-                                        <div id="ai-plan-draft-groups" class="space-y-1.5"></div>
                                     </div>
                                 </div>
 
@@ -456,45 +409,27 @@
                                         <p id="task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách. Vào Cấu Hình → Phòng Ban & Tổ Đội / Đối Tác để thêm nhân sự.</p>
                                     </div>
                                 </div>
-                                <!-- Ngày thực hiện + Deadline -->
+                                <!-- Ngày thực hiện (kèm giờ) + Deadline -->
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">NGÀY BẮT ĐẦU</label>
-                                        <input id="task-startdate-input" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                        <label class="block font-medium text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
+                                        <input id="task-startdate-input" type="datetime-local" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
                                     </div>
                                     <div>
                                         <label class="block font-medium text-[#777E90] mb-1">DEADLINE</label>
                                         <input id="task-deadline-input" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
                                     </div>
                                 </div>
-                                <!-- Ma trận Eisenhower -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1.5">MỨC ĐỘ ƯU TIÊN <span class="text-[#777E90] font-normal">(Ma trận Quan trọng / Gấp)</span></label>
-                                    <div class="grid grid-cols-2 gap-1.5">
-                                        <button type="button" onclick="setFormPriority('Q1')" id="prio-Q1" class="prio-btn py-2 px-1 rounded-lg text-center font-semibold border bg-rose-500/20 text-rose-400 border-rose-500 text-[10px] leading-tight">
-                                            <div>🔴 Q1</div><div class="font-normal opacity-80">Quan trọng + Gấp</div>
-                                        </button>
-                                        <button type="button" onclick="setFormPriority('Q2')" id="prio-Q2" class="prio-btn py-2 px-1 rounded-lg text-center font-semibold border bg-[#353945] text-[#777E90] border-[#353945] text-[10px] leading-tight">
-                                            <div>🟡 Q2</div><div class="font-normal opacity-80">Quan trọng, chưa gấp</div>
-                                        </button>
-                                        <button type="button" onclick="setFormPriority('Q3')" id="prio-Q3" class="prio-btn py-2 px-1 rounded-lg text-center font-semibold border bg-[#353945] text-[#777E90] border-[#353945] text-[10px] leading-tight">
-                                            <div>🔵 Q3</div><div class="font-normal opacity-80">Gấp, không quan trọng</div>
-                                        </button>
-                                        <button type="button" onclick="setFormPriority('Q4')" id="prio-Q4" class="prio-btn py-2 px-1 rounded-lg text-center font-semibold border bg-[#353945] text-[#777E90] border-[#353945] text-[10px] leading-tight">
-                                            <div>⚪ Q4</div><div class="font-normal opacity-80">Không quan trọng, không gấp</div>
-                                        </button>
-                                    </div>
-                                </div>
-                                <!-- Google Task toggle -->
-                                <div class="flex items-center justify-between bg-[#23262F] rounded-xl px-3 py-2.5 border border-[#353945]">
+                                <!-- Danh mục + Thẻ (để phân loại, xếp cuối form) -->
+                                <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <div class="font-medium text-[#F4F5F6] text-[11px]">&#x2611; Đưa vào Google Tasks</div>
-                                        <div class="text-[#777E90] text-[10px]">Hiện trên Calendar & Gmail</div>
+                                        <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
+                                        <input id="task-category-input" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
                                     </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="task-google-task" class="sr-only peer">
-                                        <div class="w-9 h-5 bg-[#353945] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#B6FF2E]"></div>
-                                    </label>
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách bằng dấu phẩy)</label>
+                                        <input id="task-tags-input" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                    </div>
                                 </div>
                             </div>
                             
