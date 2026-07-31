@@ -33,6 +33,67 @@
             overlay.querySelector('#confirm-modal-ok').onclick = () => { close(); onConfirm(); };
         }
 
+        // Modal Sửa Công Việc — tạo động, cùng kiểu với confirmAction() ở trên.
+        // Chỉnh: Tên, Danh mục, Thẻ, Ngày & giờ bắt đầu, Deadline.
+        function openEditTaskModal(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
+            overlay.innerHTML = `
+                <div class="bg-[#14161C] border border-[#353945] rounded-2xl p-5 max-w-md w-full space-y-3 shadow-2xl">
+                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center gap-2">&#x270F;&#xFE0F; Sửa Công Việc</h4>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">TÊN CÔNG VIỆC</label>
+                        <input id="edit-task-title" type="text" value="${(task.title || '').replace(/"/g, '&quot;')}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] text-sm focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-[#777E90] mb-1">DANH MỤC</label>
+                            <input id="edit-task-category" type="text" value="${(task.category || '').replace(/"/g, '&quot;')}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-[#777E90] mb-1">THẺ (phân cách dấu phẩy)</label>
+                            <input id="edit-task-tags" type="text" value="${(task.tags || []).join(', ').replace(/"/g, '&quot;')}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
+                            <input id="edit-task-startdate" type="datetime-local" value="${task.startdate || ''}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-[#777E90] mb-1">DEADLINE</label>
+                            <input id="edit-task-deadline" type="date" value="${task.deadline || ''}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] text-[11px] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button id="edit-task-cancel" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945] transition">Hủy</button>
+                        <button id="edit-task-save" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] text-xs font-bold hover:opacity-90 transition">Lưu</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            const close = () => overlay.remove();
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+            overlay.querySelector('#edit-task-cancel').onclick = close;
+            overlay.querySelector('#edit-task-save').onclick = () => {
+                const newTitle = overlay.querySelector('#edit-task-title').value.trim();
+                if (!newTitle) { showNotification('Tên công việc không được để trống.', 'error'); return; }
+                task.title    = newTitle;
+                task.category = overlay.querySelector('#edit-task-category').value.trim();
+                task.tags     = overlay.querySelector('#edit-task-tags').value.split(',').map(s => s.trim()).filter(Boolean);
+                task.startdate = overlay.querySelector('#edit-task-startdate').value;
+                task.deadline  = overlay.querySelector('#edit-task-deadline').value;
+                close();
+                renderTasks(); renderCalendar(); updateDashboardMetrics();
+                saveToLocalStorage();
+                trySyncTasks('✅ Đã lưu thay đổi!');
+            };
+        }
+
         // MUTATIONS
         // Helper dùng chung: ghi task, nếu lỗi thì đánh dấu pending để tự retry sau
         async function trySyncTasks(successMsg) {
@@ -52,9 +113,6 @@
 
         async function createNewTask() {
             const titleInput      = document.getElementById('task-title-input');
-            const descInput       = document.getElementById('task-desc-input');
-            const objectiveInput  = document.getElementById('task-objective-input');
-            const expectedResultInput = document.getElementById('task-expected-result-input');
             const categoryInput   = document.getElementById('task-category-input');
             const tagsInput       = document.getElementById('task-tags-input');
             const areaTypeInput   = document.getElementById('task-area-type-input');
@@ -65,7 +123,6 @@
             const personInput     = document.getElementById('task-person-input');
             const startInput      = document.getElementById('task-startdate-input');
             const deadlineInput   = document.getElementById('task-deadline-input');
-            const gtaskToggle     = document.getElementById('task-google-task');
 
             const title = titleInput.value.trim();
             if (!title) return showNotification('Vui lòng nhập tên công việc!', 'error');
@@ -79,11 +136,10 @@
                 return showNotification('Vui lòng chọn người ở mục Phân quyền!', 'error');
             }
 
-            const today = new Date().toISOString().split('T')[0];
             const newTask = {
                 id:          'T' + Date.now(),
                 title:       title,
-                desc:        descInput ? descInput.value.trim() : '',
+                desc:        '',
                 areaType:    areaTypeInput ? areaTypeInput.value : 'factory',
                 areaValue:   areaValue,
                 areaWorkshop: (areaWorkshopInput && !document.getElementById('task-area-workshop-wrap').classList.contains('hidden')) ? areaWorkshopInput.value : '',
@@ -91,33 +147,27 @@
                 relation:    relation,
                 personName:  personName,
                 status:      'Todo',
-                priority:    state.selectedPriority || 'Q2',
-                startdate:   startInput ? (startInput.value || today) : today,
+                priority:    'Q2', // không còn chọn thủ công trên form nữa (đã thay bằng nhóm Eisenhower của AI Lập Kế Hoạch)
+                startdate:   startInput ? startInput.value : '',
                 deadline:    deadlineInput ? deadlineInput.value : '',
-                gtask:       gtaskToggle ? gtaskToggle.checked : false,
+                gtask:       false, // bật/tắt sau trong danh sách công việc (ô "G-Task")
                 createdAt:   new Date().toISOString(),
-                objective:       objectiveInput ? objectiveInput.value.trim() : '',
-                expectedResult:  expectedResultInput ? expectedResultInput.value.trim() : '',
+                objective:       '',
+                expectedResult:  '',
                 category:        categoryInput ? categoryInput.value.trim() : '',
                 tags:            tagsInput ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : [],
-                plan:            _planDraft ? JSON.parse(JSON.stringify(_planDraft)) : null
+                plan:            buildPlanFromCheckedSuggestions() // đọc trực tiếp các ô đã tick trong khối AI Lập Kế Hoạch
             };
 
             state.tasks.unshift(newTask);
             titleInput.value = '';
-            if (descInput)     descInput.value = '';
-            if (objectiveInput)      objectiveInput.value = '';
-            if (expectedResultInput) expectedResultInput.value = '';
-            if (categoryInput)       categoryInput.value = '';
-            if (tagsInput)           tagsInput.value = '';
+            if (categoryInput) categoryInput.value = '';
+            if (tagsInput)     tagsInput.value = '';
             if (startInput)    startInput.value = '';
             if (deadlineInput) deadlineInput.value = '';
-            if (gtaskToggle)   gtaskToggle.checked = false;
-            setFormPriority('Q2');
             relInput.value = 'my-task';
             onRelationChange();
-            resetAiSuggestState(); // xoá gợi ý AI cũ + trạng thái theo dõi chỉnh sửa tay, chuẩn bị cho công việc tiếp theo
-            resetAiPlanState();    // xoá kế hoạch nháp AI Planning, chuẩn bị cho công việc tiếp theo
+            resetAiPlanState(); // ẩn khối gợi ý AI Lập Kế Hoạch cũ, chuẩn bị cho công việc tiếp theo
 
             renderTasks(); renderCalendar(); updateDashboardMetrics();
             saveToLocalStorage();

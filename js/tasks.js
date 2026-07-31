@@ -386,7 +386,6 @@
             filteredList.forEach(task => {
                 const isDone     = task.status === 'Done';
                 const overdue    = !isDone && isOverdue(task.deadline);
-                const prioBadge  = getPrioBadge(task.priority);
                 const areaBadge  = getAreaBadge(task);
 
                 let relLabel = 'Cá nhân';
@@ -399,16 +398,16 @@
                     ? `<div class="${overdue ? 'text-rose-400 font-bold' : 'text-[#777E90]'} text-[10px]">${overdue ? '&#x26A0;&#xFE0F;' : '&#x1F4C5;'} DL: ${fmtDate(task.deadline)}</div>`
                     : '';
                 const startHtml = task.startdate
-                    ? `<div class="text-[#777E90] text-[10px]">&#x23F0; BĐ: ${fmtDate(task.startdate)}</div>`
+                    ? `<div class="text-[#777E90] text-[10px]">&#x23F0; BĐ: ${fmtDateTime(task.startdate)}</div>`
                     : '';
                 const createdHtml = task.createdAt
                     ? `<div class="text-[#777E90] text-[10px]">&#x1F550; ${fmtDateTime(task.createdAt)}</div>`
                     : '';
-                const gtaskHtml = task.gtask
-                    ? '<span class="text-[10px] text-[#B6FF2E] bg-[#B6FF2E]/10 border border-[#B6FF2E]/30 px-1.5 py-0.5 rounded inline-block">&#x2611; GTask</span>'
-                    : '';
-                const descHtml = task.desc
-                    ? `<p class="text-[11px] text-[#777E90] mt-1.5 leading-relaxed">${task.desc}</p>`
+                const categoryTagsHtml = (task.category || (task.tags && task.tags.length))
+                    ? `<div class="flex flex-wrap items-center gap-1">
+                        ${task.category ? `<span class="text-[10px] text-[#B6FF2E] bg-[#B6FF2E]/10 border border-[#B6FF2E]/20 px-1.5 py-0.5 rounded">${task.category}</span>` : ''}
+                        ${(task.tags || []).map(t => `<span class="text-[10px] text-[#777E90] bg-[#23262F] px-1.5 py-0.5 rounded">#${t}</span>`).join('')}
+                       </div>`
                     : '';
 
                 const borderColor = overdue ? 'border-rose-500/40' : (isDone ? 'border-[#353945]' : 'border-[#353945] hover:border-[#B6FF2E]/30');
@@ -422,7 +421,7 @@
                             <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
                             <div class="min-w-0">
                                 <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
-                                ${descHtml}
+                                ${categoryTagsHtml}
                                 ${renderTaskPlanSection(task)}
                             </div>
                         </div>
@@ -430,15 +429,20 @@
                         <div class="md:col-span-5 space-y-1.5 md:border-l md:border-[#23262F] md:pl-3">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex flex-wrap items-center gap-1.5">
-                                    ${prioBadge}
                                     ${relBadge}
                                 </div>
-                                <button onclick="deleteTask('${task.id}')" class="flex-shrink-0 text-[#777E90] hover:text-rose-400 text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-rose-500/30 transition">&#x2715;</button>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <button onclick="openEditTaskModal('${task.id}')" title="Sửa công việc" class="text-[#777E90] hover:text-[#B6FF2E] text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-[#B6FF2E]/30 transition">&#x270F;&#xFE0F;</button>
+                                    <button onclick="deleteTask('${task.id}')" title="Xoá công việc" class="text-[#777E90] hover:text-rose-400 text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-rose-500/30 transition">&#x2715;</button>
+                                </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-1.5">
                                 ${areaBadge}
-                                ${gtaskHtml}
                             </div>
+                            <label class="flex items-center gap-1.5 cursor-pointer w-fit">
+                                <input type="checkbox" ${task.gtask ? 'checked' : ''} onchange="toggleTaskGtask('${task.id}')" class="w-3.5 h-3.5 rounded accent-[#B6FF2E] cursor-pointer">
+                                <span class="text-[10px] ${task.gtask ? 'text-[#B6FF2E]' : 'text-[#777E90]'}">G-Task ${task.gtask ? '(đã đưa vào Google Tasks)' : ''}</span>
+                            </label>
                             <div class="flex flex-wrap gap-x-3 gap-y-0.5 pt-0.5">
                                 ${startHtml}
                                 ${deadlineHtml}
@@ -451,157 +455,6 @@
             });
         }
 
-        // =============================================================
-        // AI SUGGEST — UI wiring cho tab "Khởi Tạo Công Việc Mới"
-        // Chỉ lo: debounce, điền vào ô, hiện hint, theo dõi chỉnh sửa tay, nút bấm.
-        // Việc gọi Gemini thực sự nằm ở service aiSuggestTaskFields() trong js/gemini-api.js.
-        // =============================================================
-
-        const AI_SUGGEST_DEBOUNCE_MS = 700; // trong khoảng 500-800ms theo yêu cầu
-
-        // Ánh xạ field gợi ý AI <-> ô input + dòng hint tương ứng trên form
-        const AI_SUGGEST_FIELD_MAP = {
-            description:     { inputId: 'task-desc-input',            hintId: 'task-desc-ai-hint' },
-            objective:       { inputId: 'task-objective-input',       hintId: 'task-objective-ai-hint' },
-            expected_result: { inputId: 'task-expected-result-input', hintId: 'task-expected-result-ai-hint' },
-            category:        { inputId: 'task-category-input',        hintId: 'task-category-ai-hint' },
-            tags:            { inputId: 'task-tags-input',             hintId: 'task-tags-ai-hint' }
-        };
-
-        let _aiLastSuggestion = null; // kết quả gợi ý AI gần nhất (dùng cho nút "Áp dụng gợi ý")
-        // Giá trị AI đã điền gần nhất cho từng ô — dùng để phát hiện người dùng có tự sửa tay hay không
-        const _aiLastAppliedValue = { description: '', objective: '', expected_result: '', category: '', tags: '' };
-
-        function _aiFieldValue(key, suggestion) {
-            if (key === 'tags') return (suggestion.tags || []).join(', ');
-            return suggestion[key] || '';
-        }
-
-        // Ô đang có nội dung KHÁC với gợi ý AI lần trước đã điền => coi là người dùng đã tự sửa tay
-        function _isFieldUserEdited(key) {
-            const cfg = AI_SUGGEST_FIELD_MAP[key];
-            const el = document.getElementById(cfg.inputId);
-            if (!el) return false;
-            const current = (el.value || '').trim();
-            if (!current) return false; // rỗng thì chưa có gì để coi là đã sửa
-            return current !== _aiLastAppliedValue[key];
-        }
-
-        function setAiStatus(text, type) {
-            const el = document.getElementById('task-ai-status');
-            if (!el) return;
-            if (!text) { el.classList.add('hidden'); el.textContent = ''; return; }
-            el.classList.remove('hidden');
-            el.textContent = text;
-            el.className = 'text-[10px] ' + (type === 'error' ? 'text-amber-400' : type === 'loading' ? 'text-[#777E90]' : 'text-emerald-400');
-        }
-
-        function renderAiHints(suggestion) {
-            Object.keys(AI_SUGGEST_FIELD_MAP).forEach(key => {
-                const cfg = AI_SUGGEST_FIELD_MAP[key];
-                const hintEl = document.getElementById(cfg.hintId);
-                if (!hintEl) return;
-                const span = hintEl.querySelector('span');
-                const val = _aiFieldValue(key, suggestion);
-                if (val) {
-                    hintEl.classList.remove('hidden');
-                    if (span) span.textContent = val;
-                }
-            });
-        }
-
-        // Điền gợi ý AI vào các ô ĐANG RỖNG hoặc CHƯA BỊ SỬA TAY — không ghi đè nội dung người dùng đã tự nhập.
-        // Các ô đã bị sửa tay vẫn được hiện dòng hint bên dưới để tham khảo (theo đúng yêu cầu).
-        function autoFillAiSuggestion(suggestion) {
-            Object.keys(AI_SUGGEST_FIELD_MAP).forEach(key => {
-                const cfg = AI_SUGGEST_FIELD_MAP[key];
-                const el = document.getElementById(cfg.inputId);
-                if (!el) return;
-                if (_isFieldUserEdited(key)) return; // đã sửa tay -> không tự ghi đè
-                const val = _aiFieldValue(key, suggestion);
-                el.value = val;
-                _aiLastAppliedValue[key] = val;
-            });
-            renderAiHints(suggestion);
-        }
-
-        // Nút [Áp dụng gợi ý]: ghi đè TOÀN BỘ bằng gợi ý AI gần nhất.
-        // Hỏi xác nhận trước nếu phát hiện có ô đã bị người dùng sửa tay.
-        function applyAiSuggestToFields() {
-            if (!_aiLastSuggestion) {
-                showNotification('Chưa có gợi ý AI nào để áp dụng. Hãy nhập Tên công việc trước.', 'error');
-                return;
-            }
-            const editedFields = Object.keys(AI_SUGGEST_FIELD_MAP).filter(k => _isFieldUserEdited(k));
-
-            const doApply = () => {
-                Object.keys(AI_SUGGEST_FIELD_MAP).forEach(key => {
-                    const cfg = AI_SUGGEST_FIELD_MAP[key];
-                    const el = document.getElementById(cfg.inputId);
-                    if (!el) return;
-                    const val = _aiFieldValue(key, _aiLastSuggestion);
-                    el.value = val;
-                    _aiLastAppliedValue[key] = val;
-                });
-                renderAiHints(_aiLastSuggestion);
-                showNotification('Đã áp dụng gợi ý AI vào các ô!', 'success');
-            };
-
-            if (editedFields.length > 0) {
-                confirmAction('Một số ô bạn đã tự chỉnh sửa (' + editedFields.length + ' ô). Áp dụng gợi ý AI sẽ GHI ĐÈ nội dung bạn đã sửa. Tiếp tục?', doApply);
-            } else {
-                doApply();
-            }
-        }
-
-        // Nút [✨ Gợi ý lại]: bỏ qua cache, luôn gọi lại Gemini cho đúng tên công việc hiện tại
-        async function reTriggerAiSuggest() {
-            const titleInput = document.getElementById('task-title-input');
-            const title = titleInput ? titleInput.value.trim() : '';
-            if (!title) {
-                showNotification('Vui lòng nhập Tên công việc trước.', 'error');
-                return;
-            }
-            await runAiSuggest(title, { forceRefresh: true });
-        }
-
-        async function runAiSuggest(title, opts) {
-            setAiStatus('⏳ Đang phân tích công việc...', 'loading');
-            try {
-                const suggestion = await aiSuggestTaskFields(title, opts);
-                _aiLastSuggestion = suggestion;
-                autoFillAiSuggestion(suggestion);
-                setAiStatus('✨ Đã có gợi ý từ Gemini', 'success');
-            } catch (e) {
-                console.warn('[AI Suggest] Lỗi khi lấy gợi ý:', e);
-                setAiStatus('⚠ Không lấy được gợi ý từ Gemini.', 'error');
-            }
-        }
-
-        // Gọi sau khi tạo xong 1 công việc, để chuẩn bị sạch sẽ cho công việc tiếp theo
-        function resetAiSuggestState() {
-            _aiLastSuggestion = null;
-            Object.keys(_aiLastAppliedValue).forEach(k => _aiLastAppliedValue[k] = '');
-            Object.values(AI_SUGGEST_FIELD_MAP).forEach(cfg => {
-                const hintEl = document.getElementById(cfg.hintId);
-                if (hintEl) hintEl.classList.add('hidden');
-            });
-            setAiStatus(null);
-        }
-
-        // Debounce 500-800ms sau khi người dùng dừng gõ ở ô "Tên công việc" -> tự động gọi AI Suggest.
-        // Tên công việc giống hệt lần trước -> lấy từ cache (xử lý trong aiSuggestTaskFields()), không gọi lại API.
-        (function initAiSuggestTitleListener() {
-            const titleInput = document.getElementById('task-title-input');
-            if (!titleInput) return;
-            let debounceTimer = null;
-            titleInput.addEventListener('input', () => {
-                clearTimeout(debounceTimer);
-                const title = titleInput.value.trim();
-                if (!title) { resetAiSuggestState(); return; }
-                debounceTimer = setTimeout(() => { runAiSuggest(title); }, AI_SUGGEST_DEBOUNCE_MS);
-            });
-        })();
 
         // =============================================================
         // 🧠 AI PROJECT PLANNING ASSISTANT
@@ -634,9 +487,6 @@
                 eisenhower: { doNow: [], schedule: [], delegate: [], eliminate: [] }
             };
         }
-
-        let _planDraft = null;          // { groups: {...} } — kế hoạch nháp, sẽ gắn vào công việc khi tạo
-        let _lastPlanSuggestion = null; // gợi ý AI gốc gần nhất (để đọc checkbox khi bấm "Thêm Vào Kế Hoạch")
 
         function _planAllGroupArrays(plan) {
             return [
@@ -673,7 +523,7 @@
             el.className = 'text-[10px] ' + (type === 'error' ? 'text-amber-400' : type === 'loading' ? 'text-[#777E90]' : 'text-emerald-400');
         }
 
-        // Render 1 nhóm gợi ý AI (checkbox, chưa thêm vào kế hoạch)
+        // Render 1 nhóm gợi ý AI (checkbox — tick chọn xong sẽ được đọc trực tiếp khi bấm "Làm Việc Đi!")
         function _renderAiPlanSuggestionGroup(containerId, items, groupKey, subKey) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -706,7 +556,7 @@
         }
 
         // Nút [🧠 Phân Tích Kế Hoạch AI] — kích hoạt thủ công (không tự động), vì đây là
-        // 1 lần gọi AI nặng hơn nhiều (8 nhóm gợi ý cùng lúc) so với AI Suggest đơn giản.
+        // 1 lần gọi AI nặng hơn nhiều (8 nhóm gợi ý cùng lúc).
         async function triggerAiPlanAnalysis() {
             const titleInput = document.getElementById('task-title-input');
             const title = titleInput ? titleInput.value.trim() : '';
@@ -715,43 +565,37 @@
             setAiPlanStatus('⏳ Đang phân tích kế hoạch...', 'loading');
             try {
                 const suggestion = await aiGeneratePlan(title);
-                _lastPlanSuggestion = suggestion;
                 renderAiPlanSuggestions(suggestion);
-                setAiPlanStatus('✨ Đã có gợi ý kế hoạch từ Gemini — tick chọn mục cần dùng rồi bấm "Thêm Vào Kế Hoạch"', 'success');
+                setAiPlanStatus('✨ Đã có gợi ý — tick chọn mục cần dùng, các mục đã tick sẽ tự thành checklist khi bạn bấm "Làm Việc Đi!"', 'success');
             } catch (e) {
                 console.warn('[AI Plan] Lỗi khi lấy gợi ý:', e);
                 setAiPlanStatus('⚠ Không lấy được gợi ý từ Gemini.', 'error');
             }
         }
 
-        // Nút [➕ Thêm Vào Kế Hoạch] — chỉ những mục ĐÃ TICK mới được thêm vào kế hoạch nháp.
-        // Mỗi nhóm lưu riêng biệt, không trộn lẫn.
-        function addCheckedSuggestionsToPlan() {
-            if (!_planDraft) _planDraft = { groups: emptyPlanGroups() };
-            let addedCount = 0;
+        // Đọc TRỰC TIẾP các checkbox đang tick trong khối gợi ý AI (không cần bước trung
+        // gian) để dựng thành kế hoạch của công việc sắp tạo. Trả về null nếu chưa tick gì.
+        function buildPlanFromCheckedSuggestions() {
+            const groups = emptyPlanGroups();
+            let total = 0;
 
             const addFromGroup = (targetArr, idPrefix) => {
                 document.querySelectorAll(`input[id^="${idPrefix}-"]:checked`).forEach(cb => {
                     const text = cb.dataset.text;
                     if (!text) return;
-                    if (!targetArr.some(it => it.text === text)) {
-                        targetArr.push({ id: 'PI' + Date.now() + Math.random().toString(36).substr(2, 4), text, status: 'pending' });
-                        addedCount++;
-                    }
-                    cb.checked = false;
+                    targetArr.push({ id: 'PI' + Date.now() + Math.random().toString(36).substr(2, 4), text, status: 'pending' });
+                    total++;
                 });
             };
 
-            PLAN_GROUP_DEFS.forEach(def => addFromGroup(_planDraft.groups[def.key], 'ai-plan-check-' + def.key));
-            PLAN_EISENHOWER_DEFS.forEach(def => addFromGroup(_planDraft.groups.eisenhower[def.key], 'ai-plan-check-eisenhower-' + def.key));
+            PLAN_GROUP_DEFS.forEach(def => addFromGroup(groups[def.key], 'ai-plan-check-' + def.key));
+            PLAN_EISENHOWER_DEFS.forEach(def => addFromGroup(groups.eisenhower[def.key], 'ai-plan-check-eisenhower-' + def.key));
 
-            if (addedCount === 0) { showNotification('Chưa tick chọn mục nào để thêm vào kế hoạch.', 'error'); return; }
-            showNotification('Đã thêm ' + addedCount + ' mục vào kế hoạch!', 'success');
-            renderPlanDraftPreview();
+            return total > 0 ? { groups } : null;
         }
 
-        // Hiện danh sách 1 nhóm dạng checklist có thể đổi trạng thái + xoá (dùng chung cho
-        // cả kế hoạch nháp lúc đang tạo VÀ kế hoạch đã lưu kèm công việc)
+        // Hiện danh sách 1 nhóm dạng checklist có thể đổi trạng thái + xoá (dùng cho kế
+        // hoạch đã lưu kèm công việc, trong thẻ công việc ở danh sách)
         function renderPlanChecklistGroup(items, toggleFnName, deleteFnName, ownerId) {
             if (!items || items.length === 0) return '';
             return items.map(it => `
@@ -763,52 +607,10 @@
             `).join('');
         }
 
-        function renderPlanDraftPreview() {
-            const block = document.getElementById('ai-plan-draft-block');
-            const groupsEl = document.getElementById('ai-plan-draft-groups');
-            const progressEl = document.getElementById('ai-plan-draft-progress');
-            if (!block || !groupsEl) return;
-
-            if (!_planDraft) { block.classList.add('hidden'); return; }
-            const progress = calcPlanProgress(_planDraft);
-            if (progress.total === 0) { block.classList.add('hidden'); return; }
-
-            block.classList.remove('hidden');
-            if (progressEl) progressEl.textContent = `${progress.done}/${progress.total} · ${progress.percent}%`;
-
-            let html = '';
-            PLAN_GROUP_DEFS.forEach(def => {
-                const items = _planDraft.groups[def.key];
-                if (items.length === 0) return;
-                html += `<div class="bg-[#23262F] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">${def.label}</p>${renderPlanChecklistGroup(items, 'toggleDraftItem', 'deleteDraftItem')}</div>`;
-            });
-            PLAN_EISENHOWER_DEFS.forEach(def => {
-                const items = _planDraft.groups.eisenhower[def.key];
-                if (items.length === 0) return;
-                html += `<div class="bg-[#23262F] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ Eisenhower — ${def.label}</p>${renderPlanChecklistGroup(items, 'toggleDraftItem', 'deleteDraftItem')}</div>`;
-            });
-            groupsEl.innerHTML = html;
-        }
-
-        function toggleDraftItem(itemId) {
-            if (!_planDraft) return;
-            const found = _findPlanItem(_planDraft, itemId);
-            if (found) { found.arr[found.idx].status = planNextStatus(found.arr[found.idx].status); renderPlanDraftPreview(); }
-        }
-        function deleteDraftItem(itemId) {
-            if (!_planDraft) return;
-            const found = _findPlanItem(_planDraft, itemId);
-            if (found) { found.arr.splice(found.idx, 1); renderPlanDraftPreview(); }
-        }
-
         // Gọi sau khi tạo công việc thành công, để chuẩn bị sạch cho công việc tiếp theo
         function resetAiPlanState() {
-            _planDraft = null;
-            _lastPlanSuggestion = null;
             const suggestBlock = document.getElementById('ai-plan-suggestions-block');
-            const draftBlock = document.getElementById('ai-plan-draft-block');
             if (suggestBlock) suggestBlock.classList.add('hidden');
-            if (draftBlock) draftBlock.classList.add('hidden');
             setAiPlanStatus(null);
         }
 
@@ -831,6 +633,14 @@
                 renderTasks(); saveToLocalStorage(); trySyncTasks();
             }
         }
+        function toggleTaskGtask(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            task.gtask = !task.gtask;
+            showNotification(task.gtask ? 'Đã đưa vào Google Tasks!' : 'Đã bỏ khỏi Google Tasks.', 'success');
+            renderTasks(); saveToLocalStorage(); trySyncTasks();
+        }
+
         function addManualPlanItem(taskId, groupSelectId, inputId) {
             const task = state.tasks.find(t => t.id === taskId);
             if (!task) return;
