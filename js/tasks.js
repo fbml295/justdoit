@@ -633,11 +633,32 @@
                 renderTasks(); saveToLocalStorage(); trySyncTasks();
             }
         }
-        function toggleTaskGtask(taskId) {
+        async function toggleTaskGtask(taskId) {
             const task = state.tasks.find(t => t.id === taskId);
             if (!task) return;
-            task.gtask = !task.gtask;
-            showNotification(task.gtask ? 'Đã đưa vào Google Tasks!' : 'Đã bỏ khỏi Google Tasks.', 'success');
+
+            const turningOn = !task.gtask;
+            task.gtask = turningOn; // cập nhật lạc quan trước, rollback nếu API lỗi
+            renderTasks();
+
+            try {
+                if (turningOn) {
+                    showNotification('Đang đưa vào Google Tasks...', 'success');
+                    const gid = await pushTaskToGoogleTasks(task);
+                    task.googleTaskId = gid;
+                    showNotification('Đã đưa vào Google Tasks!', 'success');
+                } else {
+                    await deleteTaskFromGoogleTasks(task);
+                    task.googleTaskId = null;
+                    showNotification('Đã xóa khỏi Google Tasks.', 'success');
+                }
+            } catch (e) {
+                console.warn('[Google Tasks] Lỗi đồng bộ:', e);
+                task.gtask = !turningOn; // rollback vì API lỗi
+                showNotification('⚠ Không đồng bộ được với Google Tasks: ' + (e.message || e)
+                    + '. Nếu vừa bật tính năng này lần đầu, hãy Đăng xuất rồi Đăng nhập lại để cấp thêm quyền Google Tasks.', 'error');
+            }
+
             renderTasks(); saveToLocalStorage(); trySyncTasks();
         }
 

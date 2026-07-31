@@ -9,7 +9,8 @@
 
 const GOOGLE_OAUTH_SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/tasks'
 ].join(' ');
 
 const LS_GOOGLE_TOKEN = 'wms_google_token';

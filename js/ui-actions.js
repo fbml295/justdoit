@@ -181,12 +181,19 @@
                 task.status = task.status === 'Done' ? 'Todo' : 'Done';
                 renderTasks(); renderCalendar(); updateDashboardMetrics();
                 saveToLocalStorage();
+                if (task.gtask && task.googleTaskId) {
+                    updateGoogleTaskStatus(task).catch(e => console.warn('[Google Tasks] Không đồng bộ được trạng thái:', e));
+                }
                 await trySyncTasks();
             }
         }
 
         function deleteTask(id) {
             confirmAction('Bạn có chắc muốn xóa công việc này? Hành động này không thể hoàn tác.', async () => {
+                const task = state.tasks.find(t => t.id === id);
+                if (task && task.gtask && task.googleTaskId) {
+                    deleteTaskFromGoogleTasks(task).catch(e => console.warn('[Google Tasks] Không xóa được bên Google Tasks:', e));
+                }
                 state.tasks = state.tasks.filter(t => t.id !== id);
                 showNotification('Đã xóa công việc!', 'success');
                 renderTasks(); renderCalendar(); updateDashboardMetrics();
