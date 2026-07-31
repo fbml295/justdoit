@@ -44,9 +44,10 @@ Web App trung gian như bản cũ nữa.
 ### Bước 1 — Tạo OAuth Client ID
 
 1. Vào [Google Cloud Console](https://console.cloud.google.com/) → tạo 1 Project mới (hoặc dùng project có sẵn).
-2. Vào **APIs & Services → Library**, bật 2 API sau:
+2. Vào **APIs & Services → Library**, bật 3 API sau:
    - `Google Sheets API`
    - `Google Drive API`
+   - `Google Tasks API` (dùng cho tính năng "G-Task" — đưa công việc sang Google Tasks)
 3. Vào **APIs & Services → OAuth consent screen**:
    - User type: **External** (nếu không dùng Google Workspace riêng) → điền tên app, email.
    - Ở mục **Test users** (nếu app đang ở chế độ Testing), thêm email của những người sẽ dùng app.
@@ -142,6 +143,7 @@ const GOOGLE_CONFIG = {
 - **Không tìm thấy Google Sheet:** kiểm tra lại `DRIVE_FOLDER_ID` trong
   `js/google-config.js`, và đảm bảo tài khoản đang đăng nhập đã được share quyền vào
   đúng thư mục đó.
+- **Đang dùng app từ trước, giờ không tích được "G-Task":** tính năng Google Tasks cần thêm 1 quyền OAuth mới (`tasks`) không có trong lần đăng nhập trước đó. Vào tab Kết Nối API, bấm **Đăng xuất** rồi **Đăng Nhập Bằng Google** lại để được hỏi cấp thêm quyền này.
 
 ---
 
