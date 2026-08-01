@@ -87,3 +87,22 @@ async function updateGoogleTaskStatus(task) {
     });
     if (!res.ok) throw new Error(await readGoogleErrorDetail(res));
 }
+
+// Cập nhật lại tên/ghi chú/hạn của 1 việc ĐÃ CÓ trên Google Tasks (dùng khi sửa công việc trong app)
+async function updateGoogleTaskDetails(task) {
+    if (!task.googleTaskId) return;
+    const listId = await ensureCmmsTaskList();
+    const notesParts = [];
+    if (task.category) notesParts.push('Danh mục: ' + task.category);
+    if (task.tags && task.tags.length) notesParts.push('Thẻ: ' + task.tags.join(', '));
+
+    const body = { title: task.title, notes: notesParts.join('\n') };
+    const due = _toGoogleTaskDue(task.deadline);
+    if (due) body.due = due;
+
+    const res = await tasksApiFetch(`https://tasks.googleapis.com/tasks/v1/lists/${listId}/tasks/${task.googleTaskId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(await readGoogleErrorDetail(res));
+}

@@ -365,21 +365,97 @@
             return `<span class="text-[10px] text-[#777E90] bg-[#23262F] border border-[#353945] px-2 py-0.5 rounded inline-flex items-center gap-1">${icon} ${label}</span>`;
         }
 
+        // Bộ lọc Danh mục cho danh sách Công Việc: chọn được nhiều danh mục cùng lúc
+        let selectedTaskCategoryFilters = new Set();
+
+        function getAllTaskCategories() {
+            const set = new Set();
+            state.tasks.forEach(t => { if (t.category) set.add(t.category); });
+            return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'));
+        }
+
+        function toggleTaskCategoryFilter(cat) {
+            if (selectedTaskCategoryFilters.has(cat)) selectedTaskCategoryFilters.delete(cat);
+            else selectedTaskCategoryFilters.add(cat);
+            renderTasks();
+        }
+
+        function clearTaskCategoryFilters() {
+            selectedTaskCategoryFilters.clear();
+            renderTasks();
+        }
+
+        function renderTaskCategoryFilterChips() {
+            const chipContainer = document.getElementById('task-category-filter-chips');
+            if (!chipContainer) return;
+            const cats = getAllTaskCategories();
+            if (cats.length === 0) { chipContainer.innerHTML = ''; return; }
+            chipContainer.innerHTML = cats.map(c => {
+                const active = selectedTaskCategoryFilters.has(c);
+                const safe = c.replace(/'/g, "\\'");
+                return `<button onclick="toggleTaskCategoryFilter('${safe}')" class="text-[10px] px-2.5 py-1 rounded-full border font-mono transition ${active ? 'bg-[#B6FF2E] text-[#14161C] border-[#B6FF2E]' : 'bg-[#23262F] text-[#777E90] border-[#353945] hover:border-[#B6FF2E]/40'}">${c}</button>`;
+            }).join('') + (selectedTaskCategoryFilters.size > 0
+                ? `<button onclick="clearTaskCategoryFilters()" class="text-[10px] px-2.5 py-1 rounded-full border border-rose-500/30 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20">✕ Bỏ lọc</button>`
+                : '');
+        }
+
         function renderTasks() {
             const container = document.getElementById('tasks-render-area');
             if (!container) return;
             container.innerHTML = '';
+            renderTaskCategoryFilterChips();
+            renderDeadlineReminderBanner();
 
             let filteredList = state.tasks;
             if (state.currentTaskFilter !== 'all') {
-                filteredList = state.tasks.filter(t => t.relation === state.currentTaskFilter);
+                filteredList = filteredList.filter(t => t.relation === state.currentTaskFilter);
             }
+
+            const searchInput = document.getElementById('task-search-input');
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            if (searchTerm) {
+                filteredList = filteredList.filter(t => {
+                    const inTitle = (t.title || '').toLowerCase().includes(searchTerm);
+                    const inCategory = (t.category || '').toLowerCase().includes(searchTerm);
+                    const inTags = (t.tags || []).some(tag => tag.toLowerCase().includes(searchTerm));
+                    return inTitle || inCategory || inTags;
+                });
+            }
+
+            const statusFilter = document.getElementById('task-status-filter');
+            const statusVal = statusFilter ? statusFilter.value : 'all';
+            if (statusVal === 'overdue') {
+                filteredList = filteredList.filter(t => t.status !== 'Done' && isOverdue(t.deadline));
+            } else if (statusVal === 'todo') {
+                filteredList = filteredList.filter(t => t.status !== 'Done');
+            } else if (statusVal === 'done') {
+                filteredList = filteredList.filter(t => t.status === 'Done');
+            }
+
+            if (selectedTaskCategoryFilters.size > 0) {
+                filteredList = filteredList.filter(t => t.category && selectedTaskCategoryFilters.has(t.category));
+            }
+
+            const sortSelect = document.getElementById('task-sort-select');
+            const sortVal = sortSelect ? sortSelect.value : 'newest';
+            filteredList = filteredList.slice(); // không sắp xếp trực tiếp trên state.tasks gốc
+            if (sortVal === 'deadline') {
+                filteredList.sort((a, b) => {
+                    if (!a.deadline && !b.deadline) return 0;
+                    if (!a.deadline) return 1;
+                    if (!b.deadline) return -1;
+                    return new Date(a.deadline) - new Date(b.deadline);
+                });
+            } else if (sortVal === 'progress') {
+                filteredList.sort((a, b) => calcPlanProgress(b.plan).percent - calcPlanProgress(a.plan).percent);
+            }
+            // 'newest' giữ nguyên thứ tự gốc (task mới tạo luôn được unshift lên đầu state.tasks)
 
             const totalBadge = document.getElementById('total-tasks-badge');
             if (totalBadge) totalBadge.innerText = state.tasks.length;
 
             if (filteredList.length === 0) {
-                container.innerHTML = '<div class="bg-[#14161C] p-8 rounded-2xl border border-[#353945] text-center text-[#777E90] text-xs">&#x1F4CB; Chưa có công việc nào. Hãy khởi tạo ở form bên trái!</div>';
+                container.innerHTML = '<div class="bg-[#14161C] p-8 rounded-2xl border border-[#353945] text-center text-[#777E90] text-xs">&#x1F4CB; Không tìm thấy công việc nào phù hợp với tìm kiếm/bộ lọc hiện tại.</div>';
                 return;
             }
 
@@ -633,6 +709,121 @@
                 renderTasks(); saveToLocalStorage(); trySyncTasks();
             }
         }
+        // Cho phép tự gõ thêm 1 mục vào kế hoạch NGAY LÚC ĐANG TẠO công việc, không cần chờ AI.
+        // Chèn thẳng vào đúng khối gợi ý (ở trạng thái đã tick sẵn), để buildPlanFromCheckedSuggestions()
+        // tự động gom vào khi bấm "Làm Việc Đi!" — không cần thêm logic gộp riêng.
+        function addManualPlanItemToForm(groupSelectId, inputId) {
+            const groupSelect = document.getElementById(groupSelectId);
+            const input = document.getElementById(inputId);
+            const text = input ? input.value.trim() : '';
+            if (!text) { showNotification('Vui lòng nhập nội dung mục cần thêm.', 'error'); return; }
+
+            const groupVal = groupSelect ? groupSelect.value : 'actionPlan';
+            let containerId, idPrefix;
+            if (groupVal.startsWith('eisenhower.')) {
+                const sub = groupVal.split('.')[1];
+                containerId = 'ai-plan-list-eisenhower-' + sub;
+                idPrefix = 'ai-plan-check-eisenhower-' + sub;
+            } else {
+                containerId = 'ai-plan-list-' + groupVal;
+                idPrefix = 'ai-plan-check-' + groupVal;
+            }
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const emptyHint = container.querySelector('p.italic');
+            if (emptyHint) container.innerHTML = '';
+
+            const label = document.createElement('label');
+            label.className = 'flex items-start gap-2 py-0.5 text-[11px] text-[#F4F5F6] cursor-pointer hover:bg-[#14161C] rounded-lg px-1.5 -mx-1.5';
+            label.innerHTML = `
+                <input type="checkbox" id="${idPrefix}-manual-${Date.now()}" data-text="${text.replace(/"/g, '&quot;')}" checked class="mt-0.5 w-3.5 h-3.5 rounded accent-[#B6FF2E] flex-shrink-0">
+                <span>${text} <span class="text-[#777E90]">(tự thêm)</span></span>
+            `;
+            container.appendChild(label);
+
+            input.value = '';
+            const block = document.getElementById('ai-plan-suggestions-block');
+            if (block) block.classList.remove('hidden'); // hiện khối kế hoạch lên để thấy ngay mục vừa thêm
+            showNotification('Đã thêm mục vào kế hoạch (đang tick sẵn, sẽ đưa vào khi tạo việc)!', 'success');
+        }
+
+        // =============================================================
+        // NHẮC HẸN DEADLINE — banner trong app (luôn hoạt động) + thông báo trình duyệt
+        // (tuỳ chọn, cần người dùng bấm bật 1 lần, chỉ hoạt động khi tab app đang mở)
+        // =============================================================
+
+        const LS_NOTIFIED_TASKS_TODAY = 'wms_notified_tasks_today';
+
+        function getUpcomingAndOverdueTasks() {
+            const now = new Date();
+            const in24h = new Date(now.getTime() + 24 * 3600 * 1000);
+            return state.tasks.filter(t => {
+                if (t.status === 'Done' || !t.deadline) return false;
+                const dl = new Date(t.deadline + (t.deadline.length === 10 ? 'T23:59:59' : ''));
+                if (isNaN(dl.getTime())) return false;
+                return dl <= in24h; // đã quá hạn HOẶC còn dưới 24h
+            }).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+        }
+
+        function renderDeadlineReminderBanner() {
+            const banner = document.getElementById('deadline-reminder-banner');
+            const titleEl = document.getElementById('deadline-reminder-title');
+            const listEl = document.getElementById('deadline-reminder-list');
+            if (!banner || !titleEl || !listEl) return;
+
+            const tasks = getUpcomingAndOverdueTasks();
+            if (tasks.length === 0) { banner.classList.add('hidden'); return; }
+
+            banner.classList.remove('hidden');
+            const overdueCount = tasks.filter(t => new Date(t.deadline) < new Date()).length;
+            titleEl.textContent = `⚠️ ${tasks.length} công việc sắp tới hạn / quá hạn` + (overdueCount > 0 ? ` (${overdueCount} đã quá hạn)` : '');
+
+            listEl.innerHTML = tasks.slice(0, 5).map(t => {
+                const overdue = new Date(t.deadline) < new Date();
+                return `<div class="text-[10px] ${overdue ? 'text-rose-400' : 'text-amber-300'}">${overdue ? '🔴' : '🟡'} ${t.title} — ${fmtDate(t.deadline)}</div>`;
+            }).join('') + (tasks.length > 5 ? `<div class="text-[10px] text-[#777E90]">... và ${tasks.length - 5} việc khác</div>` : '');
+
+            maybeSendBrowserNotifications(tasks);
+        }
+
+        // Bấm nút "Bật thông báo trình duyệt" — chỉ hoạt động khi tab app đang mở
+        // (không phải push notification nền, trình duyệt không hỗ trợ nếu không có server).
+        function requestDeadlineNotificationPermission() {
+            if (!('Notification' in window)) {
+                showNotification('Trình duyệt này không hỗ trợ thông báo.', 'error');
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    showNotification('Đã bật thông báo deadline! (chỉ hoạt động khi app đang mở trên trình duyệt)', 'success');
+                    maybeSendBrowserNotifications(getUpcomingAndOverdueTasks());
+                } else {
+                    showNotification('Bạn chưa cho phép thông báo trình duyệt.', 'error');
+                }
+            });
+        }
+
+        // Gửi thông báo trình duyệt tối đa 1 lần/ngày cho mỗi công việc, tránh làm phiền lặp lại
+        function maybeSendBrowserNotifications(tasks) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const today = new Date().toISOString().split('T')[0];
+            let notifiedMap = {};
+            try { notifiedMap = JSON.parse(localStorage.getItem(LS_NOTIFIED_TASKS_TODAY) || '{}'); } catch (e) {}
+            if (notifiedMap.date !== today) notifiedMap = { date: today, ids: [] };
+
+            tasks.forEach(t => {
+                if (notifiedMap.ids.includes(t.id)) return;
+                const overdue = new Date(t.deadline) < new Date();
+                new Notification(overdue ? '⚠️ Công việc đã quá hạn' : '🟡 Công việc sắp tới hạn', {
+                    body: t.title + ' — hạn: ' + fmtDate(t.deadline),
+                    icon: undefined
+                });
+                notifiedMap.ids.push(t.id);
+            });
+            localStorage.setItem(LS_NOTIFIED_TASKS_TODAY, JSON.stringify(notifiedMap));
+        }
+
         async function toggleTaskGtask(taskId) {
             const task = state.tasks.find(t => t.id === taskId);
             if (!task) return;

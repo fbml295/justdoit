@@ -90,6 +90,9 @@
                 close();
                 renderTasks(); renderCalendar(); updateDashboardMetrics();
                 saveToLocalStorage();
+                if (task.gtask && task.googleTaskId) {
+                    updateGoogleTaskDetails(task).catch(e => console.warn('[Google Tasks] Không đồng bộ được thay đổi:', e));
+                }
                 trySyncTasks('✅ Đã lưu thay đổi!');
             };
         }
