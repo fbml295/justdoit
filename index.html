@@ -320,6 +320,24 @@
                                     </div>
                                     <p id="ai-plan-status" class="hidden text-[10px] text-[#777E90]"></p>
 
+                                    <!-- Thêm mục thủ công (không cần chờ AI, dùng được ngay cả khi chưa bấm Phân Tích) -->
+                                    <div class="flex gap-1.5">
+                                        <select id="manual-plan-group-select" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
+                                            <option value="pareto">📊 Pareto</option>
+                                            <option value="actionPlan" selected>🪜 Action Plan</option>
+                                            <option value="kpi">🎯 KPI</option>
+                                            <option value="risks">⚠️ Rủi ro</option>
+                                            <option value="mitigations">🛡️ Biện pháp</option>
+                                            <option value="documents">📁 Hồ sơ</option>
+                                            <option value="eisenhower.doNow">⏰ Làm ngay</option>
+                                            <option value="eisenhower.schedule">⏰ Lên lịch</option>
+                                            <option value="eisenhower.delegate">⏰ Giao người khác</option>
+                                            <option value="eisenhower.eliminate">⏰ Không ưu tiên</option>
+                                        </select>
+                                        <input id="manual-plan-text-input" type="text" placeholder="Tự gõ thêm 1 mục vào kế hoạch..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
+                                        <button type="button" onclick="addManualPlanItemToForm('manual-plan-group-select', 'manual-plan-text-input')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                                    </div>
+
                                     <!-- Gợi ý AI — tick chọn mục cần dùng, sẽ tự lấy vào kế hoạch khi bấm "Làm Việc Đi!" bên dưới -->
                                     <div id="ai-plan-suggestions-block" class="hidden space-y-2 bg-[#0D0E12] rounded-xl p-3 border border-[#353945]">
                                         <p class="text-[10px] text-[#777E90] italic">✓ Tick chọn mục muốn dùng — các mục đã tick sẽ tự động thành checklist theo dõi của công việc khi bạn bấm "Làm Việc Đi!"</p>
@@ -440,12 +458,37 @@
 
                         <!-- Danh sách công việc — 3/5 -->
                         <div class="lg:col-span-3 space-y-3">
+                            <div id="deadline-reminder-banner" class="hidden bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-[11px] font-bold text-amber-400" id="deadline-reminder-title"></p>
+                                    <button type="button" onclick="requestDeadlineNotificationPermission()" id="btn-enable-notif" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#B6FF2E] border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10">&#x1F514; Bật thông báo trình duyệt</button>
+                                </div>
+                                <div id="deadline-reminder-list" class="space-y-0.5"></div>
+                            </div>
+
                             <div class="flex bg-[#14161C] p-1.5 rounded-2xl border border-[#353945]">
                                 <button onclick="filterTasks('all')" id="tab-all" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]">Tất Cả</button>
                                 <button onclick="filterTasks('my-task')" id="tab-my-task" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">Tôi Làm</button>
                                 <button onclick="filterTasks('boss-assign')" id="tab-boss-assign" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">Sếp Giao</button>
                                 <button onclick="filterTasks('delegate')" id="tab-delegate" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">Giao Xuống</button>
                             </div>
+
+                            <input id="task-search-input" oninput="renderTasks()" type="text" placeholder="&#x1F50D; Tìm theo tên, danh mục, thẻ..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <select id="task-status-filter" onchange="renderTasks()" class="bg-[#14161C] border border-[#353945] rounded-xl px-2 py-2 text-[11px] text-[#F4F5F6] focus:outline-none">
+                                    <option value="all">Tất cả trạng thái</option>
+                                    <option value="overdue">&#x26A0;&#xFE0F; Quá hạn</option>
+                                    <option value="todo">Chưa hoàn thành</option>
+                                    <option value="done">Đã hoàn thành</option>
+                                </select>
+                                <select id="task-sort-select" onchange="renderTasks()" class="bg-[#14161C] border border-[#353945] rounded-xl px-2 py-2 text-[11px] text-[#F4F5F6] focus:outline-none">
+                                    <option value="newest">Mới tạo trước</option>
+                                    <option value="deadline">Deadline gần nhất</option>
+                                    <option value="progress">% Kế hoạch hoàn thành</option>
+                                </select>
+                            </div>
+                            <div id="task-category-filter-chips" class="flex flex-wrap gap-1.5"></div>
 
                             <div id="tasks-render-area" class="space-y-2.5">
                                 <!-- Cards render từ JS -->
