@@ -6,15 +6,9 @@ let activeSpreadsheetId = null;    // Spreadsheet ID đang dùng trong phiên l�
 let activeSpreadsheetName = null;  // Tên file (hiển thị cho người dùng biết đang kết nối file nào)
 
 async function driveApiFetch(url, options) {
-    options = options || {};
-    options.headers = Object.assign({}, options.headers, { Authorization: 'Bearer ' + googleAccessToken });
-    const res = await fetch(url, options);
-    if (res.status === 401) {
-        showNotification('Phiên đăng nhập Google đã hết hạn, vui lòng đăng nhập lại.', 'error');
-        signOutGoogle();
-        throw new Error('Unauthorized (401)');
-    }
-    return res;
+    // Dùng _apiFetchWithAutoRefresh (định nghĩa trong google-auth.js) thay vì fetch trực tiếp.
+    // Khi gặp 401 (token hết hạn), hàm đó tự silent refresh rồi retry 1 lần — không cần đăng nhập lại thủ công.
+    return _apiFetchWithAutoRefresh(url, options || {});
 }
 
 // Người dùng đôi khi dán cả URL thay vì chỉ ID (ví dụ dán nguyên

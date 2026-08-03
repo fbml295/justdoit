@@ -6,10 +6,8 @@
 
 async function sheetsApiFetch(url, options) {
     options = options || {};
-    options.headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers, {
-        Authorization: 'Bearer ' + googleAccessToken
-    });
-    return driveApiFetch(url, options); // dùng chung wrapper xử lý lỗi 401 (hết hạn token) với Drive API
+    options.headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers);
+    return driveApiFetch(url, options);
 }
 
 function sheetsRowsToObjects(values) {
