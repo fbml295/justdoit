@@ -216,7 +216,12 @@
                     id: r.id || 'L' + Math.random().toString(36).substr(2, 4),
                     timestamp: r.timestamp || '',
                     author: r.author || 'Cá nhân',
-                    text: r.text || ''
+                    type: r.type || 'work',
+                    title: r.title || '',
+                    text: r.text || '',
+                    attendees: r.attendees ? r.attendees.split(';').filter(x => x) : [],
+                    linkedTaskId: r.linkedTaskId || '',
+                    tags: r.tags ? r.tags.split(';').filter(x => x) : []
                 }));
             }
 
@@ -331,8 +336,8 @@
                 state.initiatives.map(i => [i.id,i.type,i.title,i.desc,i.status,i.progress])
             );
             await sheetsPost('nhat_ky_cong_viec',
-                ['id','timestamp','author','text'],
-                state.logs.map(l => [l.id,l.timestamp,l.author,l.text])
+                ['id','timestamp','author','type','title','text','attendees','linkedTaskId','tags'],
+                state.logs.map(l => [l.id, l.timestamp, l.author, l.type || 'work', l.title || '', l.text, (l.attendees||[]).join(';'), l.linkedTaskId || '', (l.tags||[]).join(';')])
             );
             await sheetsPost('cau_hinh_nha_may',
                 ['facId','facName','scope','wsId','wsName','memberId','memberName','memberRole','memberPhone','memberEmail'],

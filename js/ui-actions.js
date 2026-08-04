@@ -228,24 +228,115 @@
         }
 
         function addNewLogEntry() {
-            const input = document.getElementById('log-text-input');
-            const text = input.value.trim();
+            const typeInput      = document.getElementById('log-type-input');
+            const titleInput     = document.getElementById('log-title-input');
+            const attendeesInput = document.getElementById('log-attendees-input');
+            const textInput      = document.getElementById('log-text-input');
+            const linkedTaskInput = document.getElementById('log-linked-task-input');
+            const tagsInput      = document.getElementById('log-tags-input');
+
+            const text = textInput.value.trim();
             if (!text) return showNotification('Vui lòng nhập nội dung nhật ký!', 'error');
 
             const now = new Date();
             const timeStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
             state.logs.unshift({
-                id: 'L' + (state.logs.length + 1),
+                id: 'L' + Date.now(),
                 timestamp: timeStr,
                 author: 'Cá nhân',
-                text: text
+                type: typeInput ? typeInput.value : 'work',
+                title: titleInput ? titleInput.value.trim() : '',
+                text: text,
+                attendees: (attendeesInput && !document.getElementById('log-attendees-wrap').classList.contains('hidden'))
+                    ? attendeesInput.value.split(',').map(s => s.trim()).filter(Boolean) : [],
+                linkedTaskId: linkedTaskInput ? linkedTaskInput.value : '',
+                tags: tagsInput ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : []
             });
 
-            input.value = '';
+            titleInput.value = '';
+            attendeesInput.value = '';
+            textInput.value = '';
+            tagsInput.value = '';
+            linkedTaskInput.value = '';
             showNotification('Đã ghi vào nhật ký!', 'success');
             renderLogs();
             syncStateToCSV();
+        }
+
+        function deleteLogEntry(id) {
+            confirmAction('Bạn có chắc muốn xoá nhật ký này?', () => {
+                state.logs = state.logs.filter(l => l.id !== id);
+                showNotification('Đã xoá nhật ký!', 'success');
+                renderLogs();
+                syncStateToCSV();
+            });
+        }
+
+        // Modal Sửa Nhật Ký — tạo động, cùng kiểu với openEditTaskModal()
+        function openEditLogModal(logId) {
+            const log = state.logs.find(l => l.id === logId);
+            if (!log) return;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
+            overlay.innerHTML = `
+                <div class="bg-[#14161C] border border-[#353945] rounded-2xl p-5 max-w-md w-full space-y-3 shadow-2xl">
+                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center gap-2">&#x270F;&#xFE0F; Sửa Nhật Ký</h4>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">LOẠI</label>
+                        <select id="edit-log-type" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] text-xs focus:outline-none">
+                            ${Object.keys(LOG_TYPE_DEFS).map(t => `<option value="${t}" ${log.type === t ? 'selected' : ''}>${LOG_TYPE_DEFS[t].label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">TIÊU ĐỀ</label>
+                        <input id="edit-log-title" type="text" value="${(log.title || '').replace(/"/g, '&quot;')}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] text-xs focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">NGƯỜI THAM DỰ (phân cách dấu phẩy)</label>
+                        <input id="edit-log-attendees" type="text" value="${(log.attendees || []).join(', ').replace(/"/g, '&quot;')}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] text-xs focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">NỘI DUNG</label>
+                        <textarea id="edit-log-text" rows="4" class="w-full bg-[#23262F] border border-[#353945] rounded-xl p-2.5 text-[#F4F5F6] text-xs focus:outline-none resize-none">${log.text || ''}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">LIÊN KẾT CÔNG VIỆC</label>
+                        <select id="edit-log-linked-task" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] text-xs focus:outline-none">
+                            <option value="">-- Không liên kết --</option>
+                            ${state.tasks.map(t => `<option value="${t.id}" ${log.linkedTaskId === t.id ? 'selected' : ''}>${t.title}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-[#777E90] mb-1">THẺ (phân cách dấu phẩy)</label>
+                        <input id="edit-log-tags" type="text" value="${(log.tags || []).join(', ').replace(/"/g, '&quot;')}" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] text-xs focus:outline-none">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button id="edit-log-cancel" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945] transition">Hủy</button>
+                        <button id="edit-log-save" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] text-xs font-bold hover:opacity-90 transition">Lưu</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            const close = () => overlay.remove();
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+            overlay.querySelector('#edit-log-cancel').onclick = close;
+            overlay.querySelector('#edit-log-save').onclick = () => {
+                const newText = overlay.querySelector('#edit-log-text').value.trim();
+                if (!newText) { showNotification('Nội dung không được để trống.', 'error'); return; }
+                log.type = overlay.querySelector('#edit-log-type').value;
+                log.title = overlay.querySelector('#edit-log-title').value.trim();
+                log.attendees = overlay.querySelector('#edit-log-attendees').value.split(',').map(s => s.trim()).filter(Boolean);
+                log.text = newText;
+                log.linkedTaskId = overlay.querySelector('#edit-log-linked-task').value;
+                log.tags = overlay.querySelector('#edit-log-tags').value.split(',').map(s => s.trim()).filter(Boolean);
+                close();
+                showNotification('Đã lưu thay đổi nhật ký!', 'success');
+                renderLogs();
+                syncStateToCSV();
+            };
         }
 
         function dispatchStandardTPMTasks() {
@@ -280,10 +371,15 @@
             const now = new Date();
             const timeStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
             state.logs.unshift({
-                id: 'L' + (state.logs.length + 1),
+                id: 'L' + Date.now(),
                 timestamp: timeStr,
                 author: 'Hệ Thống',
-                text: summaryText
+                type: 'note',
+                title: 'Báo cáo tổng hợp tuần',
+                text: summaryText,
+                attendees: [],
+                linkedTaskId: '',
+                tags: ['báo cáo tuần']
             });
             showNotification('Đã tự động tổng hợp Báo cáo tuần vào Nhật ký!', 'success');
             renderLogs();

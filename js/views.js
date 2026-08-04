@@ -35,29 +35,116 @@
             });
         }
 
+        const LOG_TYPE_DEFS = {
+            work:     { label: '📋 Nhật ký công việc', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
+            meeting:  { label: '🗓️ Biên bản họp',      color: 'text-blue-400 bg-blue-500/10 border-blue-500/30' },
+            note:     { label: '📝 Ghi chú',            color: 'text-[#B6FF2E] bg-[#B6FF2E]/10 border-[#B6FF2E]/30' },
+            incident: { label: '⚠️ Sự cố',              color: 'text-rose-400 bg-rose-500/10 border-rose-500/30' }
+        };
+
+        let selectedLogTypeFilters = new Set();
+
+        function toggleLogTypeFilter(type) {
+            if (selectedLogTypeFilters.has(type)) selectedLogTypeFilters.delete(type);
+            else selectedLogTypeFilters.add(type);
+            renderLogs();
+        }
+        function clearLogTypeFilters() {
+            selectedLogTypeFilters.clear();
+            renderLogs();
+        }
+        function renderLogTypeFilterChips() {
+            const chipContainer = document.getElementById('log-type-filter-chips');
+            if (!chipContainer) return;
+            chipContainer.innerHTML = Object.keys(LOG_TYPE_DEFS).map(type => {
+                const active = selectedLogTypeFilters.has(type);
+                return `<button onclick="toggleLogTypeFilter('${type}')" class="text-[10px] px-2.5 py-1 rounded-full border font-mono transition ${active ? 'bg-[#B6FF2E] text-[#14161C] border-[#B6FF2E]' : 'bg-[#23262F] text-[#777E90] border-[#353945] hover:border-[#B6FF2E]/40'}">${LOG_TYPE_DEFS[type].label}</button>`;
+            }).join('') + (selectedLogTypeFilters.size > 0
+                ? `<button onclick="clearLogTypeFilters()" class="text-[10px] px-2.5 py-1 rounded-full border border-rose-500/30 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20">✕ Bỏ lọc</button>`
+                : '');
+        }
+
+        // Hiện/ẩn ô "Người tham dự" tuỳ theo Loại đang chọn (chỉ có ý nghĩa với Biên bản họp)
+        function onLogTypeChange() {
+            const typeInput = document.getElementById('log-type-input');
+            const wrap = document.getElementById('log-attendees-wrap');
+            if (typeInput && wrap) wrap.classList.toggle('hidden', typeInput.value !== 'meeting');
+        }
+
+        // Đổ danh sách công việc vào select "Liên kết công việc" (gọi lại mỗi khi renderLogs)
+        function populateLogLinkedTaskSelect() {
+            const sel = document.getElementById('log-linked-task-input');
+            if (!sel) return;
+            const current = sel.value;
+            sel.innerHTML = '<option value="">-- Không liên kết --</option>'
+                + state.tasks.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+            if (current && state.tasks.some(t => t.id === current)) sel.value = current;
+        }
+
         function renderLogs() {
             const container = document.getElementById('logs-render-area');
             if (!container) return;
             container.innerHTML = '';
+            renderLogTypeFilterChips();
+            populateLogLinkedTaskSelect();
 
             if (state.logs.length === 0) {
                 container.innerHTML = `
                     <div class="bg-[#23262F] p-8 rounded-2xl border border-[#353945] text-center text-[#777E90] text-xs">
-                        📝 Nhật ký công việc đang trống. Hãy nhập kết quả hoặc tiến độ xử lý công việc hôm nay ở ô bên trái!
+                        📝 Nhật ký đang trống. Hãy ghi chép ở ô bên trái!
                     </div>
                 `;
                 return;
             }
 
-            state.logs.forEach(log => {
+            const searchInput = document.getElementById('log-search-input');
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            let filteredLogs = state.logs;
+
+            if (searchTerm) {
+                filteredLogs = filteredLogs.filter(l => {
+                    const inTitle = (l.title || '').toLowerCase().includes(searchTerm);
+                    const inText = (l.text || '').toLowerCase().includes(searchTerm);
+                    const inTags = (l.tags || []).some(t => t.toLowerCase().includes(searchTerm));
+                    return inTitle || inText || inTags;
+                });
+            }
+            if (selectedLogTypeFilters.size > 0) {
+                filteredLogs = filteredLogs.filter(l => selectedLogTypeFilters.has(l.type || 'work'));
+            }
+
+            if (filteredLogs.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-[#23262F] p-8 rounded-2xl border border-[#353945] text-center text-[#777E90] text-xs">
+                        🔍 Không tìm thấy nhật ký nào phù hợp với tìm kiếm/bộ lọc hiện tại.
+                    </div>
+                `;
+                return;
+            }
+
+            filteredLogs.forEach(log => {
+                const typeDef = LOG_TYPE_DEFS[log.type || 'work'] || LOG_TYPE_DEFS.work;
+                const linkedTask = log.linkedTaskId ? state.tasks.find(t => t.id === log.linkedTaskId) : null;
+
                 const card = document.createElement('div');
                 card.className = "bg-[#23262F] p-4 rounded-xl border border-[#353945] space-y-2 text-xs";
                 card.innerHTML = `
-                    <div class="flex justify-between items-center text-[#777E90] border-b border-[#353945] pb-1.5">
-                        <span class="font-semibold text-[#B6FF2E]">${log.author || 'Cá nhân'}</span>
-                        <span class="font-mono text-[10px]">${log.timestamp || ''}</span>
+                    <div class="flex justify-between items-start gap-2 text-[#777E90] border-b border-[#353945] pb-1.5">
+                        <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+                            <span class="text-[10px] px-2 py-0.5 rounded-full border font-mono ${typeDef.color}">${typeDef.label}</span>
+                            ${log.title ? `<span class="font-semibold text-[#F4F5F6] truncate">${log.title}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <span class="font-mono text-[10px]">${log.timestamp || ''}</span>
+                            <button onclick="openEditLogModal('${log.id}')" title="Sửa" class="text-[#777E90] hover:text-[#B6FF2E] px-1.5 py-0.5 bg-[#14161C] rounded-lg border border-[#353945]">&#x270F;&#xFE0F;</button>
+                            <button onclick="deleteLogEntry('${log.id}')" title="Xoá" class="text-[#777E90] hover:text-rose-400 px-1.5 py-0.5 bg-[#14161C] rounded-lg border border-[#353945]">&#x2715;</button>
+                        </div>
                     </div>
                     <p class="text-[#F4F5F6] leading-relaxed whitespace-pre-wrap">${log.text}</p>
+                    ${log.attendees && log.attendees.length ? `<p class="text-[10px] text-[#777E90]">👥 Tham dự: ${log.attendees.join(', ')}</p>` : ''}
+                    ${linkedTask ? `<p class="text-[10px] text-[#B6FF2E]">🔗 Liên kết: ${linkedTask.title}</p>` : ''}
+                    ${log.tags && log.tags.length ? `<div class="flex flex-wrap gap-1">${log.tags.map(t => `<span class="text-[10px] text-[#777E90] bg-[#14161C] px-1.5 py-0.5 rounded">#${t}</span>`).join('')}</div>` : ''}
+                    <p class="text-[10px] text-[#777E90] pt-1 border-t border-[#353945]">✍️ ${log.author || 'Cá nhân'}</p>
                 `;
                 container.appendChild(card);
             });
