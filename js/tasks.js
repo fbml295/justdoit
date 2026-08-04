@@ -684,9 +684,25 @@
         }
 
         // Gọi sau khi tạo công việc thành công, để chuẩn bị sạch cho công việc tiếp theo
+        // Gọi sau khi tạo công việc thành công, để chuẩn bị sạch cho công việc tiếp theo.
+        // QUAN TRỌNG: phải XOÁ SẠCH nội dung checkbox (không chỉ ẩn đi), nếu không các ô đã
+        // tick (kể cả mục tự thêm tay) sẽ vẫn còn ẩn trong DOM và bị đọc nhầm vào công việc
+        // tiếp theo nếu người dùng không chạy lại AI trước khi tạo việc mới.
         function resetAiPlanState() {
             const suggestBlock = document.getElementById('ai-plan-suggestions-block');
             if (suggestBlock) suggestBlock.classList.add('hidden');
+
+            PLAN_GROUP_DEFS.forEach(def => {
+                const el = document.getElementById('ai-plan-list-' + def.key);
+                if (el) el.innerHTML = '';
+            });
+            PLAN_EISENHOWER_DEFS.forEach(def => {
+                const el = document.getElementById('ai-plan-list-eisenhower-' + def.key);
+                if (el) el.innerHTML = '';
+            });
+            const smartEl = document.getElementById('ai-plan-smart-text');
+            if (smartEl) smartEl.textContent = '';
+
             setAiPlanStatus(null);
         }
 
