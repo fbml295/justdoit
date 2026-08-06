@@ -353,6 +353,7 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 dashboard: { title: "Bảng Điều Khiển Chỉ Số Vận Hành", subtitle: "Mục tiêu OKRs, Tiến độ Dự án & Chỉ số Năng lượng" },
                 tasks: { title: "Quản Lý Công Việc & Lịch Trình", subtitle: "Phân loại phân quyền và theo dõi tiến độ công việc" },
                 ai: { title: "Trợ Lý AI Gemini 3.1 & Imagen", subtitle: "Tổng hợp báo cáo điều hành, lập kế hoạch Kaizen & Đọc giọng nói TTS" },
+                roadmap: { title: "Kế Hoạch Năm", subtitle: "Ma trận mục tiêu năm — tháng — tuần, kéo thả lập kế hoạch, theo dõi tiến độ tự động" },
                 tpm: { title: "Chương Trình TPM & Tiêu Chuẩn 5S", subtitle: "Phát hành danh mục công việc chuẩn hóa xuống trực tiếp các bộ phận" },
                 kaizen: { title: "Sáng Kiến Kaizen & Dự Án Cải Tiến", subtitle: "Đề xuất và theo dõi tiến độ các dự án tiết kiệm năng lượng" },
                 logs: { title: "Nhật Ký Công Việc Hàng Ngày", subtitle: "Ghi chép tiến độ, kết quả xử lý công việc và báo cáo tuần" },
@@ -365,13 +366,11 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
             }
 
             document.querySelectorAll('.nav-item-side').forEach(el => {
-                if (el.id !== 'btn-side-ai') {
-                    el.classList.remove('bg-[#B6FF2E]', 'text-[#14161C]', 'font-semibold');
-                    el.classList.add('text-[#777E90]', 'hover:bg-[#353945]', 'hover:text-[#F4F5F6]', 'font-medium');
-                }
+                el.classList.remove('bg-[#B6FF2E]', 'text-[#14161C]', 'font-semibold');
+                el.classList.add('text-[#777E90]', 'hover:bg-[#353945]', 'hover:text-[#F4F5F6]', 'font-medium');
             });
             const btnSide = document.getElementById(`btn-side-${viewName}`);
-            if (btnSide && viewName !== 'ai') {
+            if (btnSide) {
                 btnSide.classList.add('bg-[#B6FF2E]', 'text-[#14161C]', 'font-semibold');
                 btnSide.classList.remove('text-[#777E90]', 'hover:bg-[#353945]', 'hover:text-[#F4F5F6]', 'font-medium');
             }
@@ -397,6 +396,9 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 renderConfigView();
             } else if (viewName === 'dashboard') {
                 updateDashboardMetrics();
+            } else if (viewName === 'roadmap') {
+                ensureRoadmapLoaded();
+                initRoadmapDragScroll();
             }
         }
 
