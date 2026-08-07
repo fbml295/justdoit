@@ -144,6 +144,17 @@ const GOOGLE_CONFIG = {
   `js/google-config.js`, và đảm bảo tài khoản đang đăng nhập đã được share quyền vào
   đúng thư mục đó.
 - **Đang dùng app từ trước, giờ không tích được "G-Task":** tính năng Google Tasks cần thêm 1 quyền OAuth mới (`tasks`) không có trong lần đăng nhập trước đó. Vào tab Kết Nối API, bấm **Đăng xuất** rồi **Đăng Nhập Bằng Google** lại để được hỏi cấp thêm quyền này.
+- **App "tự nhảy ra trang đăng nhập Google" bất ngờ giữa lúc đang dùng:** đây là giới hạn
+  của chính trình duyệt, không phải lỗi app. Google Identity Services cần đọc được cookie
+  đăng nhập của `accounts.google.com` để làm mới phiên **hoàn toàn im lặng**; nếu trình
+  duyệt đang **chặn cookie bên thứ 3** (mặc định trên Safari, và ngày càng phổ biến trên
+  Chrome/Firefox ở chế độ chống theo dõi mạnh, hoặc trên Brave), Google buộc phải hiện 1
+  cửa sổ xác nhận thật. App đã được thiết kế để **không tự động bật popup đó lên bất ngờ**
+  — thay vào đó sẽ hiện 1 banner nhỏ "🔑 Phiên đăng nhập Google cần xác thực lại", bạn chỉ
+  cần bấm nút trong banner đó (không mất dữ liệu, không cần đăng nhập lại từ đầu).
+  Muốn hết hẳn hiện tượng này (làm mới hoàn toàn im lặng): vào cài đặt trình duyệt →
+  cho phép cookie bên thứ 3 (hoặc thêm ngoại lệ) cho domain `google.com` /
+  `accounts.google.com`.
 
 ---
 
@@ -153,6 +164,9 @@ const GOOGLE_CONFIG = {
 - Sửa logic tạo/lọc/chọn khu vực trong tab Công việc → `js/tasks.js`
 - Thêm/xoá Phòng ban, Tổ, Nhà máy, Đối tác, Nhân sự → `js/ui-actions.js`
 - Thêm tính năng Gemini AI mới → `js/gemini-api.js`
+- Sửa tính năng Kế Hoạch Năm (ma trận Năm/Tháng/Tuần) → `js/roadmap.js` (dữ liệu lưu trong
+  4 sheet riêng trên Google Sheet đang kết nối: `ke_hoach_nam_years`, `ke_hoach_nam_goals`,
+  `ke_hoach_nam_pool`, `ke_hoach_nam_weeks` — tự tạo khi lần đầu lưu, không cần tạo tay)
 - Đổi cách đọc/ghi Google Sheets (ví dụ đổi tên cột) → `js/google-sheets-sync.js`
 - Đổi màu sắc / font chữ chung → `css/styles.css` (Tailwind dùng trực tiếp qua class
   trong `index.html`, không cần sửa CSS cho phần lớn trường hợp)
