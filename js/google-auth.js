@@ -7,8 +7,17 @@
 //    ngay cả khi token đã hết hạn (phân biệt với "chưa từng đăng nhập").
 // 2. Khi mở lại trang: nếu token còn hạn -> dùng ngay; nếu hết hạn nhưng có email đã lưu
 //    -> tự động xin lại token âm thầm (silent re-auth, không cần bấm gì).
-// 3. Timer tự động xin lại token mới trước khi hết hạn 5 phút (liên tục trong phiên làm việc).
-// 4. Khi gọi API gặp lỗi 401 -> tự refresh token rồi gọi lại thay vì văng lỗi ra ngoài.
+// 3. Timer thử làm mới token trước khi hết hạn 5 phút — CHỈ THỬ 1 LẦN, im lặng.
+//
+// QUAN TRỌNG — vì sao KHÔNG tự động thử lại liên tục khi refresh ngầm thất bại:
+// Khi trình duyệt chặn cookie bên thứ 3 (Safari, Chrome/Firefox chế độ chống theo dõi
+// mạnh, Brave...), Google KHÔNG THỂ làm mới token hoàn toàn im lặng — nó cần hiện 1
+// cửa sổ xác nhận thật. Nếu ta cứ tự động gọi lại requestAccessToken() từ code (không
+// phải từ 1 cú bấm chuột thật của người dùng), cửa sổ đó sẽ bật ra BẤT NGỜ giữa lúc
+// đang thao tác — đúng hiện tượng "tự nhảy ra trang đăng nhập Google". Trình duyệt chỉ
+// đảm bảo KHÔNG chặn popup khi nó được mở trực tiếp từ 1 sự kiện click thật. Vì vậy,
+// nếu refresh ngầm thất bại, ta KHÔNG thử lại tự động — chỉ hiện 1 banner nhỏ mời người
+// dùng bấm nút, và popup chỉ mở ra từ trong đúng hàm xử lý click đó.
 // =============================================================
 
 const GOOGLE_OAUTH_SCOPES = [
@@ -23,8 +32,9 @@ const LS_GOOGLE_SESSION = 'wms_google_session'; // chứa { email } — tồn t�
 let googleAccessToken = null;
 let googleTokenClient = null;
 let googleUserProfile = null;
-let _tokenRefreshTimer = null;       // timer tự refresh trước khi hết hạn
+let _tokenRefreshTimer = null;       // timer thử refresh trước khi hết hạn (chỉ thử 1 lần, im lặng)
 let _silentRefreshResolvers = [];    // danh sách Promise đang chờ silent refresh
+let _silentRefreshInFlight = false;  // chặn gọi chồng nhiều silent refresh cùng lúc
 
 // --- Hiện/ẩn màn hình chặn ---
 function showAppContent() {
@@ -40,6 +50,32 @@ function setLoginGateLoading(text) {
     if (!el) return;
     if (text) { el.classList.remove('hidden'); el.textContent = text; }
     else el.classList.add('hidden');
+}
+
+// --- Banner "Cần xác thực lại" — chỉ hiện khi refresh ngầm thất bại, KHÔNG tự bấm hộ ---
+function showReauthBanner() {
+    const banner = document.getElementById('reauth-banner');
+    if (banner) { banner.classList.remove('hidden'); return; }
+    // Tạo động nếu HTML chưa có sẵn (phòng trường hợp index.html chưa cập nhật kịp)
+    const el = document.createElement('div');
+    el.id = 'reauth-banner';
+    el.className = 'fixed top-3 left-1/2 -translate-x-1/2 z-[500] bg-[#14161C] border border-amber-500/50 rounded-xl px-4 py-2.5 shadow-2xl flex items-center gap-3';
+    el.innerHTML = `
+        <span class="text-xs text-amber-400">🔑 Phiên đăng nhập Google cần xác thực lại</span>
+        <button id="reauth-banner-btn" class="text-xs px-3 py-1.5 rounded-lg bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90">Xác Thực Lại</button>
+    `;
+    document.body.appendChild(el);
+    document.getElementById('reauth-banner-btn').onclick = handleReauthClick;
+}
+function hideReauthBanner() {
+    document.getElementById('reauth-banner')?.classList.add('hidden');
+}
+// Được gọi TRỰC TIẾP từ sự kiện click (không qua await/setTimeout trước đó) -> trình
+// duyệt luôn coi đây là user gesture hợp lệ -> popup Google không bao giờ bị chặn.
+function handleReauthClick() {
+    hideReauthBanner();
+    if (!googleTokenClient) { showNotification('Google Identity Services chưa sẵn sàng, thử tải lại trang.', 'error'); return; }
+    googleTokenClient.requestAccessToken({ prompt: '' });
 }
 
 function isClientIdConfigured() {
@@ -69,13 +105,13 @@ function initGoogleAuth() {
     restoreGoogleSession();
 }
 
-// --- Đăng nhập (bấm nút) ---
+// --- Đăng nhập (bấm nút — luôn là user gesture thật, an toàn 100% với popup blocker) ---
 function signInWithGoogle() {
     if (!googleTokenClient) {
         showNotification('Google Identity Services chưa sẵn sàng, thử tải lại trang.', 'error');
         return;
     }
-    // prompt='consent' lần đầu (chưa từng đăng nhập), '' các lần sau (đã có session trình duyệt)
+    hideReauthBanner();
     const session = _getSession();
     googleTokenClient.requestAccessToken({ prompt: session ? '' : 'consent' });
 }
@@ -83,33 +119,37 @@ function signInWithGoogle() {
 // --- Xử lý token nhận về (cả lần đầu lẫn silent refresh) ---
 async function handleGoogleTokenResponse(response) {
     if (response.error) {
-        // silent refresh thất bại (session trình duyệt đã hết) -> mất phiên
+        _silentRefreshInFlight = false;
+        // silent refresh thất bại -> KHÔNG tự thử lại (tránh popup bất ngờ lần nữa),
+        // chỉ hiện banner mời người dùng chủ động bấm khi tiện.
         if (_silentRefreshResolvers.length > 0) {
             _silentRefreshResolvers.forEach(r => r.reject(new Error(response.error)));
             _silentRefreshResolvers = [];
+            console.warn('[Auth] Refresh ngầm thất bại (' + response.error + ') — hiện banner mời xác thực lại thay vì tự thử lại.');
+            showReauthBanner();
         } else {
             showGoogleConfigError('Đăng nhập Google thất bại: ' + response.error);
         }
         return;
     }
 
+    hideReauthBanner();
     const expiresIn = Number(response.expires_in || 3500);
     googleAccessToken = response.access_token;
 
-    // Lưu token (có ttl) và session (vĩnh viễn tới khi đăng xuất)
     localStorage.setItem(LS_GOOGLE_TOKEN, JSON.stringify({
         token: response.access_token,
         expiresAt: Date.now() + expiresIn * 1000
     }));
 
-    // Đặt timer refresh token trước 5 phút để không bao giờ hết hạn trong lúc đang dùng
+    // Đặt timer thử refresh ngầm 1 LẦN trước khi hết hạn 5 phút — không lặp lại nếu thất bại
     _scheduleTokenRefresh(expiresIn);
 
-    // Nếu đây là luồng silent refresh (có resolver đang chờ) -> giải phóng tất cả
     if (_silentRefreshResolvers.length > 0) {
+        _silentRefreshInFlight = false;
         _silentRefreshResolvers.forEach(r => r.resolve(googleAccessToken));
         _silentRefreshResolvers = [];
-        console.log('[Auth] Silent refresh thành công.');
+        console.log('[Auth] Refresh ngầm thành công.');
         return;
     }
 
@@ -135,23 +175,28 @@ async function handleGoogleTokenResponse(response) {
     }
 }
 
-// --- Timer tự refresh ---
+// --- Timer thử refresh 1 LẦN duy nhất trước khi hết hạn (không tự lặp lại nếu thất bại) ---
 function _scheduleTokenRefresh(expiresInSeconds) {
     clearTimeout(_tokenRefreshTimer);
-    const refreshAfterMs = Math.max((expiresInSeconds - 300) * 1000, 10000); // refresh trước 5 phút, ít nhất 10s
+    const refreshAfterMs = Math.max((expiresInSeconds - 300) * 1000, 10000); // trước 5 phút, ít nhất 10s
     _tokenRefreshTimer = setTimeout(() => {
-        console.log('[Auth] Token sắp hết hạn, đang tự refresh...');
-        _doSilentRefresh().catch(e => console.warn('[Auth] Auto-refresh thất bại:', e));
+        console.log('[Auth] Token sắp hết hạn, thử refresh ngầm (1 lần)...');
+        _doSilentRefresh().catch(e => {
+            // Đã hiện banner trong handleGoogleTokenResponse rồi, ở đây chỉ log, KHÔNG đặt lại timer
+            console.warn('[Auth] Refresh ngầm theo lịch thất bại:', e.message);
+        });
     }, refreshAfterMs);
 }
 
-// Xin lại token âm thầm — không hiện cửa sổ nào nếu session trình duyệt còn sống.
-// Trả về Promise<token> để driveApiFetch() dùng khi gặp 401 (retry ngay sau khi có token mới).
+// Thử xin token âm thầm (prompt=''). Nếu cookie bên thứ 3 bị chặn, Google có thể cần
+// hiện cửa sổ thật -> lúc đó callback sẽ trả lỗi thay vì token, KHÔNG có popup ẩn nào
+// hiện ra ngoài ý muốn từ chính lệnh gọi này.
 function _doSilentRefresh() {
     return new Promise((resolve, reject) => {
         if (!googleTokenClient) { reject(new Error('tokenClient chưa sẵn sàng')); return; }
+        if (_silentRefreshInFlight) { _silentRefreshResolvers.push({ resolve, reject }); return; } // gộp các lời gọi trùng lúc
+        _silentRefreshInFlight = true;
         _silentRefreshResolvers.push({ resolve, reject });
-        // prompt='' -> Google không hỏi lại người dùng nếu session còn sống
         googleTokenClient.requestAccessToken({ prompt: '' });
     });
 }
@@ -183,17 +228,17 @@ async function restoreGoogleSession() {
         } catch (e) { /* bỏ qua, xuống silent refresh */ }
     }
 
-    // Token hết hạn nhưng session còn -> silent refresh (không hiện cửa sổ)
+    // Token hết hạn nhưng session còn -> thử silent refresh 1 LẦN (đây là lúc mở trang,
+    // chưa vào app, nên popup nếu có hiện ra ở đây là hợp lý/dễ hiểu, không "bất ngờ")
     console.log('[Auth] Token hết hạn, thử silent refresh...');
     setLoginGateLoading('⏳ Đang làm mới phiên đăng nhập...');
     try {
         await _doSilentRefresh();
         await _continueRestoreSession();
     } catch (e) {
-        // Session trình duyệt cũng hết (hiếm, thường sau nhiều ngày không dùng) -> cần đăng nhập lại
         console.warn('[Auth] Silent refresh thất bại:', e.message, '— cần đăng nhập lại.');
         setLoginGateLoading(null);
-        showGoogleConfigError('Phiên đăng nhập đã hết. Vui lòng bấm "Đăng Nhập Bằng Google" để tiếp tục.');
+        showGoogleConfigError('Phiên đăng nhập cần xác thực lại (trình duyệt có thể đang chặn cookie bên thứ 3 của Google). Vui lòng bấm "Đăng Nhập Bằng Google" để tiếp tục.');
         _clearSession(); // bỏ session cũ đã hết
     }
 }
@@ -220,6 +265,7 @@ async function _continueRestoreSession() {
 // --- Đăng xuất ---
 function signOutGoogle() {
     clearTimeout(_tokenRefreshTimer);
+    hideReauthBanner();
     if (googleAccessToken && window.google?.accounts?.oauth2?.revoke) {
         google.accounts.oauth2.revoke(googleAccessToken, () => {});
     }
@@ -254,7 +300,7 @@ function _saveSession(email)  { try { localStorage.setItem(LS_GOOGLE_SESSION, JS
 function _clearSession()      { localStorage.removeItem(LS_GOOGLE_SESSION); }
 function _getSession()        { try { return JSON.parse(localStorage.getItem(LS_GOOGLE_SESSION) || 'null'); } catch (e) { return null; } }
 
-// --- Wrapper gọi API với tự động retry 1 lần khi gặp 401 (token vừa hết hạn) ---
+// --- Wrapper gọi API: thử refresh ngầm 1 lần nếu 401, KHÔNG tự lặp lại nếu thất bại ---
 // driveApiFetch (trong google-drive-api.js) gọi hàm này; google-tasks-api cũng dùng chung.
 async function _apiFetchWithAutoRefresh(url, options) {
     options = options || {};
@@ -262,14 +308,15 @@ async function _apiFetchWithAutoRefresh(url, options) {
     let res = await fetch(url, options);
 
     if (res.status === 401) {
-        console.warn('[Auth] 401 khi gọi API, thử silent refresh...');
+        console.warn('[Auth] 401 khi gọi API, thử refresh ngầm...');
         try {
             const newToken = await _doSilentRefresh();
             options.headers['Authorization'] = 'Bearer ' + newToken;
             res = await fetch(url, options); // retry 1 lần với token mới
         } catch (refreshErr) {
-            showNotification('Phiên đăng nhập hết hạn. Vui lòng bấm "Đăng Nhập Bằng Google" để tiếp tục.', 'error');
-            throw new Error('Unauthorized (401) — không thể refresh token');
+            // Không tự mở popup ở đây (tránh popup bất ngờ) — chỉ hiện banner mời bấm tay
+            showReauthBanner();
+            throw new Error('Unauthorized (401) — cần xác thực lại Google (xem banner phía trên)');
         }
     }
     return res;
@@ -305,3 +352,4 @@ function updateGoogleAuthUI() {
         if (hasPic) avatarEl.src = googleUserProfile.picture;
     }
 }
+
