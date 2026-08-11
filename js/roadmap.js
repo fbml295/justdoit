@@ -453,7 +453,11 @@ function renderRoadmapModalContent() {
         weekEl.ondrop = (e) => {
             e.preventDefault();
             weekEl.classList.remove('border-[#B6FF2E]');
-            week.goalHeader = e.dataTransfer.getData('text/plain'); // tên việc chính trở thành Tiêu đề mục tiêu Tuần
+            const droppedName = e.dataTransfer.getData('text/plain');
+            if (!droppedName) return;
+            // Mỗi việc kéo thả vào trở thành 1 tickbox riêng trong checklist của tuần
+            // (được phép kéo nhiều việc khác nhau vào cùng 1 tuần), tính vào % hoàn thành tuần.
+            week.tasks.push({ text: droppedName, done: false });
             renderRoadmapModalContent();
             scheduleRoadmapSync();
         };
@@ -464,16 +468,16 @@ function renderRoadmapModalContent() {
             </div>
             ${week.goalHeader
                 ? `<div class="text-xs font-semibold rounded px-2 py-1.5 break-words" style="background:rgba(255,255,255,0.08);border-left:3px solid ${themeColor}">🚩 ${week.goalHeader}</div>`
-                : `<div class="text-[11px] text-[#777E90] italic">Kéo việc tháng thả vào đây</div>`}
+                : ''}
             <div class="space-y-1.5 flex-1">
-                ${week.tasks.map((task, tIdx) => `
+                ${week.tasks.length > 0 ? week.tasks.map((task, tIdx) => `
                     <label class="flex items-start gap-2 text-[11px] ${task.done ? 'text-[#777E90] line-through' : 'text-[#F4F5F6]'} cursor-pointer">
                         <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleRoadmapTask('${wKey}', ${tIdx})" class="mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0" style="accent-color:${themeColor}">
                         <span class="break-words">${task.text}</span>
                     </label>
-                `).join('')}
+                `).join('') : `<div class="text-[11px] text-[#777E90] italic">Kéo việc từ Kho Việc Tháng thả vào đây (kéo được nhiều việc)</div>`}
             </div>
-            ${week.goalHeader ? `<button onclick="addRoadmapTask('${wKey}')" class="text-[10px] text-[#777E90] border border-dashed border-[#353945] rounded-lg py-1.5 hover:text-[#B6FF2E] hover:border-[#B6FF2E]/40 transition">+ Thêm việc nhỏ (Tickbox)</button>` : ''}
+            <button onclick="addRoadmapTask('${wKey}')" class="text-[10px] text-[#777E90] border border-dashed border-[#353945] rounded-lg py-1.5 hover:text-[#B6FF2E] hover:border-[#B6FF2E]/40 transition">+ Thêm việc nhỏ (Tickbox)</button>
         `;
         weeksGrid.appendChild(weekEl);
     });
