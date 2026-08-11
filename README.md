@@ -167,6 +167,10 @@ const GOOGLE_CONFIG = {
 - Sửa tính năng Kế Hoạch Năm (ma trận Năm/Tháng/Tuần) → `js/roadmap.js` (dữ liệu lưu trong
   4 sheet riêng trên Google Sheet đang kết nối: `ke_hoach_nam_years`, `ke_hoach_nam_goals`,
   `ke_hoach_nam_pool`, `ke_hoach_nam_weeks` — tự tạo khi lần đầu lưu, không cần tạo tay)
+- Sửa tính năng Lịch Tháng / Lịch Tuần (tab Công Việc → Lịch: chuyển tháng, chọn tuần, thêm
+  công việc chính theo tuần, in) → `js/weekly-calendar.js` (dữ liệu lưu riêng trong sheet
+  `lich_tuan_cong_viec`, tách biệt hoàn toàn với `danh_sach_cong_viec` — tự tạo khi lần đầu
+  lưu, không cần tạo tay)
 - Đổi cách đọc/ghi Google Sheets (ví dụ đổi tên cột) → `js/google-sheets-sync.js`
 - Đổi màu sắc / font chữ chung → `css/styles.css` (Tailwind dùng trực tiếp qua class
   trong `index.html`, không cần sửa CSS cho phần lớn trường hợp)
