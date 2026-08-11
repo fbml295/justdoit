@@ -29,7 +29,7 @@ function emptyRoadmapState() {
         yearWindowStart: 0,
         slogans: {},   // { năm: "slogan" }
         goals: { [thisYear]: [] }
-        // goals[năm] = [ { id, title, stars, color, months: { 1: { pool:[{id,name,stars}], weeks:{ w1:{goalHeader,tasks:[{text,done}]}, w2..w4 } } } } ]
+        // goals[năm] = [ { id, title, stars, color, months: { 1: { pool:[{id,name,stars}], weeks:{ w1:{blocks:[{id,goalHeader,tasks:[{text,done}]}]}, w2..w4 } } } } ]
     };
 }
 
@@ -37,8 +37,14 @@ if (!state.roadmap) state.roadmap = emptyRoadmapState();
 
 function renderRoadmapStars(count) { return '★'.repeat(count) + '☆'.repeat(5 - count); }
 
+// Mỗi tuần có thể chứa NHIỀU khối (block) — mỗi khối tương ứng 1 việc tháng được kéo
+// thả vào tuần đó, gồm 1 dòng tiêu đề (goalHeader) + danh sách tickbox RIÊNG của khối.
+// Kéo 2 việc tháng khác nhau vào cùng 1 tuần -> có 2 block, mỗi block tự theo dõi tickbox độc lập.
+function emptyRoadmapWeek() {
+    return { blocks: [] }; // blocks: [{ id, goalHeader, tasks: [{text, done}] }]
+}
 function emptyRoadmapMonth() {
-    return { pool: [], weeks: { w1: { goalHeader: '', tasks: [] }, w2: { goalHeader: '', tasks: [] }, w3: { goalHeader: '', tasks: [] }, w4: { goalHeader: '', tasks: [] } } };
+    return { pool: [], weeks: { w1: emptyRoadmapWeek(), w2: emptyRoadmapWeek(), w3: emptyRoadmapWeek(), w4: emptyRoadmapWeek() } };
 }
 
 // --- Tải dữ liệu (lười — chỉ tải 1 lần khi vào tab lần đầu) ---
@@ -120,9 +126,21 @@ async function loadRoadmapFromSheets() {
         const wk = r.weekKey;
         if (!goal || !m || !wk) return;
         if (!goal.months[m]) goal.months[m] = emptyRoadmapMonth();
-        let tasks = [];
-        try { tasks = r.tasksJson ? JSON.parse(r.tasksJson) : []; } catch (e) { tasks = []; }
-        goal.months[m].weeks[wk] = { goalHeader: r.goalHeader || '', tasks };
+
+        let blocks = [];
+        if (r.blocksJson) {
+            // Định dạng mới: nhiều khối (mỗi khối = 1 goalHeader + tickbox riêng)
+            try { blocks = JSON.parse(r.blocksJson) || []; } catch (e) { blocks = []; }
+        } else if (r.goalHeader || r.tasksJson) {
+            // Migrate dữ liệu cũ: tuần chỉ có 1 goalHeader + 1 danh sách tickbox chung
+            // -> gộp thành đúng 1 block để không mất dữ liệu đã lưu trước đó.
+            let legacyTasks = [];
+            try { legacyTasks = r.tasksJson ? JSON.parse(r.tasksJson) : []; } catch (e) { legacyTasks = []; }
+            if (r.goalHeader || legacyTasks.length > 0) {
+                blocks = [{ id: 'blk_legacy_' + m + '_' + wk, goalHeader: r.goalHeader || '(Chưa đặt tên)', tasks: legacyTasks }];
+            }
+        }
+        goal.months[m].weeks[wk] = { blocks };
     });
 
     state.roadmap = rs;
@@ -147,9 +165,9 @@ async function syncRoadmapToSheets() {
                     poolRows.push([item.id, goal.id, monthStr, item.name, String(item.stars)]);
                 });
                 ['w1', 'w2', 'w3', 'w4'].forEach(wk => {
-                    const week = (monthData.weeks || {})[wk] || { goalHeader: '', tasks: [] };
-                    if (!week.goalHeader && (!week.tasks || week.tasks.length === 0)) return; // tuần trống -> khỏi ghi dòng thừa
-                    weeksRows.push([goal.id + '_' + monthStr + '_' + wk, goal.id, monthStr, wk, week.goalHeader || '', JSON.stringify(week.tasks || [])]);
+                    const week = (monthData.weeks || {})[wk] || emptyRoadmapWeek();
+                    if (!week.blocks || week.blocks.length === 0) return; // tuần trống -> khỏi ghi dòng thừa
+                    weeksRows.push([goal.id + '_' + monthStr + '_' + wk, goal.id, monthStr, wk, JSON.stringify(week.blocks)]);
                 });
             });
         });
@@ -159,7 +177,7 @@ async function syncRoadmapToSheets() {
         sheetsPost('ke_hoach_nam_years', ['year', 'slogan'], yearsRows),
         sheetsPost('ke_hoach_nam_goals', ['id', 'year', 'title', 'stars', 'color'], goalsRows),
         sheetsPost('ke_hoach_nam_pool', ['id', 'goalId', 'month', 'name', 'stars'], poolRows),
-        sheetsPost('ke_hoach_nam_weeks', ['id', 'goalId', 'month', 'weekKey', 'goalHeader', 'tasksJson'], weeksRows)
+        sheetsPost('ke_hoach_nam_weeks', ['id', 'goalId', 'month', 'weekKey', 'blocksJson'], weeksRows)
     ]);
 }
 
@@ -264,9 +282,12 @@ function getActiveRoadmapGoal() {
 // TÍNH TIẾN ĐỘ TỰ ĐỘNG (CASCADE PROGRESS)
 // =============================================================
 function calcRoadmapWeekProgress(week) {
-    if (!week || !week.tasks || week.tasks.length === 0) return 0;
-    const done = week.tasks.filter(t => t.done).length;
-    return Math.round((done / week.tasks.length) * 100);
+    if (!week || !week.blocks || week.blocks.length === 0) return 0;
+    let total = 0, done = 0;
+    week.blocks.forEach(block => {
+        (block.tasks || []).forEach(t => { total++; if (t.done) done++; });
+    });
+    return total === 0 ? 0 : Math.round((done / total) * 100);
 }
 function calcRoadmapMonthProgress(monthData) {
     if (!monthData || !monthData.weeks) return 0;
@@ -443,7 +464,9 @@ function renderRoadmapModalContent() {
     const weeksGrid = document.getElementById('roadmap-weeks-grid');
     weeksGrid.innerHTML = '';
     ['w1', 'w2', 'w3', 'w4'].forEach((wKey, idx) => {
+        if (!monthData.weeks[wKey]) monthData.weeks[wKey] = emptyRoadmapWeek();
         const week = monthData.weeks[wKey];
+        if (!week.blocks) week.blocks = [];
         const weekProg = calcRoadmapWeekProgress(week);
 
         const weekEl = document.createElement('div');
@@ -455,49 +478,108 @@ function renderRoadmapModalContent() {
             weekEl.classList.remove('border-[#B6FF2E]');
             const droppedName = e.dataTransfer.getData('text/plain');
             if (!droppedName) return;
-            // Mỗi việc kéo thả vào trở thành 1 tickbox riêng trong checklist của tuần
-            // (được phép kéo nhiều việc khác nhau vào cùng 1 tuần), tính vào % hoàn thành tuần.
-            week.tasks.push({ text: droppedName, done: false });
+            // Mỗi việc tháng kéo vào trở thành 1 KHỐI riêng (goalHeader + tickbox riêng).
+            // Nếu việc này đã có sẵn trong tuần (trùng tên) -> bỏ qua, không tạo khối trùng.
+            const alreadyExists = week.blocks.some(b => b.goalHeader === droppedName);
+            if (alreadyExists) {
+                showNotification('Việc này đã có trong tuần rồi, bỏ qua.', 'error');
+                return;
+            }
+            week.blocks.push({ id: 'blk_' + Date.now() + Math.random().toString(36).substr(2, 4), goalHeader: droppedName, tasks: [] });
             renderRoadmapModalContent();
             scheduleRoadmapSync();
         };
+
+        const blocksHtml = week.blocks.length > 0
+            ? week.blocks.map(block => `
+                <div class="space-y-1.5">
+                    <div class="text-xs font-semibold rounded px-2 py-1.5 break-words" style="background:rgba(255,255,255,0.08);border-left:3px solid ${themeColor}">🚩 ${block.goalHeader}</div>
+                    <div class="space-y-1 pl-1">
+                        ${(block.tasks || []).length > 0 ? block.tasks.map((task, tIdx) => `
+                            <label class="flex items-start gap-2 text-[11px] ${task.done ? 'text-[#777E90] line-through' : 'text-[#F4F5F6]'} cursor-pointer">
+                                <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleRoadmapTask('${wKey}', '${block.id}', ${tIdx})" class="mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0" style="accent-color:${themeColor}">
+                                <span class="break-words">${task.text}</span>
+                            </label>
+                        `).join('') : `<div class="text-[10px] text-[#777E90] italic pl-1">Chưa có việc nhỏ nào trong mục này.</div>`}
+                    </div>
+                </div>
+            `).join('')
+            : `<div class="text-[11px] text-[#777E90] italic">Kéo việc từ Kho Việc Tháng thả vào đây (kéo được nhiều việc, mỗi việc thành 1 mục riêng)</div>`;
 
         weekEl.innerHTML = `
             <div class="flex justify-between items-center text-xs font-semibold text-[#F4F5F6] border-b border-dashed border-[#353945] pb-1.5">
                 <span>Tuần ${idx + 1}</span><span style="color:${themeColor}">${weekProg}%</span>
             </div>
-            ${week.goalHeader
-                ? `<div class="text-xs font-semibold rounded px-2 py-1.5 break-words" style="background:rgba(255,255,255,0.08);border-left:3px solid ${themeColor}">🚩 ${week.goalHeader}</div>`
-                : ''}
-            <div class="space-y-1.5 flex-1">
-                ${week.tasks.length > 0 ? week.tasks.map((task, tIdx) => `
-                    <label class="flex items-start gap-2 text-[11px] ${task.done ? 'text-[#777E90] line-through' : 'text-[#F4F5F6]'} cursor-pointer">
-                        <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleRoadmapTask('${wKey}', ${tIdx})" class="mt-0.5 w-3.5 h-3.5 rounded flex-shrink-0" style="accent-color:${themeColor}">
-                        <span class="break-words">${task.text}</span>
-                    </label>
-                `).join('') : `<div class="text-[11px] text-[#777E90] italic">Kéo việc từ Kho Việc Tháng thả vào đây (kéo được nhiều việc)</div>`}
+            <div class="space-y-2.5 flex-1">${blocksHtml}</div>
+            <div class="relative">
+                <button onclick="toggleRoadmapAddTaskMenu('${wKey}')" id="roadmap-add-task-btn-${wKey}" class="w-full text-[10px] text-[#777E90] border border-dashed border-[#353945] rounded-lg py-1.5 hover:text-[#B6FF2E] hover:border-[#B6FF2E]/40 transition">+ Thêm việc nhỏ (Tickbox)</button>
+                <div id="roadmap-add-task-menu-${wKey}" class="hidden absolute bottom-full left-0 right-0 mb-1 bg-[#14161C] border border-[#353945] rounded-lg overflow-hidden shadow-xl z-10 max-h-40 overflow-y-auto"></div>
             </div>
-            <button onclick="addRoadmapTask('${wKey}')" class="text-[10px] text-[#777E90] border border-dashed border-[#353945] rounded-lg py-1.5 hover:text-[#B6FF2E] hover:border-[#B6FF2E]/40 transition">+ Thêm việc nhỏ (Tickbox)</button>
         `;
         weeksGrid.appendChild(weekEl);
     });
 }
 
-function toggleRoadmapTask(weekKey, taskIndex) {
+// Tick/bỏ tick 1 việc nhỏ — cần chỉ rõ block (blockId) vì 1 tuần có thể có nhiều khối,
+// mỗi khối có danh sách tickbox độc lập.
+function toggleRoadmapTask(weekKey, blockId, taskIndex) {
     const goal = getActiveRoadmapGoal();
     if (!goal) return;
     const week = goal.months[activeRoadmapMonth].weeks[weekKey];
-    week.tasks[taskIndex].done = !week.tasks[taskIndex].done;
+    const block = (week.blocks || []).find(b => b.id === blockId);
+    if (!block) return;
+    block.tasks[taskIndex].done = !block.tasks[taskIndex].done;
     renderRoadmapModalContent();
     scheduleRoadmapSync();
 }
 
-function addRoadmapTask(weekKey) {
-    const text = prompt('Nhập việc cần làm cho tuần này:');
+// Nút "+ Thêm việc nhỏ" — dùng CHUNG 1 nút cho cả tuần để tiết kiệm không gian:
+// - Chưa có khối nào trong tuần -> báo cần kéo việc tháng vào trước.
+// - Chỉ có 1 khối -> thêm thẳng vào khối đó luôn, khỏi hỏi lại cho nhanh.
+// - Có từ 2 khối trở lên -> hiện danh sách goalheader để người dùng chọn thêm vào đúng khối nào.
+function toggleRoadmapAddTaskMenu(weekKey) {
+    const goal = getActiveRoadmapGoal();
+    if (!goal) return;
+    const week = goal.months[activeRoadmapMonth].weeks[weekKey];
+    const blocks = (week && week.blocks) || [];
+
+    if (blocks.length === 0) {
+        showNotification('Cần kéo ít nhất 1 việc tháng từ Kho Việc Tháng vào tuần này trước khi thêm việc nhỏ.', 'error');
+        return;
+    }
+    if (blocks.length === 1) {
+        addRoadmapTaskToBlock(weekKey, blocks[0].id);
+        return;
+    }
+
+    // Đóng các menu khác đang mở (nếu có) để không hiện chồng nhiều menu cùng lúc
+    document.querySelectorAll('[id^="roadmap-add-task-menu-"]').forEach(el => {
+        if (el.id !== `roadmap-add-task-menu-${weekKey}`) el.classList.add('hidden');
+    });
+
+    const menu = document.getElementById(`roadmap-add-task-menu-${weekKey}`);
+    if (!menu) return;
+    const isOpen = !menu.classList.contains('hidden');
+    if (isOpen) { menu.classList.add('hidden'); return; }
+
+    menu.innerHTML = blocks.map(b => `
+        <button type="button" onclick="addRoadmapTaskToBlock('${weekKey}', '${b.id}')" class="w-full text-left px-3 py-2 text-[11px] text-[#F4F5F6] hover:bg-[#23262F] transition break-words border-b border-[#353945] last:border-b-0">🚩 ${b.goalHeader}</button>
+    `).join('');
+    menu.classList.remove('hidden');
+}
+
+function addRoadmapTaskToBlock(weekKey, blockId) {
+    const menu = document.getElementById(`roadmap-add-task-menu-${weekKey}`);
+    if (menu) menu.classList.add('hidden');
+
+    const text = prompt('Nhập việc cần làm cho mục này:');
     if (!text) return;
     const goal = getActiveRoadmapGoal();
     if (!goal) return;
-    goal.months[activeRoadmapMonth].weeks[weekKey].tasks.push({ text, done: false });
+    const week = goal.months[activeRoadmapMonth].weeks[weekKey];
+    const block = (week.blocks || []).find(b => b.id === blockId);
+    if (!block) return;
+    block.tasks.push({ text, done: false });
     renderRoadmapModalContent();
     scheduleRoadmapSync();
 }
