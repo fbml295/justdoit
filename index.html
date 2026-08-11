@@ -523,17 +523,20 @@
                         <div class="flex items-center justify-between flex-wrap gap-2">
                             <div class="flex items-center gap-3 text-[10px] text-[#777E90] flex-wrap">
                                 <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#B6FF2E] inline-block"></span> Có deadline công việc</span>
-                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-md bg-amber-400/60 inline-block"></span> Tuần đang chọn</span>
+                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Có công việc trong ngày</span>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="openWeeklyCalModal()" class="text-xs px-3 py-1.5 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold hover:bg-[#B6FF2E]/25 transition flex items-center gap-1.5">
-                                    <span>🗂️</span><span>Lịch Tuần</span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span id="print-week-chosen-label" class="hidden text-[10px] font-mono text-amber-300 bg-amber-400/10 border border-amber-400/30 px-2.5 py-1.5 rounded-lg"></span>
+                                <button onclick="openPrintWeekSelectModal()" class="text-xs px-3 py-1.5 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] font-semibold hover:bg-[#353945] transition flex items-center gap-1.5">
+                                    <span>📋</span><span>Chọn Tuần Để In</span>
                                 </button>
-                                <button onclick="printSelectedCalendarWeek()" id="btn-print-calendar-week" disabled title="Bấm chọn 1 tuần trên lịch trước" class="text-xs px-3 py-1.5 rounded-xl bg-[#23262F] text-[#777E90] border border-[#353945] font-semibold opacity-40 cursor-not-allowed transition flex items-center gap-1.5">
+                                <button onclick="printSelectedCalendarWeek()" id="btn-print-calendar-week" disabled title="Bấm 'Chọn Tuần Để In' trước" class="text-xs px-3 py-1.5 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold opacity-40 cursor-not-allowed transition flex items-center gap-1.5">
                                     <span>🖨️</span><span>In</span>
                                 </button>
                             </div>
                         </div>
+
+                        <p class="text-[10px] text-[#777E90]">💡 Bấm vào 1 ngày bất kỳ trên lịch để thêm công việc (Nội dung, Địa điểm, Thành phần, Ghi chú) cho đúng ngày đó.</p>
 
                         <!-- Calendar Grid -->
                         <div class="grid grid-cols-7 gap-2 text-center text-xs">
@@ -551,31 +554,55 @@
                         </div>
                     </div>
 
-                    <!-- Modal: LỊCH TUẦN — thêm/xoá công việc chính của 1 tuần (tách biệt với Danh Sách Công Việc) -->
-                    <div id="weekly-cal-modal-overlay" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl">
+                    <!-- Modal: CÔNG VIỆC NGÀY — bấm vào 1 ngày trên lịch để thêm/xoá công việc của đúng ngày đó -->
+                    <div id="day-items-modal-overlay" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
                             <div class="flex justify-between items-start border-b border-[#353945] pb-3">
                                 <div>
-                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center gap-2">🗂️ Lịch Tuần — Công Việc Chính</h4>
-                                    <p id="weekly-cal-modal-range" class="text-[11px] text-[#777E90] mt-0.5 font-mono"></p>
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center gap-2">🗂️ Công Việc Ngày</h4>
+                                    <p id="day-items-modal-title" class="text-[11px] text-[#B6FF2E] font-mono mt-0.5"></p>
                                 </div>
-                                <button onclick="closeWeeklyCalModal()" class="text-[#777E90] hover:text-rose-400 text-xl px-2 flex-shrink-0">&#x2715;</button>
+                                <button onclick="closeDayItemsModal()" class="text-[#777E90] hover:text-rose-400 text-xl px-2 flex-shrink-0">&#x2715;</button>
                             </div>
 
-                            <div class="flex items-center justify-center gap-3">
-                                <button onclick="shiftWeeklyCalWeek(-1)" title="Tuần trước" class="w-8 h-8 rounded-lg bg-[#23262F] border border-[#353945] text-[#777E90] hover:text-[#B6FF2E] hover:border-[#B6FF2E]/40 transition">◀</button>
-                                <span class="text-[11px] text-[#777E90]">Chuyển tuần cần thêm việc</span>
-                                <button onclick="shiftWeeklyCalWeek(1)" title="Tuần sau" class="w-8 h-8 rounded-lg bg-[#23262F] border border-[#353945] text-[#777E90] hover:text-[#B6FF2E] hover:border-[#B6FF2E]/40 transition">▶</button>
+                            <div id="day-items-modal-list" class="space-y-2 max-h-52 overflow-y-auto"></div>
+
+                            <div class="space-y-2 pt-2 border-t border-[#353945]">
+                                <div>
+                                    <label class="block text-[10px] text-[#777E90] mb-1">NỘI DUNG <span class="text-rose-400">*</span></label>
+                                    <input id="day-item-content-input" type="text" placeholder="VD: Họp đối tác, Kiểm tra dây chuyền A..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-[10px] text-[#777E90] mb-1">ĐỊA ĐIỂM</label>
+                                        <input id="day-item-location-input" type="text" placeholder="VD: Phòng họp A..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[11px] text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] text-[#777E90] mb-1">THÀNH PHẦN</label>
+                                        <input id="day-item-participants-input" type="text" placeholder="VD: Ban Giám Đốc, Tổ Cơ Điện..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[11px] text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-[#777E90] mb-1">GHI CHÚ</label>
+                                    <input id="day-item-note-input" type="text" placeholder="Ghi chú thêm (nếu có)..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                                </div>
+                                <button onclick="addDayItem()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition">+ Thêm Công Việc Vào Ngày Này</button>
                             </div>
 
-                            <div id="weekly-cal-modal-list" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                            <p class="text-[10px] text-[#777E90] text-center pt-1">💡 Các công việc này chỉ hiện trên Lịch Tháng, không xuất hiện ở tab Danh Sách Công Việc.</p>
+                        </div>
+                    </div>
 
-                            <div class="flex gap-2 pt-2 border-t border-[#353945]">
-                                <input id="weekly-cal-modal-input" type="text" placeholder="Nhập công việc chính của tuần..." onkeydown="if(event.key==='Enter'){event.preventDefault();addWeeklyCalItem();}" class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
-                                <button onclick="addWeeklyCalItem()" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition">+ Thêm</button>
+                    <!-- Modal: CHỌN TUẦN ĐỂ IN — tách biệt hoàn toàn với thao tác bấm ngày để thêm công việc -->
+                    <div id="print-week-select-modal-overlay" class="hidden fixed inset-0 z-[210] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-xs p-5 space-y-4 shadow-2xl">
+                            <h4 class="font-bold text-sm text-[#F4F5F6]">📋 Chọn Tuần Cần In</h4>
+                            <p class="text-[11px] text-[#777E90]">Chọn 1 ngày bất kỳ trong tuần bạn muốn in — hệ thống sẽ tự lấy trọn Thứ 2 → Chủ Nhật của tuần chứa ngày đó.</p>
+                            <input id="print-week-select-date-input" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                            <div class="flex justify-end gap-2 pt-1">
+                                <button onclick="closePrintWeekSelectModal()" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945] transition">Hủy</button>
+                                <button onclick="confirmPrintWeekSelect()" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] text-xs font-bold hover:opacity-90 transition">Chọn</button>
                             </div>
-
-                            <p class="text-[10px] text-[#777E90] text-center pt-1">💡 Danh sách này chỉ hiện trên Lịch Tháng, không xuất hiện ở tab Danh Sách Công Việc.</p>
                         </div>
                     </div>
 
