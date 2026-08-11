@@ -669,46 +669,10 @@
             renderPartnerCards();
         }
 
-        function renderCalendar() {
-            const calendarGrid = document.getElementById('calendar-grid');
-            if (!calendarGrid) return;
-            calendarGrid.innerHTML = '';
 
-            const today = new Date();
-            const daysInMonth = 31;
-            const firstDayOffset = 2;
 
-            for (let i = 0; i < firstDayOffset; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'p-3 bg-[#14161C]/30 rounded-xl border border-[#353945]/30 min-h-[60px]';
-                calendarGrid.appendChild(emptyCell);
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
-                const dayTasks = state.tasks.filter(t => t.deadline === dateStr);
-                const isToday = day === today.getDate();
-
-                const cell = document.createElement('div');
-                cell.className = `p-2 rounded-xl border min-h-[60px] flex flex-col justify-between text-left transition ${isToday ? 'border-[#B6FF2E] bg-[#B6FF2E]/10' : 'border-[#353945] bg-[#23262F]'}`;
-                
-                let taskDots = '';
-                if (dayTasks.length > 0) {
-                    taskDots = `<div class="mt-1 space-y-1">
-                        ${dayTasks.map(t => `<div class="text-[9px] truncate px-1 py-0.5 rounded bg-[#353945] text-[#B6FF2E]">${t.title}</div>`).join('')}
-                    </div>`;
-                }
-
-                cell.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-mono text-xs ${isToday ? 'font-bold text-[#B6FF2E]' : 'text-[#F4F5F6]'}">${day}</span>
-                        ${dayTasks.length > 0 ? `<span class="w-1.5 h-1.5 rounded-full bg-[#B6FF2E]"></span>` : ''}
-                    </div>
-                    ${taskDots}
-                `;
-                calendarGrid.appendChild(cell);
-            }
-        }
+        // renderCalendar() — đã chuyển sang js/weekly-calendar.js (kèm tính năng
+        // chuyển tháng theo ngày hệ thống, chọn tuần, hiện "Lịch Tuần" và nút In).
 
         function updateDashboardMetrics() {
             const todayTasksCount = state.tasks.length;

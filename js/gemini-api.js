@@ -387,7 +387,7 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
 
             if (viewName === 'tasks') {
                 renderTasks();
-                renderCalendar();
+                ensureWeeklyCalLoaded(); // tự gọi renderCalendar() sau khi đảm bảo đã có dữ liệu Lịch Tuần
             } else if (viewName === 'kaizen') {
                 renderInitiatives();
             } else if (viewName === 'logs') {
@@ -419,7 +419,7 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 btnList.className = 'px-5 py-2 text-xs md:text-sm font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition';
                 viewCal.classList.remove('hidden');
                 viewList.classList.add('hidden');
-                renderCalendar();
+                ensureWeeklyCalLoaded(); // tự gọi renderCalendar() sau khi đảm bảo đã có dữ liệu Lịch Tuần
             }
         }
 
