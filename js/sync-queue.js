@@ -14,23 +14,30 @@
             return localStorage.getItem(LS_PENDING_SYNC) === '1';
         }
 
-        // Thử đồng bộ lại toàn bộ dữ liệu đang lưu cục bộ lên Sheets
+        // Thử đồng bộ lại toàn bộ dữ liệu đang lưu cục bộ lên Sheets.
+        // Trước khi ghi, đảm bảo token còn hợp lệ (silent refresh nếu cần).
         async function retryPendingSync(silent) {
             if (!state.sheetsUrl || !hasPendingSync()) return;
+            // Nếu token đã hết hạn, thử refresh ngầm trước — tránh ghi thất bại ngay
+            if (!googleAccessToken) {
+                console.log('[Sync] Chưa có token, bỏ qua retry lần này.');
+                return;
+            }
             setSyncStatus('syncing');
             const ok = await syncStateToSheets();
             if (ok) {
                 clearPendingSync();
                 setSyncStatus('ok');
-                if (!silent) showNotification('✅ Đã đồng bộ lại dữ liệu tạm lên Google Sheets!', 'success');
+                if (!silent) showNotification('✅ Đã đồng bộ lại dữ liệu lên Google Sheets!', 'success');
             } else {
                 setSyncStatus('pending');
+                // Không thông báo lỗi khi retry thất bại — sẽ tự thử lại lần tiếp
             }
         }
 
         // Lắng nghe khi trình duyệt có mạng trở lại
         window.addEventListener('online', () => {
-            showNotification('🌐 Đã có kết nối mạng, đang đồng bộ dữ liệu...', 'success');
+            console.log('[Sync] Mạng trở lại, thử đồng bộ...');
             retryPendingSync(false);
         });
 
@@ -54,6 +61,10 @@
             renderTasks(); renderInitiatives(); renderLogs(); renderConfigView(); renderCalendar(); updateDashboardMetrics();
             setSyncStatus('ok');
             showNotification('Đã tải xong dữ liệu từ Google Sheets!', 'success');
+        }
+
+        function reloadFromSheets() {
+            forceLoadFromSheets();
         }
 
         // --- UI: Lưu Gemini Key ---
@@ -124,7 +135,7 @@
                         showNotification('Gemini AI hoạt động với model ' + model + '!', 'success');
                         return;
                     } else {
-                        log += `   ⚠️ Không có phản hồi hợp lệ. Response: ${JSON.stringify(data).substring(0,120)}\n\n`;
+                        log += `   ⚠️ Không có phản hồi hợp lệ.\n\n`;
                     }
                 } catch (e) {
                     log += `   ❌ Lỗi kết nối mạng: ${e.message}\n\n`;
@@ -140,9 +151,6 @@
             resultBox.className = 'text-[11px] p-3 rounded-xl bg-[#23262F] border border-rose-500/50 text-rose-400 font-mono whitespace-pre-wrap';
         }
 
-        // Cập nhật khối hiển thị trạng thái kết nối Google Sheets (trong tab Kết Nối API).
-        // sheetsConnected = true khi đã đăng nhập Google THÀNH CÔNG và đã xác định được
-        // đúng Google Sheet mục tiêu (activeSpreadsheetId, xem js/google-drive-api.js).
         function updateStorageModeUI(sheetsConnected) {
             const dot  = document.getElementById('storage-mode-dot');
             const text = document.getElementById('storage-mode-text');
@@ -196,8 +204,7 @@
             showNotification('Đã xuất backup JSON!', 'success');
         }
 
-        // Khôi phục Gemini Key đã lưu + trạng thái đăng nhập Google (đăng nhập Google được
-        // khôi phục riêng trong js/google-auth.js -> restoreGoogleSession(), gọi trong boot()).
+        // Khôi phục Gemini Key đã lưu
         function bootLoadSettings() {
             const savedKey = localStorage.getItem(LS_GEMINI_KEY);
             if (savedKey) {

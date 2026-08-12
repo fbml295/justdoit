@@ -479,49 +479,55 @@
 
         // --- Ghi toàn bộ ---
         async function syncStateToSheets() {
-            if (!state.sheetsUrl) return;
-
-            await sheetsPost('danh_sach_cong_viec',
-                ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt','objective','expectedResult','category','tags','planData','googleTaskId'],
-                state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||'', t.objective||'', t.expectedResult||'', t.category||'', (t.tags||[]).join(';'), t.plan ? JSON.stringify(t.plan) : '', t.googleTaskId||''])
-            );
-
-            // Sáng kiến: 3 sheet song song
-            await Promise.all([
-                sheetsPost('sang_kien_kaizen',
-                    ['id','code','title','type','status','proposer','department','proposedDate','problemDesc','solution','hasFinancial','actualResult','actualBenefit','approved','approvedDate','approvedNote','linkedTaskIds','createdAt','updatedAt'],
-                    flattenInitiativesToRows(state.initiatives)
-                ),
-                sheetsPost('sang_kien_checklist',
-                    ['id','initiativeId','text','done','assignee','pushedToTask','taskId'],
-                    flattenChecklistToRows(state.initiatives)
-                ),
-                sheetsPost('sang_kien_financial',
-                    ['id','initiativeId','bdType','label','amount'],
-                    flattenFinancialToRows(state.initiatives)
-                )
-            ]);
-
-            await sheetsPost('nhat_ky_cong_viec',
-                ['id','timestamp','author','type','title','text','attendees','linkedTaskId','tags'],
-                state.logs.map(l => [l.id, l.timestamp, l.author, l.type || 'work', l.title || '', l.text, (l.attendees||[]).join(';'), l.linkedTaskId || '', (l.tags||[]).join(';')])
-            );
-            await sheetsPost('cau_hinh_nha_may',
-                ['facId','facName','scope','wsId','wsName','memberId','memberName','memberRole','memberPhone','memberEmail'],
-                flattenFactoriesToRows(state.config.factories)
-            );
-            const deptRows = [
-                ...flattenUnitsToRows(state.config.departments).map(r => ['department', ...r]),
-                ...flattenUnitsToRows(state.config.specialTeams).map(r => ['team', ...r])
-            ];
-            await sheetsPost('cau_hinh_phong_ban',
-                ['unitType','unitId','unitName','memberId','memberName','memberRole','memberPhone','memberEmail'],
-                deptRows
-            );
-            await sheetsPost('cau_hinh_doi_tac',
-                ['unitId','unitName','categories','equipment','rating','ratingComment','memberId','memberName','memberRole','memberPhone','memberEmail'],
-                flattenPartnersToRows(state.config.partners)
-            );
+            if (!state.sheetsUrl) return false;
+            try {
+                const _results = await Promise.allSettled([
+                    sheetsPost('danh_sach_cong_viec',
+                        ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt','objective','expectedResult','category','tags','planData','googleTaskId'],
+                        state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||'', t.objective||'', t.expectedResult||'', t.category||'', (t.tags||[]).join(';'), t.plan ? JSON.stringify(t.plan) : '', t.googleTaskId||''])
+                    ),
+                    sheetsPost('sang_kien_kaizen',
+                        ['id','code','title','type','status','proposer','department','proposedDate','problemDesc','solution','hasFinancial','actualResult','actualBenefit','approved','approvedDate','approvedNote','linkedTaskIds','createdAt','updatedAt'],
+                        flattenInitiativesToRows(state.initiatives)
+                    ),
+                    sheetsPost('sang_kien_checklist',
+                        ['id','initiativeId','text','done','assignee','pushedToTask','taskId'],
+                        flattenChecklistToRows(state.initiatives)
+                    ),
+                    sheetsPost('sang_kien_financial',
+                        ['id','initiativeId','bdType','label','amount'],
+                        flattenFinancialToRows(state.initiatives)
+                    ),
+                    sheetsPost('nhat_ky_cong_viec',
+                        ['id','timestamp','author','type','title','text','attendees','linkedTaskId','tags'],
+                        state.logs.map(l => [l.id, l.timestamp, l.author, l.type || 'work', l.title || '', l.text, (l.attendees||[]).join(';'), l.linkedTaskId || '', (l.tags||[]).join(';')])
+                    ),
+                    sheetsPost('cau_hinh_nha_may',
+                        ['facId','facName','scope','wsId','wsName','memberId','memberName','memberRole','memberPhone','memberEmail'],
+                        flattenFactoriesToRows(state.config.factories)
+                    ),
+                    sheetsPost('cau_hinh_phong_ban',
+                        ['unitType','unitId','unitName','memberId','memberName','memberRole','memberPhone','memberEmail'],
+                        [
+                            ...flattenUnitsToRows(state.config.departments).map(r => ['department', ...r]),
+                            ...flattenUnitsToRows(state.config.specialTeams).map(r => ['team', ...r])
+                        ]
+                    ),
+                    sheetsPost('cau_hinh_doi_tac',
+                        ['unitId','unitName','categories','equipment','rating','ratingComment','memberId','memberName','memberRole','memberPhone','memberEmail'],
+                        flattenPartnersToRows(state.config.partners)
+                    )
+                ]);
+                const _failed = _results.filter(r => r.status === 'rejected' || r.value === false);
+                if (_failed.length > 0) {
+                    console.warn('[Sync] ' + _failed.length + ' sheet(s) ghi thất bại');
+                    return false;
+                }
+                return true;
+            } catch(e) {
+                console.warn('[Sync] Lỗi kết nối khi ghi Sheets:', e.message || e);
+                return false;
+            }
         }
 
         // --- Hàm lưu chính ---
@@ -529,13 +535,23 @@
             saveToLocalStorage();
             if (!state.sheetsUrl) { setSyncStatus('idle'); return; }
             setSyncStatus('syncing');
-            const ok = await syncStateToSheets();
-            if (ok) {
-                clearPendingSync();
-                setSyncStatus('ok');
-            } else {
+            try {
+                const ok = await syncStateToSheets();
+                if (ok) {
+                    clearPendingSync();
+                    setSyncStatus('ok');
+                } else {
+                    // Ghi thất bại nhưng không phải exception — có thể do mạng chập
+                    markPendingSync();
+                    setSyncStatus('pending');
+                    // Không hiện notification ở đây để tránh làm phiền —
+                    // chỉ đổi màu dot thành cam, sẽ tự retry khi có mạng
+                    console.warn('[Sync] Ghi Sheets thất bại, đã đánh dấu pending để retry sau.');
+                }
+            } catch(e) {
+                // Exception thật (mạng đứt hoàn toàn, CORS, ...)
                 markPendingSync();
                 setSyncStatus('pending');
-                showNotification('⚠️ Mất kết nối Sheets. Đã lưu tạm, sẽ tự đồng bộ khi có mạng lại.', 'error');
+                console.warn('[Sync] Exception khi ghi Sheets:', e);
             }
         }
