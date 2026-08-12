@@ -10,7 +10,9 @@ const INITIATIVE_TYPES = {
     energy:   { label: '⚡ Tiết kiệm năng lượng',        color: 'text-amber-400 bg-amber-500/10 border-amber-500/30' },
     safety:   { label: '🛡️ An toàn lao động',            color: 'text-rose-400 bg-rose-500/10 border-rose-500/30' },
     quality:  { label: '🎯 Chất lượng sản phẩm',         color: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
-    process:  { label: '📋 Cải tiến quy trình',          color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' }
+    process:  { label: '📋 Cải tiến quy trình',          color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
+    digital:  { label: '💻 Chuyển đổi số',               color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30' },
+    ai:       { label: '🤖 Ứng dụng trí tuệ nhân tạo',  color: 'text-violet-400 bg-violet-500/10 border-violet-500/30' }
 };
 
 const INITIATIVE_STATUSES = {
@@ -395,6 +397,10 @@ function openEditInitiativeModal(id) {
     const item = state.initiatives.find(i => i.id === id);
     if (!item) return;
 
+    // Xóa overlay cũ nếu còn tồn tại trong DOM (tránh bị chặn khi mở lại)
+    const existingOverlay = document.getElementById('initiative-edit-overlay');
+    if (existingOverlay) existingOverlay.remove();
+
     const personnelOpts = getPersonnelOptions();
     const deptList = [
         ...(state.config.factories || []).map(f => f.name),
@@ -403,7 +409,7 @@ function openEditInitiativeModal(id) {
     ];
 
     const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
+    overlay.className = 'fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
     overlay.id = 'initiative-edit-overlay';
 
     overlay.innerHTML = `
@@ -604,9 +610,11 @@ function saveInitiativeFromModal(id) {
 
 function closeInitiativeModal(id) {
     document.getElementById('initiative-edit-overlay')?.remove();
-    // Nếu sáng kiến mới mà chưa có title thì xóa
+    // Chỉ xóa nếu là sáng kiến MỚI HOÀN TOÀN (chưa có title, chưa có problemDesc)
+    // Sáng kiến cũ đang sửa thì không xóa dù bấm Hủy
     const item = state.initiatives.find(i => i.id === id);
-    if (item && !item.title) {
+    const isNewEmpty = item && !item.title && !item.problemDesc && !item.solution;
+    if (isNewEmpty) {
         state.initiatives = state.initiatives.filter(i => i.id !== id);
         saveToLocalStorage();
     }
@@ -787,6 +795,7 @@ function openInitiativeAI(id) {
         return;
     }
 
+    document.getElementById('initiative-ai-overlay')?.remove();
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
     overlay.id = 'initiative-ai-overlay';
@@ -1073,11 +1082,28 @@ function printInitiative(id) {
   </div>
   ${item.approved ? `<p style="text-align:center;margin-top:12px;color:#2e7d32;font-size:11pt">✅ Đã phê duyệt ngày ${item.approvedDate || ''}</p>` : ''}
 
-  <script>window.onload = function(){ window.print(); }<\/script>
 </body>
 </html>`;
 
+    // Thêm thanh công cụ xem trước + nút In vào đầu trang (ẩn khi in thật)
+    const printBar = `
+<div id="print-toolbar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;color:#B6FF2E;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;font-family:Arial,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.4);print-display:none;">
+    <span style="font-size:13px;font-weight:bold;">🖨️ Xem trước phiếu — ${item.code}: ${(item.title||'').substring(0,50)}</span>
+    <div style="display:flex;gap:10px;">
+        <button onclick="window.print()" style="background:#B6FF2E;color:#14161C;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:bold;cursor:pointer;">🖨️ In Phiếu</button>
+        <button onclick="window.close()" style="background:#353945;color:#F4F5F6;border:none;padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;">✕ Đóng</button>
+    </div>
+</div>
+<div style="height:52px;"></div>
+<style>@media print { #print-toolbar, div[style*="height:52px"] { display:none !important; } }</style>`;
+
+    const finalHtml = html.replace('<body>', '<body>' + printBar);
+
     const w = window.open('', '_blank');
-    w.document.write(html);
+    if (!w) {
+        showNotification('Trình duyệt đã chặn cửa sổ xem trước. Vui lòng cho phép popup rồi thử lại.', 'error');
+        return;
+    }
+    w.document.write(finalHtml);
     w.document.close();
 }
