@@ -16,7 +16,7 @@
 </head>
 <body>
 
-    <!-- ===================== MÀN HÌNH ĐĂNG NHẬP (chặn app cho tới khi kết nối xong) ===================== -->
+    <!-- ===================== MÀN HÌNH ĐĂNG NHẬP ===================== -->
     <div id="login-gate" class="fixed inset-0 z-[999] bg-[#0D0E12] flex items-center justify-center p-6">
         <div class="max-w-sm w-full bg-[#14161C] border border-[#B6FF2E]/30 rounded-2xl p-8 space-y-5 text-center shadow-[0_0_30px_rgba(182,255,46,0.08)]">
             <div class="text-4xl">🏭</div>
@@ -36,11 +36,11 @@
         </div>
     </div>
 
-    <!-- ===================== NỘI DUNG CHÍNH CỦA APP (chỉ hiện sau khi đăng nhập + kết nối Sheet thành công) ===================== -->
+    <!-- ===================== NỘI DUNG CHÍNH ===================== -->
     <div id="app-main-content" class="hidden">
     <div class="flex min-h-screen">
         
-        <!-- SIDEBAR (MÁY TÍNH & TABLET - COMPACT ICON RAIL) -->
+        <!-- SIDEBAR -->
         <aside class="hidden md:flex flex-col w-20 bg-[#14161C] border-r border-[#353945] fixed h-full z-30">
             <div class="p-3 border-b border-[#353945] flex flex-col items-center justify-center">
                 <div class="w-10 h-10 rounded-xl bg-[#B6FF2E] text-[#14161C] flex items-center justify-center font-extrabold text-sm shadow-[0_0_15px_rgba(182,255,46,0.3)]">
@@ -49,7 +49,6 @@
                 <span class="text-[9px] text-[#B6FF2E] font-semibold tracking-wider uppercase mt-1">v2.0 Sheets</span>
             </div>
 
-            <!-- MENU ĐIỀU HƯỚNG CHÍNH -->
             <nav class="flex-1 p-2 space-y-2.5 overflow-y-auto">
                 <button onclick="switchView('dashboard')" id="btn-side-dashboard" class="nav-item-side w-full flex flex-col items-center justify-center py-2.5 px-1 rounded-xl bg-[#B6FF2E] text-[#14161C] font-semibold transition shadow-[0_0_12px_rgba(182,255,46,0.15)] space-y-1">
                     <span class="text-xl">📊</span>
@@ -115,12 +114,9 @@
 
             <div class="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-6">
 
-                <!-- 1. VIEW 1: DASHBOARD (TỔNG QUAN & OKRS) -->
+                <!-- 1. DASHBOARD -->
                 <section id="view-dashboard" class="view-section space-y-6">
-                    
-                    <!-- KPI Cards Grid -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                        
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945]">
                             <div class="flex justify-between items-start">
                                 <span class="text-xs font-semibold text-[#777E90] uppercase tracking-wider">Việc Trong Ngày</span>
@@ -130,11 +126,8 @@
                                 <span id="kpi-today-tasks" class="text-3xl font-extrabold text-[#F4F5F6] tracking-tight">0</span>
                                 <span class="text-xs text-[#777E90]">nhiệm vụ</span>
                             </div>
-                            <p class="text-xs text-[#777E90] mt-2 flex items-center">
-                                Cập nhật theo thời gian thực
-                            </p>
+                            <p class="text-xs text-[#777E90] mt-2">Cập nhật theo thời gian thực</p>
                         </div>
-
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945]">
                             <div class="flex justify-between items-start">
                                 <span class="text-xs font-semibold text-[#777E90] uppercase tracking-wider">Tỷ Lệ Hoàn Thành</span>
@@ -144,11 +137,8 @@
                                 <span id="kpi-completion-rate" class="text-3xl font-extrabold text-[#B6FF2E] tracking-tight">0</span>
                                 <span class="text-sm text-[#777E90]">%</span>
                             </div>
-                            <p class="text-xs text-[#777E90] mt-2 flex items-center">
-                                Tính theo công việc hoàn thành
-                            </p>
+                            <p class="text-xs text-[#777E90] mt-2">Tính theo công việc hoàn thành</p>
                         </div>
-
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945]">
                             <div class="flex justify-between items-start">
                                 <span class="text-xs font-semibold text-[#777E90] uppercase tracking-wider">Tiết Kiệm Năng Lượng SEC</span>
@@ -158,11 +148,8 @@
                                 <span id="kpi-sec-savings" class="text-3xl font-extrabold text-[#F4F5F6] tracking-tight">0</span>
                                 <span class="text-xs text-[#777E90]">kWh</span>
                             </div>
-                            <p class="text-xs text-[#777E90] mt-2 flex items-center">
-                                Nhập số liệu từ Nhật ký
-                            </p>
+                            <p class="text-xs text-[#777E90] mt-2">Nhập số liệu từ Nhật ký</p>
                         </div>
-
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945]">
                             <div class="flex justify-between items-start">
                                 <span class="text-xs font-semibold text-[#777E90] uppercase tracking-wider">Sáng Kiến / Kaizen</span>
@@ -172,9 +159,7 @@
                                 <span id="kpi-kaizen-count" class="text-3xl font-extrabold text-[#F4F5F6] tracking-tight">0</span>
                                 <span class="text-xs text-[#777E90]">dự án</span>
                             </div>
-                            <p class="text-xs text-[#777E90] mt-2 flex items-center">
-                                Danh mục đề xuất cải tiến
-                            </p>
+                            <p class="text-xs text-[#777E90] mt-2">Danh mục đề xuất cải tiến</p>
                         </div>
                     </div>
 
@@ -189,16 +174,12 @@
                         </button>
                     </div>
 
-                    <!-- Charts & OKR Progress Grid -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- Biểu đồ phân bổ nguồn lực & công việc -->
                         <div class="lg:col-span-2 bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-4">
                             <div class="flex justify-between items-center border-b border-[#353945] pb-3">
                                 <h3 class="font-bold text-[#F4F5F6] text-base">Phân Bổ Tải Công Việc Theo Khu Vực & Bộ Phận</h3>
                                 <span class="text-xs text-[#B6FF2E] font-mono">Cập nhật thực tế</span>
                             </div>
-                            
                             <div class="h-60 flex items-end justify-between pt-6 px-4 space-x-3 border-b border-[#353945]">
                                 <div class="flex-1 flex flex-col items-center group h-full justify-end">
                                     <div class="w-full max-w-[32px] bg-[#353945] rounded-t-md h-[80%] relative flex justify-center items-end hover:bg-[#B6FF2E] transition-all duration-300">
@@ -230,54 +211,31 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Mục tiêu OKRs -->
                         <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-4">
                             <div class="flex justify-between items-center border-b border-[#353945] pb-3">
                                 <h3 class="font-bold text-[#F4F5F6] text-base">Tiến Độ Mục Tiêu OKRs</h3>
                                 <span class="text-[10px] bg-[#B6FF2E]/10 text-[#B6FF2E] border border-[#B6FF2E]/30 px-2 py-0.5 rounded-full font-mono uppercase">QUÝ 3</span>
                             </div>
-
                             <div class="space-y-3">
                                 <div class="space-y-1">
-                                    <div class="flex justify-between text-xs">
-                                        <span class="font-semibold text-[#F4F5F6]">O1: Tối ưu 10% điện năng tiêu thụ</span>
-                                        <span class="font-mono text-[#B6FF2E]">78%</span>
-                                    </div>
-                                    <div class="w-full bg-[#353945] h-2 rounded-full overflow-hidden">
-                                        <div class="bg-[#B6FF2E] h-full rounded-full" style="width: 78%"></div>
-                                    </div>
+                                    <div class="flex justify-between text-xs"><span class="font-semibold text-[#F4F5F6]">O1: Tối ưu 10% điện năng tiêu thụ</span><span class="font-mono text-[#B6FF2E]">78%</span></div>
+                                    <div class="w-full bg-[#353945] h-2 rounded-full overflow-hidden"><div class="bg-[#B6FF2E] h-full rounded-full" style="width: 78%"></div></div>
                                 </div>
-
                                 <div class="space-y-1 pt-2">
-                                    <div class="flex justify-between text-xs">
-                                        <span class="font-semibold text-[#F4F5F6]">O2: Số hóa 100% quy trình 5S & TPM</span>
-                                        <span class="font-mono text-[#B6FF2E]">85%</span>
-                                    </div>
-                                    <div class="w-full bg-[#353945] h-2 rounded-full overflow-hidden">
-                                        <div class="bg-[#B6FF2E] h-full rounded-full" style="width: 85%"></div>
-                                    </div>
+                                    <div class="flex justify-between text-xs"><span class="font-semibold text-[#F4F5F6]">O2: Số hóa 100% quy trình 5S & TPM</span><span class="font-mono text-[#B6FF2E]">85%</span></div>
+                                    <div class="w-full bg-[#353945] h-2 rounded-full overflow-hidden"><div class="bg-[#B6FF2E] h-full rounded-full" style="width: 85%"></div></div>
                                 </div>
-
                                 <div class="space-y-1 pt-2">
-                                    <div class="flex justify-between text-xs">
-                                        <span class="font-semibold text-[#F4F5F6]">O3: Hoàn thành 100% báo cáo đúng hạn</span>
-                                        <span class="font-mono text-[#B6FF2E]">60%</span>
-                                    </div>
-                                    <div class="w-full bg-[#353945] h-2 rounded-full overflow-hidden">
-                                        <div class="bg-[#B6FF2E] h-full rounded-full" style="width: 60%"></div>
-                                    </div>
+                                    <div class="flex justify-between text-xs"><span class="font-semibold text-[#F4F5F6]">O3: Hoàn thành 100% báo cáo đúng hạn</span><span class="font-mono text-[#B6FF2E]">60%</span></div>
+                                    <div class="w-full bg-[#353945] h-2 rounded-full overflow-hidden"><div class="bg-[#B6FF2E] h-full rounded-full" style="width: 60%"></div></div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </section>
 
-                <!-- 2. VIEW 2: CÔNG VIỆC & LỊCH TRÌNH -->
+                <!-- 2. CÔNG VIỆC -->
                 <section id="view-tasks" class="view-section space-y-5 hidden">
-
-                    <!-- Banner slogan -->
                     <div class="bg-[#14161C] border border-[#353945] rounded-2xl px-5 py-4 flex items-center justify-center gap-3 md:gap-8 overflow-hidden">
                         <span class="text-sm md:text-base font-extrabold text-[#F4F5F6] tracking-widest uppercase whitespace-nowrap">TINH GỌN</span>
                         <span class="w-1 h-1 rounded-full bg-[#B6FF2E] flex-shrink-0"></span>
@@ -290,48 +248,29 @@
 
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#14161C] p-4 rounded-2xl border border-[#353945]">
                         <div class="flex bg-[#23262F] p-1.5 rounded-xl border border-[#353945] w-full sm:w-auto">
-                            <button onclick="switchTaskSubView('list')" id="btn-subview-list" class="px-5 py-2 text-xs md:text-sm font-semibold rounded-lg bg-[#B6FF2E] text-[#14161C] transition">
-                                📋 Danh Sách
-                            </button>
-                            <button onclick="switchTaskSubView('calendar')" id="btn-subview-calendar" class="px-5 py-2 text-xs md:text-sm font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition">
-                                📅 Lịch
-                            </button>
+                            <button onclick="switchTaskSubView('list')" id="btn-subview-list" class="px-5 py-2 text-xs md:text-sm font-semibold rounded-lg bg-[#B6FF2E] text-[#14161C] transition">📋 Danh Sách</button>
+                            <button onclick="switchTaskSubView('calendar')" id="btn-subview-calendar" class="px-5 py-2 text-xs md:text-sm font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition">📅 Lịch</button>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <button onclick="generateAiTasksSuggest()" class="px-3 py-2 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold text-xs hover:bg-[#B6FF2E]/25 transition flex items-center gap-1.5">
-                                <span>&#x2728;</span><span>AI Đề Xuất</span>
-                            </button>
-                            <div class="text-xs text-[#777E90] font-mono hidden md:block">
-                                Tổng: <span id="total-tasks-badge" class="text-[#B6FF2E] font-bold">0</span>
-                            </div>
+                            <button onclick="generateAiTasksSuggest()" class="px-3 py-2 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold text-xs hover:bg-[#B6FF2E]/25 transition flex items-center gap-1.5"><span>&#x2728;</span><span>AI Đề Xuất</span></button>
+                            <div class="text-xs text-[#777E90] font-mono hidden md:block">Tổng: <span id="total-tasks-badge" class="text-[#B6FF2E] font-bold">0</span></div>
                         </div>
                     </div>
 
-                    <!-- SUB-VIEW 1: DANH SÁCH CÔNG VIỆC -->
                     <div id="subview-tasks-list" class="grid grid-cols-1 lg:grid-cols-5 gap-5">
-                        
-                        <!-- Form Khởi Tạo — 2/5 -->
                         <div class="lg:col-span-2 bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-3 h-fit">
                             <h3 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">&#x1F3AF; Khởi Tạo Công Việc Mới</h3>
-                            
                             <div class="space-y-3 text-xs">
-                                <!-- Tên công việc -->
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
                                     <input id="task-title-input" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
                                 </div>
-
-                                <!-- ============================================================= -->
-                                <!-- 🧠 AI PROJECT PLANNING ASSISTANT (SMART/Pareto/Eisenhower/Action Plan/KPI/Rủi ro/Biện pháp/Hồ sơ) -->
-                                <!-- ============================================================= -->
                                 <div class="border-t-2 border-dashed border-[#353945] pt-3 space-y-3">
                                     <div class="flex items-center justify-between">
                                         <h4 class="text-xs font-bold text-[#B6FF2E] flex items-center gap-1.5">🧠 AI Lập Kế Hoạch</h4>
                                         <button type="button" onclick="triggerAiPlanAnalysis()" class="text-[11px] px-3 py-1.5 rounded-lg bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold hover:bg-[#B6FF2E]/25">🧠 Phân Tích Kế Hoạch AI</button>
                                     </div>
                                     <p id="ai-plan-status" class="hidden text-[10px] text-[#777E90]"></p>
-
-                                    <!-- Thêm mục thủ công (không cần chờ AI, dùng được ngay cả khi chưa bấm Phân Tích) -->
                                     <div class="flex gap-1.5">
                                         <select id="manual-plan-group-select" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
                                             <option value="pareto">📊 Pareto</option>
@@ -348,22 +287,11 @@
                                         <input id="manual-plan-text-input" type="text" placeholder="Tự gõ thêm 1 mục vào kế hoạch..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
                                         <button type="button" onclick="addManualPlanItemToForm('manual-plan-group-select', 'manual-plan-text-input')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
                                     </div>
-
-                                    <!-- Gợi ý AI — tick chọn mục cần dùng, sẽ tự lấy vào kế hoạch khi bấm "Làm Việc Đi!" bên dưới -->
                                     <div id="ai-plan-suggestions-block" class="hidden space-y-2 bg-[#0D0E12] rounded-xl p-3 border border-[#353945]">
-                                        <p class="text-[10px] text-[#777E90] italic">✓ Tick chọn mục muốn dùng — các mục đã tick sẽ tự động thành checklist theo dõi của công việc khi bạn bấm "Làm Việc Đi!"</p>
-                                        <div class="bg-[#23262F] rounded-lg p-2.5">
-                                            <p class="text-[10px] font-bold text-[#B6FF2E] mb-1">🎯 SMART</p>
-                                            <p id="ai-plan-smart-text" class="text-[11px] text-[#F4F5F6] leading-relaxed"></p>
-                                        </div>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5" open>
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📊 Pareto — Việc quan trọng nhất</summary>
-                                            <div id="ai-plan-list-pareto" class="mt-1.5 space-y-0.5"></div>
-                                        </details>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5">
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⏰ Eisenhower — Ưu tiên theo nhóm</summary>
+                                        <p class="text-[10px] text-[#777E90] italic">✓ Tick chọn mục muốn dùng</p>
+                                        <div class="bg-[#23262F] rounded-lg p-2.5"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">🎯 SMART</p><p id="ai-plan-smart-text" class="text-[11px] text-[#F4F5F6] leading-relaxed"></p></div>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5" open><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📊 Pareto</summary><div id="ai-plan-list-pareto" class="mt-1.5 space-y-0.5"></div></details>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⏰ Eisenhower</summary>
                                             <div class="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                 <div><p class="text-[10px] text-[#777E90] mb-0.5">🔥 Làm ngay</p><div id="ai-plan-list-eisenhower-doNow" class="space-y-0.5"></div></div>
                                                 <div><p class="text-[10px] text-[#777E90] mb-0.5">📅 Lên lịch</p><div id="ai-plan-list-eisenhower-schedule" class="space-y-0.5"></div></div>
@@ -371,35 +299,13 @@
                                                 <div><p class="text-[10px] text-[#777E90] mb-0.5">🚫 Không ưu tiên</p><div id="ai-plan-list-eisenhower-eliminate" class="space-y-0.5"></div></div>
                                             </div>
                                         </details>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5">
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🪜 Action Plan — Các bước thực hiện</summary>
-                                            <div id="ai-plan-list-actionPlan" class="mt-1.5 space-y-0.5"></div>
-                                        </details>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5">
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🎯 KPI</summary>
-                                            <div id="ai-plan-list-kpi" class="mt-1.5 space-y-0.5"></div>
-                                        </details>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5">
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⚠️ Rủi ro</summary>
-                                            <div id="ai-plan-list-risks" class="mt-1.5 space-y-0.5"></div>
-                                        </details>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5">
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🛡️ Biện pháp</summary>
-                                            <div id="ai-plan-list-mitigations" class="mt-1.5 space-y-0.5"></div>
-                                        </details>
-
-                                        <details class="bg-[#23262F] rounded-lg p-2.5">
-                                            <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📁 Hồ sơ cần chuẩn bị</summary>
-                                            <div id="ai-plan-list-documents" class="mt-1.5 space-y-0.5"></div>
-                                        </details>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🪜 Action Plan</summary><div id="ai-plan-list-actionPlan" class="mt-1.5 space-y-0.5"></div></details>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🎯 KPI</summary><div id="ai-plan-list-kpi" class="mt-1.5 space-y-0.5"></div></details>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⚠️ Rủi ro</summary><div id="ai-plan-list-risks" class="mt-1.5 space-y-0.5"></div></details>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🛡️ Biện pháp</summary><div id="ai-plan-list-mitigations" class="mt-1.5 space-y-0.5"></div></details>
+                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📁 Hồ sơ</summary><div id="ai-plan-list-documents" class="mt-1.5 space-y-0.5"></div></details>
                                     </div>
                                 </div>
-
-                                <!-- Khu vực - chọn 2 bước -->
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">KHU VỰC</label>
                                     <div class="grid grid-cols-2 gap-2">
@@ -408,22 +314,19 @@
                                             <option value="unit">&#x1F3E2; Phòng ban / Tổ đội</option>
                                             <option value="partner">&#x1F91D; Đối tác</option>
                                         </select>
-                                        <select id="task-area-value-input" onchange="onAreaValueChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
-                                            <!-- populate JS -->
-                                        </select>
+                                        <select id="task-area-value-input" onchange="onAreaValueChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition"></select>
                                     </div>
                                     <div id="task-area-workshop-wrap" class="hidden mt-2">
                                         <select id="task-area-workshop-input" onchange="onAreaWorkshopChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Toàn nhà máy (không chọn xưởng) --</option>
+                                            <option value="">-- Toàn nhà máy --</option>
                                         </select>
                                     </div>
                                     <div id="task-area-person-wrap" class="hidden mt-2">
                                         <select id="task-area-person-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Cả đơn vị (không chọn người cụ thể) --</option>
+                                            <option value="">-- Cả đơn vị --</option>
                                         </select>
                                     </div>
                                 </div>
-                                <!-- Phân quyền -->
                                 <div>
                                     <label class="block font-medium text-[#777E90] mb-1">PHÂN QUYỀN</label>
                                     <select id="task-relation-input" onchange="onRelationChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
@@ -435,10 +338,9 @@
                                         <select id="task-person-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
                                             <option value="">-- Chọn người --</option>
                                         </select>
-                                        <p id="task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách. Vào Cấu Hình → Phòng Ban & Tổ Đội / Đối Tác để thêm nhân sự.</p>
+                                        <p id="task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách.</p>
                                     </div>
                                 </div>
-                                <!-- Ngày thực hiện (kèm giờ) + Deadline -->
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label class="block font-medium text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
@@ -449,7 +351,6 @@
                                         <input id="task-deadline-input" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
                                     </div>
                                 </div>
-                                <!-- Danh mục + Thẻ (để phân loại, xếp cuối form) -->
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
@@ -461,18 +362,16 @@
                                     </div>
                                 </div>
                             </div>
-                            
                             <button onclick="createNewTask()" class="w-full py-3 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-sm hover:opacity-90 active:scale-95 transition shadow-[0_0_15px_rgba(182,255,46,0.2)]">
                                 &#x1F680; Làm Việc Đi!
                             </button>
                         </div>
 
-                        <!-- Danh sách công việc — 3/5 -->
                         <div class="lg:col-span-3 space-y-3">
                             <div id="deadline-reminder-banner" class="hidden bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 space-y-1.5">
                                 <div class="flex items-center justify-between">
                                     <p class="text-[11px] font-bold text-amber-400" id="deadline-reminder-title"></p>
-                                    <button type="button" onclick="requestDeadlineNotificationPermission()" id="btn-enable-notif" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#B6FF2E] border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10">&#x1F514; Bật thông báo trình duyệt</button>
+                                    <button type="button" onclick="requestDeadlineNotificationPermission()" class="text-[10px] px-2 py-1 rounded-lg bg-[#23262F] text-[#B6FF2E] border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10">&#x1F514; Bật thông báo trình duyệt</button>
                                 </div>
                                 <div id="deadline-reminder-list" class="space-y-0.5"></div>
                             </div>
@@ -500,15 +399,10 @@
                                 </select>
                             </div>
                             <div id="task-category-filter-chips" class="flex flex-wrap gap-1.5"></div>
-
-                            <div id="tasks-render-area" class="space-y-2.5">
-                                <!-- Cards render từ JS -->
-                            </div>
+                            <div id="tasks-render-area" class="space-y-2.5"></div>
                         </div>
-
                     </div>
 
-                    <!-- SUB-VIEW 2: LỊCH CÔNG VIỆC -->
                     <div id="subview-tasks-calendar" class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] hidden space-y-4">
                         <div class="flex justify-between items-center border-b border-[#353945] pb-4 flex-wrap gap-3">
                             <h3 class="font-bold text-[#F4F5F6] text-base">📅 Lịch Công Việc Tháng</h3>
@@ -538,7 +432,6 @@
 
                         <p class="text-[10px] text-[#777E90]">💡 Bấm vào 1 ngày bất kỳ trên lịch để thêm công việc (Nội dung, Địa điểm, Thành phần, Ghi chú) cho đúng ngày đó.</p>
 
-                        <!-- Calendar Grid -->
                         <div class="grid grid-cols-7 gap-2 text-center text-xs">
                             <div class="py-2 font-bold text-[#777E90]">T2</div>
                             <div class="py-2 font-bold text-[#777E90]">T3</div>
@@ -547,14 +440,11 @@
                             <div class="py-2 font-bold text-[#777E90]">T6</div>
                             <div class="py-2 font-bold text-amber-400">T7</div>
                             <div class="py-2 font-bold text-rose-400">CN</div>
-
-                            <div id="calendar-grid" class="col-span-7 grid grid-cols-7 gap-2">
-                                <!-- Populated by JS -->
-                            </div>
+                            <div id="calendar-grid" class="col-span-7 grid grid-cols-7 gap-2"></div>
                         </div>
                     </div>
 
-                    <!-- Modal: CÔNG VIỆC NGÀY — bấm vào 1 ngày trên lịch để thêm/xoá công việc của đúng ngày đó -->
+                    <!-- Modal: CÔNG VIỆC NGÀY -->
                     <div id="day-items-modal-overlay" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                         <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
                             <div class="flex justify-between items-start border-b border-[#353945] pb-3">
@@ -564,9 +454,7 @@
                                 </div>
                                 <button onclick="closeDayItemsModal()" class="text-[#777E90] hover:text-rose-400 text-xl px-2 flex-shrink-0">&#x2715;</button>
                             </div>
-
                             <div id="day-items-modal-list" class="space-y-2 max-h-52 overflow-y-auto"></div>
-
                             <div class="space-y-2 pt-2 border-t border-[#353945]">
                                 <div>
                                     <label class="block text-[10px] text-[#777E90] mb-1">NỘI DUNG <span class="text-rose-400">*</span></label>
@@ -579,7 +467,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-[10px] text-[#777E90] mb-1">THÀNH PHẦN</label>
-                                        <input id="day-item-participants-input" type="text" placeholder="VD: Ban Giám Đốc, Tổ Cơ Điện..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[11px] text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                                        <input id="day-item-participants-input" type="text" placeholder="VD: Ban Giám Đốc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[11px] text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
                                     </div>
                                 </div>
                                 <div>
@@ -588,12 +476,11 @@
                                 </div>
                                 <button onclick="addDayItem()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition">+ Thêm Công Việc Vào Ngày Này</button>
                             </div>
-
                             <p class="text-[10px] text-[#777E90] text-center pt-1">💡 Các công việc này chỉ hiện trên Lịch Tháng, không xuất hiện ở tab Danh Sách Công Việc.</p>
                         </div>
                     </div>
 
-                    <!-- Modal: CHỌN TUẦN ĐỂ IN — tách biệt hoàn toàn với thao tác bấm ngày để thêm công việc -->
+                    <!-- Modal: CHỌN TUẦN ĐỂ IN -->
                     <div id="print-week-select-modal-overlay" class="hidden fixed inset-0 z-[210] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                         <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-xs p-5 space-y-4 shadow-2xl">
                             <h4 class="font-bold text-sm text-[#F4F5F6]">📋 Chọn Tuần Cần In</h4>
@@ -605,34 +492,24 @@
                             </div>
                         </div>
                     </div>
-
                 </section>
 
-                <!-- 2.5. VIEW: KẾ HOẠCH NĂM (ANNUAL ROADMAP MATRIX) -->
+                <!-- 2.5. KẾ HOẠCH NĂM -->
                 <section id="view-roadmap" class="view-section space-y-5 hidden">
                     <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-4">
-
                         <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-3">
                             <h3 class="font-bold text-[#F4F5F6] text-lg flex items-center gap-2">🗺️ Kế Hoạch Năm</h3>
-
                             <div class="flex items-center gap-2 bg-[#0D0E12] px-2 py-1.5 rounded-xl border border-[#353945]">
                                 <button id="roadmap-prev-years" onclick="shiftRoadmapYears(-1)" class="text-[#777E90] hover:text-[#B6FF2E] disabled:opacity-20 disabled:cursor-not-allowed px-2 py-1 rounded-lg transition">◀</button>
                                 <div id="roadmap-year-tabs" class="flex gap-1"></div>
                                 <button id="roadmap-next-years" onclick="shiftRoadmapYears(1)" class="text-[#777E90] hover:text-[#B6FF2E] disabled:opacity-20 disabled:cursor-not-allowed px-2 py-1 rounded-lg transition">▶</button>
                                 <button onclick="addRoadmapYear()" class="ml-1 text-[10px] px-2.5 py-1.5 rounded-lg border border-dashed border-[#B6FF2E]/40 text-[#B6FF2E] hover:bg-[#B6FF2E]/10 font-semibold">+ Thêm Năm</button>
                             </div>
-
-                            <button onclick="addRoadmapAnnualGoal()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition flex items-center gap-1.5 justify-center">
-                                <span>+</span><span>Thêm Mục Tiêu Năm</span>
-                            </button>
+                            <button onclick="addRoadmapAnnualGoal()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition flex items-center gap-1.5 justify-center"><span>+</span><span>Thêm Mục Tiêu Năm</span></button>
                         </div>
-
-                        <!-- Slogan -->
                         <div class="bg-gradient-to-r from-[#23262F] to-[#0D0E12] border border-[#353945] border-t-2 border-t-[#B6FF2E] border-b-2 border-b-[#B6FF2E] rounded-xl px-5 py-3 text-center">
                             <input id="roadmap-slogan-input" type="text" onchange="onRoadmapSloganChange()" placeholder="✍️ Nhập Slogan / Châm ngôn hành động của năm..." class="w-full bg-transparent border-none outline-none text-[#F4F5F6] text-base font-bold italic text-center placeholder:text-[#777E90] placeholder:font-normal">
                         </div>
-
-                        <!-- Ma trận 12 tháng -->
                         <div id="roadmap-matrix-container" class="overflow-x-auto rounded-xl border border-[#353945] cursor-grab select-none bg-[#0D0E12]">
                             <table class="border-collapse" style="min-width:3250px; width:100%;">
                                 <thead>
@@ -659,7 +536,6 @@
                     </div>
                 </section>
 
-                <!-- Modal Tháng: Kho việc + 4 Tuần (kéo thả) -->
                 <div id="roadmap-modal-overlay" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                     <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
                         <div class="flex justify-between items-center px-5 py-3.5 bg-[#111827] border-b border-[#353945] flex-shrink-0">
@@ -683,116 +559,68 @@
                     </div>
                 </div>
 
-                <!-- 3. VIEW 3: TRỢ LÝ AI GEMINI (GEMINI AI WORK SUITE) -->
+                <!-- 3. TRỢ LÝ AI GEMINI -->
                 <section id="view-ai" class="view-section space-y-6 hidden">
-                    
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- Panel Điều Khiển AI -->
                         <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-5 h-fit">
                             <div class="border-b border-[#353945] pb-3 space-y-1">
                                 <span class="text-[10px] font-mono uppercase text-[#B6FF2E] font-bold tracking-wider">Gemini 3.1 Flash AI</span>
                                 <h3 class="text-base font-bold text-[#F4F5F6]">🤖 Trợ Lý Quản Trị Thông Minh</h3>
                                 <p class="text-xs text-[#777E90]">Tối ưu hóa quản lý nhà máy, phân tích dữ liệu & tạo nội dung tự động.</p>
                             </div>
-
                             <div class="space-y-3 text-xs">
                                 <button onclick="triggerAiWeeklySummary()" class="w-full text-left p-3.5 rounded-xl bg-[#23262F] hover:bg-[#353945] border border-[#353945] hover:border-[#B6FF2E]/50 transition group space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-[#F4F5F6] group-hover:text-[#B6FF2E]">📝 Tổng Hợp & Đánh Giá Báo Cáo Tuần</span>
-                                        <span>⚡</span>
-                                    </div>
+                                    <div class="flex items-center justify-between"><span class="font-bold text-[#F4F5F6] group-hover:text-[#B6FF2E]">📝 Tổng Hợp & Đánh Giá Báo Cáo Tuần</span><span>⚡</span></div>
                                     <p class="text-[11px] text-[#777E90]">Gom toàn bộ dữ liệu Task, Nhật Ký & OKR để viết báo cáo điều hành.</p>
                                 </button>
-
                                 <button onclick="triggerAiKaizenPlanner()" class="w-full text-left p-3.5 rounded-xl bg-[#23262F] hover:bg-[#353945] border border-[#353945] hover:border-[#B6FF2E]/50 transition group space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-[#F4F5F6] group-hover:text-[#B6FF2E]">💡 Lập Đề Xuất Sáng Kiến / TPM Smart</span>
-                                        <span>⚡</span>
-                                    </div>
+                                    <div class="flex items-center justify-between"><span class="font-bold text-[#F4F5F6] group-hover:text-[#B6FF2E]">💡 Lập Đề Xuất Sáng Kiến / TPM Smart</span><span>⚡</span></div>
                                     <p class="text-[11px] text-[#777E90]">Phân rã kế hoạch hành động Kaizen & Tiết kiệm SEC năng lượng.</p>
                                 </button>
-
                                 <button onclick="triggerAiPosterGen()" class="w-full text-left p-3.5 rounded-xl bg-[#23262F] hover:bg-[#353945] border border-[#353945] hover:border-[#B6FF2E]/50 transition group space-y-1">
-                                    <div class="flex items-center justify-between">
-                                        <span class="font-bold text-[#F4F5F6] group-hover:text-[#B6FF2E]">🖼️ Tạo Poster 5S / An Toàn Lao Động</span>
-                                        <span>🎨</span>
-                                    </div>
+                                    <div class="flex items-center justify-between"><span class="font-bold text-[#F4F5F6] group-hover:text-[#B6FF2E]">🖼️ Tạo Poster 5S / An Toàn Lao Động</span><span>🎨</span></div>
                                     <p class="text-[11px] text-[#777E90]">Tạo hình ảnh minh họa quy chuẩn 5S & An toàn từ Imagen 3.0.</p>
                                 </button>
                             </div>
-
                             <div class="bg-[#23262F] p-4 rounded-xl border border-[#353945] space-y-2">
                                 <label class="block text-[11px] font-bold text-[#777E90]">ĐẶT CÂU HỎI HOẶC YÊU CẦU RIÊNG BẤT KỲ</label>
-                                <textarea id="ai-custom-prompt" rows="3" placeholder="Ví dụ: Lập checklist kiểm tra 5S khu vực máy nén khí hoặc gợi ý cách giảm 5% điện sấy..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl p-3 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"></textarea>
-                                <button onclick="executeCustomAiQuery()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition">
-                                    Gửi Yêu Cầu Cho Gemini
-                                </button>
+                                <textarea id="ai-custom-prompt" rows="3" placeholder="Ví dụ: Lập checklist kiểm tra 5S khu vực máy nén khí..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl p-3 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"></textarea>
+                                <button onclick="executeCustomAiQuery()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition">Gửi Yêu Cầu Cho Gemini</button>
                             </div>
                         </div>
-
-                        <!-- Khung Hiển Thị Kết Quả AI & Audio Player -->
                         <div class="lg:col-span-2 space-y-5">
-                            
-                            <!-- Banner Player TTS (Đọc Báo Cáo) -->
                             <div id="ai-audio-player-card" class="hidden bg-[#14161C] p-4 rounded-2xl border border-[#B6FF2E]/40 flex items-center justify-between gap-4">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-xl bg-[#B6FF2E]/20 text-[#B6FF2E] flex items-center justify-center font-bold text-lg">
-                                        🔊
-                                    </div>
-                                    <div>
-                                        <h4 class="text-xs font-bold text-[#F4F5F6]">Phát Báo Cáo Bằng Giọng Nói (Gemini TTS)</h4>
-                                        <p class="text-[10px] text-[#777E90]">Giọng đọc chuẩn tiếng Việt từ mô hình gemini-2.0-flash</p>
-                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-[#B6FF2E]/20 text-[#B6FF2E] flex items-center justify-center font-bold text-lg">🔊</div>
+                                    <div><h4 class="text-xs font-bold text-[#F4F5F6]">Phát Báo Cáo Bằng Giọng Nói</h4><p class="text-[10px] text-[#777E90]">Giọng đọc tiếng Việt</p></div>
                                 </div>
                                 <audio id="ai-audio-element" controls class="h-8 max-w-[200px] sm:max-w-[280px] rounded-lg"></audio>
                             </div>
-
-                            <!-- Khung Phản Hồi Nội Dung Text -->
                             <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-4 min-h-[420px] flex flex-col">
                                 <div class="flex justify-between items-center border-b border-[#353945] pb-3">
-                                    <h3 class="font-bold text-[#F4F5F6] text-base flex items-center gap-2">
-                                        <span>✨</span>
-                                        <span id="ai-output-title">Kết Quả Phân Tích Điều Hành Gemini</span>
-                                    </h3>
+                                    <h3 class="font-bold text-[#F4F5F6] text-base flex items-center gap-2"><span>✨</span><span id="ai-output-title">Kết Quả Phân Tích Điều Hành Gemini</span></h3>
                                     <div class="flex items-center space-x-2">
-                                        <button onclick="readAiOutputWithTTS()" id="btn-read-tts" class="text-xs px-3 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 font-semibold transition flex items-center gap-1">
-                                            <span>🔊</span>
-                                            <span>Đọc Bằng Giọng Nói</span>
-                                        </button>
-                                        <button onclick="copyAiOutputText()" class="text-xs px-3 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#777E90] border border-[#353945] font-semibold transition">
-                                            📋 Sao Chép
-                                        </button>
+                                        <button onclick="readAiOutputWithTTS()" id="btn-read-tts" class="text-xs px-3 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 font-semibold transition flex items-center gap-1"><span>🔊</span><span>Đọc Bằng Giọng Nói</span></button>
+                                        <button onclick="copyAiOutputText()" class="text-xs px-3 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#777E90] border border-[#353945] font-semibold transition">📋 Sao Chép</button>
                                     </div>
                                 </div>
-
                                 <div id="ai-loading-spinner" class="hidden flex-1 flex flex-col items-center justify-center py-12 space-y-3">
                                     <div class="w-10 h-10 border-4 border-[#353945] border-t-[#B6FF2E] rounded-full animate-spin"></div>
                                     <p class="text-xs font-mono text-[#B6FF2E] animate-pulse">Gemini AI đang suy nghĩ & phân tích dữ liệu...</p>
                                 </div>
-
                                 <div id="ai-output-container" class="flex-1 text-xs text-[#F4F5F6] leading-relaxed whitespace-pre-wrap overflow-y-auto max-h-[500px] pr-2">
-                                    <!-- Trạng thái chờ -->
-                                    <div class="text-center text-[#777E90] py-16 space-y-2">
-                                        <span class="text-4xl block">🤖</span>
-                                        <p class="font-semibold text-xs">Hãy chọn 1 chức năng bên trái để Gemini hỗ trợ công việc quản trị của bạn.</p>
-                                    </div>
+                                    <div class="text-center text-[#777E90] py-16 space-y-2"><span class="text-4xl block">🤖</span><p class="font-semibold text-xs">Hãy chọn 1 chức năng bên trái để Gemini hỗ trợ công việc quản trị của bạn.</p></div>
                                 </div>
-
-                                <!-- Container hiển thị ảnh sinh từ Imagen -->
                                 <div id="ai-image-output-container" class="hidden pt-4 border-t border-[#353945] space-y-2">
                                     <span class="text-[10px] font-mono text-[#B6FF2E]">HÌNH ẢNH POSTER ĐƯỢC TẠO TỪ IMAGEN 3.0:</span>
                                     <img id="ai-generated-image" src="" alt="AI Poster" class="w-full max-h-96 object-contain rounded-xl border border-[#353945] bg-[#23262F]">
                                 </div>
                             </div>
-
                         </div>
-
                     </div>
-
                 </section>
 
-                <!-- 4. VIEW 4: HẠNG MỤC TPM & 5S THEO BỘ PHẬN -->
+                <!-- 4. TPM & 5S -->
                 <section id="view-tpm" class="view-section space-y-6 hidden">
                     <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-5">
                         <div class="flex flex-col md:flex-row justify-between md:items-center border-b border-[#353945] pb-4 gap-4">
@@ -800,19 +628,12 @@
                                 <h3 class="font-bold text-[#F4F5F6] text-lg">Khung Chương Trình TPM & Tiêu Chuẩn 5S</h3>
                                 <p class="text-xs text-[#777E90] mt-0.5">Phát hành danh mục công việc chuẩn hóa xuống trực tiếp các bộ phận phụ trách</p>
                             </div>
-                            <button onclick="dispatchStandardTPMTasks()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)]">
-                                🚀 Phát Hành Công Việc TPM & 5S Mẫu
-                            </button>
+                            <button onclick="dispatchStandardTPMTasks()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)]">🚀 Phát Hành Công Việc TPM & 5S Mẫu</button>
                         </div>
-
-                        <!-- Grid 4 Bộ phận chính -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
                             <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
                                 <div class="flex justify-between items-center border-b border-[#353945] pb-2">
-                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center">
-                                        <span class="mr-2">⚡</span> Bộ Phận Cơ Điện (TPM - PM/AM)
-                                    </h4>
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">⚡</span> Bộ Phận Cơ Điện (TPM - PM/AM)</h4>
                                     <span class="text-[10px] bg-[#B6FF2E]/10 text-[#B6FF2E] px-2 py-0.5 rounded font-mono">Bảo trì phòng ngừa</span>
                                 </div>
                                 <ul class="space-y-2 text-xs text-[#777E90]">
@@ -821,12 +642,9 @@
                                     <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Vệ sinh và thay dầu bôi trơn máy nén khí trung tâm A</li>
                                 </ul>
                             </div>
-
                             <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
                                 <div class="flex justify-between items-center border-b border-[#353945] pb-2">
-                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center">
-                                        <span class="mr-2">🏭</span> Phân Xưởng Sản Xuất (5S Nhà Máy)
-                                    </h4>
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">🏭</span> Phân Xưởng Sản Xuất (5S Nhà Máy)</h4>
                                     <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">Sàng lọc & Sắp xếp</span>
                                 </div>
                                 <ul class="space-y-2 text-xs text-[#777E90]">
@@ -835,12 +653,9 @@
                                     <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Sơn lại vạch kẻ lối đi an toàn khu vực máy chà nhám</li>
                                 </ul>
                             </div>
-
                             <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
                                 <div class="flex justify-between items-center border-b border-[#353945] pb-2">
-                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center">
-                                        <span class="mr-2">🏢</span> Khối Văn Phòng & QA (5S Số)
-                                    </h4>
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">🏢</span> Khối Văn Phòng & QA (5S Số)</h4>
                                     <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">Chuẩn hóa hồ sơ</span>
                                 </div>
                                 <ul class="space-y-2 text-xs text-[#777E90]">
@@ -849,12 +664,9 @@
                                     <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Tối ưu không gian làm việc gọn gàng theo tiêu chuẩn 5S</li>
                                 </ul>
                             </div>
-
                             <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
                                 <div class="flex justify-between items-center border-b border-[#353945] pb-2">
-                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center">
-                                        <span class="mr-2">🛡️</span> Ban An Toàn & Môi Trường (HSE)
-                                    </h4>
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">🛡️</span> Ban An Toàn & Môi Trường (HSE)</h4>
                                     <span class="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-mono">An toàn lao động</span>
                                 </div>
                                 <ul class="space-y-2 text-xs text-[#777E90]">
@@ -863,68 +675,43 @@
                                     <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Diễn tập phương án ứng phó sự cố rò rỉ hóa chất keo</li>
                                 </ul>
                             </div>
-
                         </div>
                     </div>
                 </section>
 
-                <!-- 5. VIEW 5: SÁNG KIẾN KAIZEN & DỰ ÁN TIẾT KIỆM -->
-                <section id="view-kaizen" class="view-section space-y-6 hidden">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-4 h-fit">
-                            <h3 class="font-bold text-[#F4F5F6] border-b border-[#353945] pb-2">💡 Đề Xuất Sáng Kiến / Dự Án</h3>
-                            <div class="space-y-3 text-xs">
-                                <div>
-                                    <label class="block text-[#777E90] mb-1">TIÊU ĐỀ SÁNG KIẾN</label>
-                                    <input id="initiative-title" type="text" placeholder="Nhập tên sáng kiến..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[#777E90] mb-1">PHÂN LOẠI MỤC TIÊU</label>
-                                    <select id="initiative-type" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                        <option value="initiative">Tiết kiệm năng lượng & Chi phí</option>
-                                        <option value="kaizen">Cải tiến quy trình làm việc</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[#777E90] mb-1">MÔ TẢ GIẢI PHÁP</label>
-                                    <textarea id="initiative-desc" rows="3" placeholder="Mô tả cách thức thực hiện và lợi ích dự kiến..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl p-3 text-[#F4F5F6] focus:outline-none"></textarea>
-                                </div>
-                                <button onclick="submitInitiative()" class="w-full py-3 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">
-                                    Gửi Đề Xuất Phê Duyệt
-                                </button>
-                            </div>
+                <!-- 5. SÁNG KIẾN KAIZEN v2 -->
+                <section id="view-kaizen" class="view-section space-y-5 hidden">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#14161C] p-4 rounded-2xl border border-[#353945]">
+                        <div>
+                            <h3 class="font-bold text-[#F4F5F6] text-base">💡 Sáng Kiến & Cải Tiến Kaizen</h3>
+                            <p class="text-xs text-[#777E90] mt-0.5">Quản lý đề xuất, tính hiệu quả tài chính, theo dõi triển khai</p>
                         </div>
-
-                        <div class="lg:col-span-2 space-y-4" id="initiatives-render-area">
-                            <!-- Cards render từ JS -->
-                        </div>
-
+                        <button onclick="openNewInitiativeModal()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)] flex items-center gap-1.5 whitespace-nowrap">
+                            <span>+</span><span>Sáng Kiến Mới</span>
+                        </button>
                     </div>
+                    <div id="initiative-stats"></div>
+                    <div class="bg-[#14161C] p-3 rounded-2xl border border-[#353945] space-y-2">
+                        <input type="text" placeholder="🔍 Tìm theo mã, tiêu đề, người đề xuất..." oninput="initiativeFilters.search=this.value; renderInitiativeCards()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                        <div id="initiative-filter-chips" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+                    <div id="initiatives-render-area" class="space-y-2.5"></div>
                 </section>
 
-                <!-- 6. VIEW 6: NHẬT KÝ CÔNG VIỆC -->
+                <!-- 6. NHẬT KÝ -->
                 <section id="view-logs" class="view-section space-y-5 hidden">
                     <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-5">
-                        
                         <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-[#353945] pb-4 gap-4">
                             <div>
                                 <h3 class="font-bold text-[#F4F5F6] text-lg">Nhật Ký</h3>
-                                <p class="text-xs text-[#777E90] mt-0.5">Ghi chép tiến độ công việc, biên bản họp, ghi chú, sự cố... và tự động gom báo cáo tuần</p>
+                                <p class="text-xs text-[#777E90] mt-0.5">Ghi chép tiến độ công việc, biên bản họp, ghi chú, sự cố...</p>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button onclick="generateWeeklyReport()" class="bg-[#23262F] text-[#F4F5F6] font-bold text-xs px-3.5 py-2.5 rounded-xl border border-[#353945] hover:bg-[#353945] transition">
-                                    📝 Báo Cáo Thủ Công
-                                </button>
-                                <button onclick="switchView('ai'); triggerAiWeeklySummary();" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)] flex items-center space-x-1">
-                                    <span>✨</span>
-                                    <span>AI Báo Cáo Tuần Gemini</span>
-                                </button>
+                                <button onclick="generateWeeklyReport()" class="bg-[#23262F] text-[#F4F5F6] font-bold text-xs px-3.5 py-2.5 rounded-xl border border-[#353945] hover:bg-[#353945] transition">📝 Báo Cáo Thủ Công</button>
+                                <button onclick="switchView('ai'); triggerAiWeeklySummary();" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)] flex items-center space-x-1"><span>✨</span><span>AI Báo Cáo Tuần Gemini</span></button>
                             </div>
                         </div>
-
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            
                             <div class="space-y-3 bg-[#23262F] p-4 rounded-xl border border-[#353945] h-fit">
                                 <h4 class="font-semibold text-sm text-[#F4F5F6]">Ghi Nhật Ký Mới</h4>
                                 <div class="text-xs space-y-3">
@@ -937,49 +724,25 @@
                                             <option value="incident">⚠️ Sự cố</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">TIÊU ĐỀ (tuỳ chọn)</label>
-                                        <input id="log-title-input" type="text" placeholder="VD: Họp giao ban tuần 32..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
-                                    <div id="log-attendees-wrap" class="hidden">
-                                        <label class="block text-[#777E90] mb-1">NGƯỜI THAM DỰ (phân cách dấu phẩy)</label>
-                                        <input id="log-attendees-input" type="text" placeholder="VD: Anh A, Chị B..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">NỘI DUNG</label>
-                                        <textarea id="log-text-input" rows="4" placeholder="Nhập nội dung..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl p-3 text-[#F4F5F6] focus:outline-none transition"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">LIÊN KẾT CÔNG VIỆC (tuỳ chọn)</label>
-                                        <select id="log-linked-task-input" class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                            <option value="">-- Không liên kết --</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">THẺ (phân cách dấu phẩy)</label>
-                                        <input id="log-tags-input" type="text" placeholder="VD: an toàn, bảo trì..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
-                                    <button onclick="addNewLogEntry()" class="w-full py-2.5 rounded-xl bg-[#353945] text-[#B6FF2E] font-bold border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10 transition">
-                                        Lưu Vào Nhật Ký
-                                    </button>
+                                    <div><label class="block text-[#777E90] mb-1">TIÊU ĐỀ (tuỳ chọn)</label><input id="log-title-input" type="text" placeholder="VD: Họp giao ban tuần 32..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                    <div id="log-attendees-wrap" class="hidden"><label class="block text-[#777E90] mb-1">NGƯỜI THAM DỰ</label><input id="log-attendees-input" type="text" placeholder="VD: Anh A, Chị B..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                    <div><label class="block text-[#777E90] mb-1">NỘI DUNG</label><textarea id="log-text-input" rows="4" placeholder="Nhập nội dung..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl p-3 text-[#F4F5F6] focus:outline-none transition"></textarea></div>
+                                    <div><label class="block text-[#777E90] mb-1">LIÊN KẾT CÔNG VIỆC (tuỳ chọn)</label><select id="log-linked-task-input" class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"><option value="">-- Không liên kết --</option></select></div>
+                                    <div><label class="block text-[#777E90] mb-1">THẺ</label><input id="log-tags-input" type="text" placeholder="VD: an toàn, bảo trì..." class="w-full bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                    <button onclick="addNewLogEntry()" class="w-full py-2.5 rounded-xl bg-[#353945] text-[#B6FF2E] font-bold border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10 transition">Lưu Vào Nhật Ký</button>
                                 </div>
                             </div>
-
                             <div class="lg:col-span-2 space-y-3">
                                 <input id="log-search-input" oninput="renderLogs()" type="text" placeholder="&#x1F50D; Tìm theo tiêu đề, nội dung, thẻ..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
                                 <div id="log-type-filter-chips" class="flex flex-wrap gap-1.5"></div>
-                                <div class="space-y-3.5 max-h-[420px] overflow-y-auto pr-1" id="logs-render-area">
-                                    <!-- Đổ dữ liệu log từ JS -->
-                                </div>
+                                <div class="space-y-3.5 max-h-[420px] overflow-y-auto pr-1" id="logs-render-area"></div>
                             </div>
-
                         </div>
                     </div>
                 </section>
 
-                <!-- 7. VIEW 7: CẤU HÌNH HỆ THỐNG -->
+                <!-- 7. CẤU HÌNH -->
                 <section id="view-config" class="view-section space-y-6 hidden">
-                    
                     <div class="flex flex-wrap gap-2 bg-[#14161C] p-2 rounded-2xl border border-[#353945]">
                         <button onclick="switchConfigSubTab('api')" id="cfg-tab-api" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]">☁️ Kết Nối API</button>
                         <button onclick="switchConfigSubTab('orgchart')" id="cfg-tab-orgchart" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">🗺️ Sơ Đồ Tổ Chức</button>
@@ -987,58 +750,40 @@
                         <button onclick="switchConfigSubTab('personnel')" id="cfg-tab-personnel" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">👤 Nhân Sự</button>
                     </div>
 
-                    <!-- TAB API: Google Sheets + Gemini Key -->
                     <div id="cfg-subview-api" class="space-y-5">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-                            <!-- Google: Đăng nhập + Sheets/Drive -->
                             <div class="bg-[#14161C] p-6 rounded-2xl border border-[#B6FF2E]/30 space-y-4">
                                 <div class="flex items-center justify-between border-b border-[#353945] pb-3">
-                                    <div>
-                                        <h3 class="font-bold text-[#F4F5F6]">☁️ Google Sheets — Lưu Trữ Đám Mây</h3>
-                                        <p class="text-[10px] text-[#777E90] mt-0.5">Đăng nhập Google để truy cập trực tiếp Sheets & Drive, đồng bộ mọi thiết bị</p>
-                                    </div>
+                                    <div><h3 class="font-bold text-[#F4F5F6]">☁️ Google Sheets — Lưu Trữ Đám Mây</h3><p class="text-[10px] text-[#777E90] mt-0.5">Đăng nhập Google để truy cập trực tiếp Sheets & Drive</p></div>
                                     <span id="sheets-status-badge" class="text-[10px] px-2 py-0.5 rounded font-mono bg-[#353945] text-[#777E90]">Chưa kết nối</span>
                                 </div>
                                 <div class="space-y-3 text-xs">
-                                    <p class="text-[10px] text-[#777E90]">Bạn đã đăng nhập Google (xem thông tin tài khoản bên dưới). Muốn đổi tài khoản khác, hãy đăng xuất rồi tải lại trang.</p>
-
+                                    <p class="text-[10px] text-[#777E90]">Bạn đã đăng nhập Google. Muốn đổi tài khoản, hãy đăng xuất rồi tải lại trang.</p>
                                     <div id="btn-google-signout" class="hidden flex items-center justify-between bg-[#23262F] rounded-xl p-3 border border-[#353945]">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <img id="google-user-avatar" class="hidden w-8 h-8 rounded-full flex-shrink-0" alt="">
-                                            <div class="min-w-0">
-                                                <p id="google-user-name" class="text-xs font-semibold text-[#F4F5F6] truncate"></p>
-                                                <p id="google-user-email" class="text-[10px] text-[#777E90] truncate"></p>
-                                            </div>
+                                            <div class="min-w-0"><p id="google-user-name" class="text-xs font-semibold text-[#F4F5F6] truncate"></p><p id="google-user-email" class="text-[10px] text-[#777E90] truncate"></p></div>
                                         </div>
                                         <button onclick="signOutGoogle()" class="flex-shrink-0 px-3 py-1.5 rounded-lg bg-[#353945] text-rose-400 text-[10px] font-semibold hover:bg-rose-500/10">Đăng xuất</button>
                                     </div>
-
                                     <button onclick="forceLoadFromSheets()" class="w-full px-4 py-2.5 rounded-xl bg-[#353945] text-[#B6FF2E] font-bold border border-[#B6FF2E]/30 hover:bg-[#B6FF2E]/10 transition">🔄 Tải Lại Từ Sheets</button>
                                     <div id="sheets-test-result" class="hidden text-[11px] p-3 rounded-xl bg-[#23262F] border border-[#353945] text-[#777E90] font-mono whitespace-pre-wrap"></div>
                                 </div>
-
-                                <!-- Trạng thái kết nối -->
                                 <div class="border-t border-[#353945] pt-4 space-y-2">
                                     <p class="text-[10px] font-mono text-[#B6FF2E] font-bold uppercase tracking-wider">Trạng thái kết nối:</p>
                                     <div id="storage-mode-indicator" class="text-xs p-3 rounded-xl bg-[#23262F] border border-[#353945] space-y-1.5">
                                         <div class="flex items-center gap-2">
                                             <span id="storage-mode-dot" class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
-                                            <span id="storage-mode-text" class="text-[#777E90]">Chưa kết nối — dữ liệu chỉ lưu tạm trong trình duyệt này (localStorage)</span>
+                                            <span id="storage-mode-text" class="text-[#777E90]">Chưa kết nối — dữ liệu chỉ lưu tạm trong trình duyệt này</span>
                                         </div>
                                         <a id="storage-mode-file-link" href="#" target="_blank" class="hidden text-[11px] text-[#B6FF2E] underline pl-4 break-all"></a>
                                     </div>
                                     <button onclick="exportAllToJSON()" class="w-full py-2 rounded-xl bg-[#353945] text-[#777E90] font-medium text-[11px] border border-[#353945] hover:text-[#F4F5F6] transition">📥 Xuất toàn bộ dữ liệu ra JSON</button>
                                 </div>
                             </div>
-
-                            <!-- Gemini API Key -->
                             <div class="bg-[#14161C] p-6 rounded-2xl border border-[#B6FF2E]/30 space-y-4">
                                 <div class="flex items-center justify-between border-b border-[#353945] pb-3">
-                                    <div>
-                                        <h3 class="font-bold text-[#F4F5F6]">🤖 Gemini AI — API Key</h3>
-                                        <p class="text-[10px] text-[#777E90] mt-0.5">Kích hoạt tính năng tổng hợp báo cáo, gợi ý và đọc giọng nói</p>
-                                    </div>
+                                    <div><h3 class="font-bold text-[#F4F5F6]">🤖 Gemini AI — API Key</h3><p class="text-[10px] text-[#777E90] mt-0.5">Kích hoạt tính năng tổng hợp báo cáo, gợi ý và đọc giọng nói</p></div>
                                     <span id="gemini-status-badge" class="text-[10px] px-2 py-0.5 rounded font-mono bg-[#353945] text-[#777E90]">Chưa có key</span>
                                 </div>
                                 <div class="space-y-3 text-xs">
@@ -1048,7 +793,7 @@
                                             <input id="cfg-gemini-key" type="password" placeholder="AIza..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 pr-10 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] font-mono text-[11px]">
                                             <button onclick="toggleKeyVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-[#777E90] hover:text-[#F4F5F6] text-xs">👁</button>
                                         </div>
-                                        <p class="text-[#777E90] mt-1 text-[10px]">Lấy miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[#B6FF2E] underline">aistudio.google.com</a> → Get API Key</p>
+                                        <p class="text-[#777E90] mt-1 text-[10px]">Lấy miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[#B6FF2E] underline">aistudio.google.com</a></p>
                                     </div>
                                     <div class="flex gap-2">
                                         <button onclick="saveGeminiKey()" class="flex-1 py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">💾 Lưu API Key</button>
@@ -1056,7 +801,7 @@
                                     </div>
                                     <div id="gemini-test-result" class="hidden text-[11px] p-3 rounded-xl bg-[#23262F] border border-[#353945] text-[#777E90] font-mono whitespace-pre-wrap"></div>
                                     <div class="bg-[#23262F] rounded-xl p-3 border border-[#353945]">
-                                        <p class="text-[10px] text-amber-400 font-mono">⚠️ Key lưu trong localStorage của trình duyệt này, không gửi đi đâu khác. Mỗi máy/trình duyệt cần nhập lại.</p>
+                                        <p class="text-[10px] text-amber-400 font-mono">⚠️ Key lưu trong localStorage của trình duyệt này, không gửi đi đâu khác.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1065,20 +810,10 @@
 
                     <div id="cfg-subview-orgchart" class="space-y-4 hidden">
                         <div class="bg-[#14161C] p-4 rounded-2xl border border-[#353945] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                            <div class="flex gap-2">
-                                <input id="cfg-factory-name" type="text" placeholder="+ Tên nhà máy mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
-                                <button onclick="addNewFactory()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🏭 Thêm</button>
-                            </div>
-                            <div class="flex gap-2">
-                                <input id="cfg-dept-name" type="text" placeholder="+ Tên phòng ban mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
-                                <button onclick="addDepartment()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🏢 Thêm</button>
-                            </div>
-                            <div class="flex gap-2">
-                                <input id="cfg-team-name" type="text" placeholder="+ Tên tổ chuyên trách mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
-                                <button onclick="addSpecialTeam()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🛠️ Thêm</button>
-                            </div>
+                            <div class="flex gap-2"><input id="cfg-factory-name" type="text" placeholder="+ Tên nhà máy mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"><button onclick="addNewFactory()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🏭 Thêm</button></div>
+                            <div class="flex gap-2"><input id="cfg-dept-name" type="text" placeholder="+ Tên phòng ban mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"><button onclick="addDepartment()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🏢 Thêm</button></div>
+                            <div class="flex gap-2"><input id="cfg-team-name" type="text" placeholder="+ Tên tổ chuyên trách mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"><button onclick="addSpecialTeam()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🛠️ Thêm</button></div>
                         </div>
-
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945]">
                             <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                                 <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center gap-2"><span>🧠</span> Sơ Đồ Tổ Chức Công Ty (Mindmap)</h4>
@@ -1099,15 +834,10 @@
                                         <button onclick="orgZoomOut()" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] font-bold">−</button>
                                         <button onclick="orgZoomReset()" title="Về giữa" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] text-xs">⟲</button>
                                     </div>
-                                    <div class="absolute top-3 left-3 text-[10px] text-[#777E90] bg-[#0D0E12]/80 px-2 py-1 rounded-lg">
-                                        Kéo để di chuyển • Cuộn/chụm để phóng to • Bấm vào 1 nhánh để xem & thêm nhân sự
-                                    </div>
+                                    <div class="absolute top-3 left-3 text-[10px] text-[#777E90] bg-[#0D0E12]/80 px-2 py-1 rounded-lg">Kéo để di chuyển • Cuộn/chụm để phóng to • Bấm vào 1 nhánh để xem & thêm nhân sự</div>
                                 </div>
                                 <div id="orgchart-sidepanel" class="bg-[#0D0E12] rounded-2xl border border-[#353945] p-4">
-                                    <div class="text-center text-xs text-[#777E90] py-6">
-                                        🏢 <span class="text-[#F4F5F6] font-bold">CÔNG TY</span><br>
-                                        Bấm vào 1 nhánh trên sơ đồ để xem chi tiết & thêm nhân sự.
-                                    </div>
+                                    <div class="text-center text-xs text-[#777E90] py-6">🏢 <span class="text-[#F4F5F6] font-bold">CÔNG TY</span><br>Bấm vào 1 nhánh trên sơ đồ để xem chi tiết & thêm nhân sự.</div>
                                 </div>
                             </div>
                         </div>
@@ -1117,29 +847,17 @@
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-4 h-fit">
                             <h4 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">🤝 Thêm Đơn Vị Đối Tác Mới</h4>
                             <div class="space-y-3 text-xs">
-                                <div>
-                                    <label class="block text-[#777E90] mb-1">TÊN ĐƠN VỊ / CÔNG TY</label>
-                                    <input id="cfg-partner-name" type="text" placeholder="Ví dụ: Công ty AET..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-[#777E90] mb-1">PHÂN LOẠI BAN ĐẦU (tuỳ chọn, cách nhau bởi dấu phẩy)</label>
-                                    <input id="cfg-partner-type" type="text" placeholder="Ví dụ: Nhà thầu cơ điện, Nhà cung cấp vật tư..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                </div>
+                                <div><label class="block text-[#777E90] mb-1">TÊN ĐƠN VỊ / CÔNG TY</label><input id="cfg-partner-name" type="text" placeholder="Ví dụ: Công ty AET..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                <div><label class="block text-[#777E90] mb-1">PHÂN LOẠI BAN ĐẦU (tuỳ chọn, cách nhau bởi dấu phẩy)</label><input id="cfg-partner-type" type="text" placeholder="Ví dụ: Nhà thầu cơ điện..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
                                 <button onclick="addNewPartner()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">Thêm Đơn Vị</button>
-                                <p class="text-[10px] text-[#777E90]">Sau khi thêm đơn vị, hãy bổ sung phân loại, người liên hệ, thiết bị & đánh giá ngay trong thẻ đơn vị bên phải.</p>
                             </div>
                         </div>
-
                         <div class="lg:col-span-2 space-y-3">
                             <div class="bg-[#14161C] p-3 rounded-2xl border border-[#353945] space-y-2">
                                 <input id="partner-search-input" oninput="renderPartnerCards()" type="text" placeholder="🔍 Tìm theo tên đối tác hoặc tên người liên hệ..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
-                                <div id="partner-category-filter-chips" class="flex flex-wrap gap-1.5">
-                                    <!-- Render từ JS -->
-                                </div>
+                                <div id="partner-category-filter-chips" class="flex flex-wrap gap-1.5"></div>
                             </div>
-                            <div id="cfg-partners-list" class="space-y-3">
-                                <!-- Cards render từ JS -->
-                            </div>
+                            <div id="cfg-partners-list" class="space-y-3"></div>
                         </div>
                     </div>
 
@@ -1147,8 +865,7 @@
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#B6FF2E]/30 space-y-4 h-fit">
                             <h4 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">👤 Thêm Nhân Sự Mới</h4>
                             <div class="space-y-3 text-xs">
-                                <div>
-                                    <label class="block text-[#777E90] mb-1">THUỘC VỀ</label>
+                                <div><label class="block text-[#777E90] mb-1">THUỘC VỀ</label>
                                     <select id="personnel-scope-input" onchange="onPersonnelScopeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
                                         <option value="factory">🏭 Nhà máy (chung, không riêng xưởng)</option>
                                         <option value="workshop">🏗️ Xưởng cụ thể</option>
@@ -1157,50 +874,21 @@
                                         <option value="partner">🤝 Đối tác</option>
                                     </select>
                                 </div>
-
-                                <div id="personnel-factory-wrap">
-                                    <label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label>
-                                    <select id="personnel-factory-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
-                                </div>
-
+                                <div id="personnel-factory-wrap"><label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label><select id="personnel-factory-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
                                 <div id="personnel-workshop-wrap" class="hidden space-y-3">
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label>
-                                        <select id="personnel-ws-factory-input" onchange="onPersonnelFactoryChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">CHỌN XƯỞNG</label>
-                                        <select id="personnel-workshop-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
-                                    </div>
+                                    <div><label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label><select id="personnel-ws-factory-input" onchange="onPersonnelFactoryChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
+                                    <div><label class="block text-[#777E90] mb-1">CHỌN XƯỞNG</label><select id="personnel-workshop-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
                                 </div>
-
-                                <div id="personnel-unit-wrap" class="hidden">
-                                    <label class="block text-[#777E90] mb-1">CHỌN ĐƠN VỊ</label>
-                                    <select id="personnel-unit-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select>
-                                </div>
-
+                                <div id="personnel-unit-wrap" class="hidden"><label class="block text-[#777E90] mb-1">CHỌN ĐƠN VỊ</label><select id="personnel-unit-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
                                 <div class="border-t border-[#353945] pt-3 space-y-3">
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">HỌ TÊN <span class="text-rose-400">*</span></label>
-                                        <input id="personnel-name-input" type="text" placeholder="Nhập họ tên..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">CHỨC VỤ</label>
-                                        <input id="personnel-role-input" type="text" placeholder="Ví dụ: Trưởng phòng, Kỹ sư..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">SỐ ĐIỆN THOẠI</label>
-                                        <input id="personnel-phone-input" type="text" placeholder="0901 234 567" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[#777E90] mb-1">EMAIL</label>
-                                        <input id="personnel-email-input" type="email" placeholder="ten@congty.com" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                    </div>
+                                    <div><label class="block text-[#777E90] mb-1">HỌ TÊN <span class="text-rose-400">*</span></label><input id="personnel-name-input" type="text" placeholder="Nhập họ tên..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                    <div><label class="block text-[#777E90] mb-1">CHỨC VỤ</label><input id="personnel-role-input" type="text" placeholder="Ví dụ: Trưởng phòng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                    <div><label class="block text-[#777E90] mb-1">SỐ ĐIỆN THOẠI</label><input id="personnel-phone-input" type="text" placeholder="0901 234 567" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
+                                    <div><label class="block text-[#777E90] mb-1">EMAIL</label><input id="personnel-email-input" type="email" placeholder="ten@congty.com" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
                                 </div>
                                 <button onclick="addPersonnelUnified()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">💾 Lưu Nhân Sự</button>
                             </div>
                         </div>
-
                         <div class="lg:col-span-2 space-y-3">
                             <div class="flex items-center justify-between bg-[#14161C] p-3 rounded-2xl border border-[#353945]">
                                 <span class="text-xs font-bold text-[#F4F5F6]">📇 Danh Mục Nhân Sự — <span id="cfg-personnel-count" class="text-[#B6FF2E]">0 người</span></span>
@@ -1212,72 +900,41 @@
                                     <option value="partner">🤝 Đối tác</option>
                                 </select>
                             </div>
-                            <div id="cfg-personnel-list">
-                                <!-- Render từ JS -->
-                            </div>
+                            <div id="cfg-personnel-list"></div>
                         </div>
                     </div>
-
                 </section>
 
             </div>
         </main>
 
-        <!-- MENU DI ĐỘNG (BOTTOM NAV) -->
+        <!-- MENU DI ĐỘNG -->
         <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#14161C] border-t border-[#353945] flex justify-around py-3 z-40 shadow-lg">
-            <button onclick="switchView('dashboard')" id="btn-bottom-dashboard" class="nav-item-bottom flex flex-col items-center text-[#B6FF2E]">
-                <span class="text-xl">📊</span>
-                <span class="text-[10px] font-semibold mt-0.5">Tổng quan</span>
-            </button>
-            <button onclick="switchView('tasks')" id="btn-bottom-tasks" class="nav-item-bottom flex flex-col items-center text-[#777E90]">
-                <span class="text-xl">📋</span>
-                <span class="text-[10px] font-semibold mt-0.5">Công việc</span>
-            </button>
-            <button onclick="switchView('ai')" id="btn-bottom-ai" class="nav-item-bottom flex flex-col items-center text-[#B6FF2E]">
-                <span class="text-xl">🤖</span>
-                <span class="text-[10px] font-semibold mt-0.5">Gemini AI</span>
-            </button>
-            <button onclick="switchView('tpm')" id="btn-bottom-tpm" class="nav-item-bottom flex flex-col items-center text-[#777E90]">
-                <span class="text-xl">🛠️</span>
-                <span class="text-[10px] font-semibold mt-0.5">TPM/5S</span>
-            </button>
-            <button onclick="switchView('config')" id="btn-bottom-config" class="nav-item-bottom flex flex-col items-center text-[#777E90]">
-                <span class="text-xl">⚙️</span>
-                <span class="text-[10px] font-semibold mt-0.5">Cấu hình</span>
-            </button>
+            <button onclick="switchView('dashboard')" id="btn-bottom-dashboard" class="nav-item-bottom flex flex-col items-center text-[#B6FF2E]"><span class="text-xl">📊</span><span class="text-[10px] font-semibold mt-0.5">Tổng quan</span></button>
+            <button onclick="switchView('tasks')" id="btn-bottom-tasks" class="nav-item-bottom flex flex-col items-center text-[#777E90]"><span class="text-xl">📋</span><span class="text-[10px] font-semibold mt-0.5">Công việc</span></button>
+            <button onclick="switchView('ai')" id="btn-bottom-ai" class="nav-item-bottom flex flex-col items-center text-[#B6FF2E]"><span class="text-xl">🤖</span><span class="text-[10px] font-semibold mt-0.5">Gemini AI</span></button>
+            <button onclick="switchView('tpm')" id="btn-bottom-tpm" class="nav-item-bottom flex flex-col items-center text-[#777E90]"><span class="text-xl">🛠️</span><span class="text-[10px] font-semibold mt-0.5">TPM/5S</span></button>
+            <button onclick="switchView('config')" id="btn-bottom-config" class="nav-item-bottom flex flex-col items-center text-[#777E90]"><span class="text-xl">⚙️</span><span class="text-[10px] font-semibold mt-0.5">Cấu hình</span></button>
         </nav>
 
     </div>
     </div>
 
-    
-    <!-- ===================== CÁC MODULE JS CỦA APP =====================
-         Thứ tự load QUAN TRỌNG: file sau có thể dùng biến/hàm của file trước
-         (đều là script thường, không phải module, nên dùng chung 1 global scope). -->
-
-    <!-- 1. Cấu hình & trạng thái -->
     <script src="js/google-config.js"></script>
     <script src="js/state.js"></script>
-
-    <!-- 2. Google: đăng nhập + gọi API trực tiếp (Sheets/Drive) -->
     <script src="js/google-auth.js"></script>
     <script src="js/google-drive-api.js"></script>
     <script src="js/google-tasks-api.js"></script>
     <script src="js/google-sheets-api.js"></script>
     <script src="js/google-sheets-sync.js"></script>
     <script src="js/sync-queue.js"></script>
-
-    <!-- 3. Gemini AI -->
     <script src="js/gemini-api.js"></script>
-
-    <!-- 4. Nghiệp vụ: công việc, sơ đồ tổ chức, đối tác... -->
     <script src="js/tasks.js"></script>
     <script src="js/views.js"></script>
     <script src="js/ui-actions.js"></script>
     <script src="js/roadmap.js"></script>
     <script src="js/weekly-calendar.js"></script>
-
-    <!-- 5. Khởi động app (luôn để cuối cùng) -->
+    <script src="js/initiatives.js"></script>
     <script src="js/app-init.js"></script>
 </body>
 </html>
