@@ -1,3 +1,4 @@
+
         function showNotification(msg, type = 'success') {
             const box = document.createElement('div');
             box.className = `fixed bottom-20 right-5 z-50 text-xs px-4 py-3 rounded-xl border shadow-lg transition-all transform duration-300 ${type === 'error' ? 'bg-rose-900/90 text-rose-200 border-rose-500' : 'bg-[#23262F]/90 text-[#B6FF2E] border-[#B6FF2E]/50'}`;
@@ -6,8 +7,6 @@
             setTimeout(() => box.remove(), 3500);
         }
 
-        // Hộp thoại xác nhận dùng chung (thay cho confirm() mặc định của trình duyệt), theo đúng giao diện tối của app.
-        // Dùng cho MỌI thao tác xóa trong app: confirmAction('Nội dung hỏi...', () => { /* logic xóa thật sự */ });
         function confirmAction(message, onConfirm, opts) {
             opts = opts || {};
             const title = opts.title || '⚠️ Xác nhận xóa';
@@ -33,8 +32,6 @@
             overlay.querySelector('#confirm-modal-ok').onclick = () => { close(); onConfirm(); };
         }
 
-        // Modal Sửa Công Việc — tạo động, cùng kiểu với confirmAction() ở trên.
-        // Chỉnh: Tên, Danh mục, Thẻ, Ngày & giờ bắt đầu, Deadline.
         function openEditTaskModal(taskId) {
             const task = state.tasks.find(t => t.id === taskId);
             if (!task) return;
@@ -97,8 +94,6 @@
             };
         }
 
-        // MUTATIONS
-        // Helper dùng chung: ghi task, nếu lỗi thì đánh dấu pending để tự retry sau
         async function trySyncTasks(successMsg) {
             if (!state.sheetsUrl) { setSyncStatus('idle'); return; }
             setSyncStatus('syncing');
@@ -150,16 +145,16 @@
                 relation:    relation,
                 personName:  personName,
                 status:      'Todo',
-                priority:    'Q2', // không còn chọn thủ công trên form nữa (đã thay bằng nhóm Eisenhower của AI Lập Kế Hoạch)
+                priority:    'Q2',
                 startdate:   startInput ? startInput.value : '',
                 deadline:    deadlineInput ? deadlineInput.value : '',
-                gtask:       false, // bật/tắt sau trong danh sách công việc (ô "G-Task")
+                gtask:       false,
                 createdAt:   new Date().toISOString(),
                 objective:       '',
                 expectedResult:  '',
                 category:        categoryInput ? categoryInput.value.trim() : '',
                 tags:            tagsInput ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : [],
-                plan:            buildPlanFromCheckedSuggestions() // đọc trực tiếp các ô đã tick trong khối AI Lập Kế Hoạch
+                plan:            buildPlanFromCheckedSuggestions()
             };
 
             state.tasks.unshift(newTask);
@@ -170,7 +165,7 @@
             if (deadlineInput) deadlineInput.value = '';
             relInput.value = 'my-task';
             onRelationChange();
-            resetAiPlanState(); // ẩn khối gợi ý AI Lập Kế Hoạch cũ, chuẩn bị cho công việc tiếp theo
+            resetAiPlanState();
 
             renderTasks(); renderCalendar(); updateDashboardMetrics();
             saveToLocalStorage();
@@ -203,28 +198,6 @@
                 saveToLocalStorage();
                 await trySyncTasks();
             });
-        }
-
-        function submitInitiative() {
-            const title = document.getElementById('initiative-title').value.trim();
-            const desc = document.getElementById('initiative-desc').value.trim();
-            const type = document.getElementById('initiative-type').value;
-
-            if (!title) return showNotification('Vui lòng nhập tên sáng kiến!', 'error');
-
-            state.initiatives.push({
-                id: 'I' + (state.initiatives.length + 1),
-                type, title, desc,
-                status: 'Đề xuất mới',
-                progress: 0
-            });
-
-            document.getElementById('initiative-title').value = '';
-            document.getElementById('initiative-desc').value = '';
-            showNotification('Đã lưu đề xuất sáng kiến mới!', 'success');
-            renderInitiatives();
-            updateDashboardMetrics();
-            syncStateToCSV();
         }
 
         function addNewLogEntry() {
@@ -273,7 +246,6 @@
             });
         }
 
-        // Modal Sửa Nhật Ký — tạo động, cùng kiểu với openEditTaskModal()
         function openEditLogModal(logId) {
             const log = state.logs.find(l => l.id === logId);
             if (!log) return;
@@ -360,13 +332,9 @@
             const completedTasks = state.tasks.filter(t => t.status === 'Done');
             let summaryText = `--- BÁO CÁO TỔNG HỢP CÔNG VIỆC TUẦN ---\n\n`;
             summaryText += `1. CÔNG VIỆC HOÀN THÀNH (${completedTasks.length}/${state.tasks.length}):\n`;
-            completedTasks.forEach(t => {
-                summaryText += ` - ${t.title} [${t.priority}]\n`;
-            });
+            completedTasks.forEach(t => { summaryText += ` - ${t.title} [${t.priority}]\n`; });
             summaryText += `\n2. NHẬT KÝ XỬ LÝ NỔI BẬT:\n`;
-            state.logs.slice(0, 5).forEach(l => {
-                summaryText += ` - [${l.timestamp}] ${l.text}\n`;
-            });
+            state.logs.slice(0, 5).forEach(l => { summaryText += ` - [${l.timestamp}] ${l.text}\n`; });
 
             const now = new Date();
             const timeStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -390,13 +358,7 @@
             const input = document.getElementById('cfg-factory-name');
             const val = input.value.trim();
             if (!val) return showNotification('Vui lòng nhập tên nhà máy!', 'error');
-
-            state.config.factories.push({
-                id: 'F' + Date.now(),
-                name: val,
-                members: [],
-                workshops: []
-            });
+            state.config.factories.push({ id: 'F' + Date.now(), name: val, members: [], workshops: [] });
             input.value = '';
             showNotification('Đã thêm nhà máy mới!', 'success');
             renderConfigView();
@@ -417,7 +379,6 @@
             const input = document.getElementById(`cfg-ws-input-${facId}`);
             const val = input.value.trim();
             if (!val) return showNotification('Vui lòng nhập tên phân xưởng!', 'error');
-
             const fac = state.config.factories.find(f => f.id === facId);
             if (fac) {
                 fac.workshops.push({ id: 'WS' + Date.now(), name: val, members: [] });
@@ -466,7 +427,6 @@
             });
         }
 
-        // kind: 'dept' -> state.config.departments, 'team' -> state.config.specialTeams
         function getUnitList(kind) {
             return kind === 'team' ? state.config.specialTeams : state.config.departments;
         }
@@ -475,7 +435,6 @@
             const input = document.getElementById('cfg-dept-name');
             const val = input.value.trim();
             if (!val) return showNotification('Vui lòng nhập tên phòng ban!', 'error');
-
             state.config.departments.push({ id: 'D' + Date.now(), name: val, members: [] });
             input.value = '';
             showNotification('Đã thêm phòng ban mới!', 'success');
@@ -487,7 +446,6 @@
             const input = document.getElementById('cfg-team-name');
             const val = input.value.trim();
             if (!val) return showNotification('Vui lòng nhập tên tổ chuyên trách!', 'error');
-
             state.config.specialTeams.push({ id: 'TM' + Date.now(), name: val, members: [] });
             input.value = '';
             showNotification('Đã thêm tổ chuyên trách!', 'success');
@@ -526,17 +484,11 @@
             const typeInput = document.getElementById('cfg-partner-type');
             const name = nameInput.value.trim();
             if (!name) return showNotification('Vui lòng nhập tên đơn vị đối tác!', 'error');
-
             const categories = typeInput.value.split(',').map(s => s.trim()).filter(s => s);
-
             state.config.partners.push({
-                id: 'P' + Date.now(),
-                name,
+                id: 'P' + Date.now(), name,
                 categories: categories.length > 0 ? categories : ['Chưa phân loại'],
-                members: [],
-                equipment: [],
-                rating: 0,
-                ratingComment: ''
+                members: [], equipment: [], rating: 0, ratingComment: ''
             });
             nameInput.value = '';
             typeInput.value = '';
@@ -565,14 +517,12 @@
             });
         }
 
-        // --- Phân loại (tag tự do), Thiết bị & Đánh giá chất lượng của Đối tác ---
         function addPartnerCategory(partnerId) {
             const partner = state.config.partners.find(p => p.id === partnerId);
             if (!partner) return;
             const input = document.getElementById(`cfg-pcat-input-${partnerId}`);
             const val = input.value.trim();
             if (!val) return showNotification('Vui lòng nhập tên phân loại!', 'error');
-
             partner.categories = partner.categories || [];
             if (partner.categories.includes('Chưa phân loại')) partner.categories = partner.categories.filter(c => c !== 'Chưa phân loại');
             if (!partner.categories.includes(val)) partner.categories.push(val);
@@ -598,7 +548,6 @@
             const input = document.getElementById(`cfg-pequip-input-${partnerId}`);
             const val = input.value.trim();
             if (!val) return showNotification('Vui lòng nhập tên thiết bị / công việc!', 'error');
-
             partner.equipment = partner.equipment || [];
             partner.equipment.push(val);
             input.value = '';

@@ -1,28 +1,21 @@
         // --- Đọc/ghi Google Sheets ---
-        // sheetsGet(sheetName) và sheetsPost(sheetName, headers, dataRows) được định nghĩa
-        // trong js/google-sheets-api.js (gọi thẳng Google Sheets API v4 bằng token OAuth
-        // của người dùng đang đăng nhập — KHÔNG còn qua Apps Script Web App trung gian nữa).
-        // File này chỉ còn giữ các hàm xử lý dữ liệu (chuẩn hóa, chuyển đổi, đồng bộ) dùng chung.
 
-        // --- Chuẩn hóa số điện thoại: khắc phục việc Google Sheets tự hiểu chuỗi số là số thực,
-        // làm mất số 0 ở đầu (VD: "0901234567" -> 901234567). Áp dụng khi ĐỌC dữ liệu về.
+        // --- Chuẩn hóa số điện thoại ---
         function normalizePhone(v) {
             if (v === null || v === undefined) return '';
             let s = String(v).trim();
             if (!s) return '';
-            s = s.replace(/^'/, '');       // bỏ dấu nháy đơn ép kiểu văn bản nếu còn sót
-            s = s.replace(/\.0$/, '');     // bỏ .0 nếu Sheets trả về dạng số thực
-            if (/^[0-9]{9}$/.test(s)) s = '0' + s; // số VN bị rụng mất số 0 đầu (còn lại đúng 9 số)
+            s = s.replace(/^'/, '');
+            s = s.replace(/\.0$/, '');
+            if (/^[0-9]{9}$/.test(s)) s = '0' + s;
             return s;
         }
-        // Khi GHI lên Sheets: thêm dấu nháy đơn để ép Google Sheets lưu dạng văn bản, không tự chuyển thành số
         function toSheetPhone(v) {
             const s = (v || '').toString().trim();
             return s ? "'" + s : '';
         }
 
-        // --- Chuyển đổi Đơn vị (Phòng ban/Tổ đội/Đối tác) <-> dòng phẳng Sheets ---
-        // Mỗi đơn vị có thể có 0..n nhân sự (namecard). Nếu 0 nhân sự vẫn ghi 1 dòng để không mất đơn vị.
+        // --- Đơn vị <-> dòng phẳng Sheets ---
         function buildUnitsFromRows(rows, withType) {
             const units = [];
             const byId = {};
@@ -49,7 +42,6 @@
             return units;
         }
 
-        // rows: [unitId, unitName, memberId, memberName, memberRole, memberPhone, memberEmail]
         function flattenUnitsToRows(units) {
             const rows = [];
             (units || []).forEach(u => {
@@ -62,7 +54,7 @@
             return rows;
         }
 
-        // rows: [unitId, unitName, categories, equipment, rating, ratingComment, memberId, memberName, memberRole, memberPhone, memberEmail]
+        // --- Đối tác ---
         function buildPartnersFromRows(rows) {
             const partners = [];
             const byId = {};
@@ -109,7 +101,7 @@
             return rows;
         }
 
-        // --- Nhà máy: nhân sự có 2 cấp (thuộc cả nhà máy / thuộc 1 xưởng cụ thể) ---
+        // --- Nhà máy ---
         function buildFactoriesFromRows(rows) {
             const facMap = {};
             const facOrder = [];
@@ -166,6 +158,130 @@
             return rows;
         }
 
+        // =============================================================
+        // SÁNG KIẾN v2 — chuyển đổi <-> 2 sheet riêng:
+        //   sang_kien_kaizen      : 1 dòng / sáng kiến (các trường phẳng)
+        //   sang_kien_checklist   : nhiều dòng / sáng kiến (từng bước checklist)
+        //   sang_kien_financial   : nhiều dòng / sáng kiến (các mục chi phí & lợi ích)
+        // =============================================================
+
+        // Flatten sáng kiến -> dòng chính (1 dòng/sáng kiến)
+        function flattenInitiativesToRows(initiatives) {
+            return (initiatives || []).map(item => [
+                item.id || '',
+                item.code || '',
+                item.title || '',
+                item.type || 'kaizen',
+                item.status || 'draft',
+                item.proposer || '',
+                item.department || '',
+                item.proposedDate || '',
+                item.problemDesc || '',
+                item.solution || '',
+                item.hasFinancial ? '1' : '0',
+                item.actualResult || '',
+                item.actualBenefit || '',
+                item.approved ? '1' : '0',
+                item.approvedDate || '',
+                item.approvedNote || '',
+                (item.linkedTaskIds || []).join(';'),
+                item.createdAt || '',
+                item.updatedAt || ''
+            ]);
+        }
+
+        // Flatten checklist -> dòng (nhiều dòng/sáng kiến)
+        function flattenChecklistToRows(initiatives) {
+            const rows = [];
+            (initiatives || []).forEach(item => {
+                (item.checklist || []).forEach(c => {
+                    rows.push([
+                        c.id || '',
+                        item.id || '',
+                        c.text || '',
+                        c.done ? '1' : '0',
+                        c.assignee || '',
+                        c.pushedToTask ? '1' : '0',
+                        c.taskId || ''
+                    ]);
+                });
+            });
+            return rows;
+        }
+
+        // Flatten financial breakdown -> dòng
+        function flattenFinancialToRows(initiatives) {
+            const rows = [];
+            (initiatives || []).forEach(item => {
+                if (!item.hasFinancial) return;
+                (item.financial.investBreakdown || []).forEach(r => {
+                    rows.push([r.id || '', item.id || '', 'invest', r.label || '', r.amount || 0]);
+                });
+                (item.financial.benefitBreakdown || []).forEach(r => {
+                    rows.push([r.id || '', item.id || '', 'benefit', r.label || '', r.amount || 0]);
+                });
+            });
+            return rows;
+        }
+
+        // Dựng lại mảng initiatives từ 3 sheet
+        function buildInitiativesFromRows(mainRows, checkRows, finRows) {
+            const byId = {};
+            const order = [];
+
+            (mainRows || []).forEach(r => {
+                if (!r.id) return;
+                const item = {
+                    id: r.id,
+                    code: r.code || '',
+                    title: r.title || '',
+                    type: r.type || 'kaizen',
+                    status: r.status || 'draft',
+                    proposer: r.proposer || '',
+                    department: r.department || '',
+                    proposedDate: r.proposedDate || '',
+                    problemDesc: r.problemDesc || '',
+                    solution: r.solution || '',
+                    hasFinancial: r.hasFinancial === '1',
+                    actualResult: r.actualResult || '',
+                    actualBenefit: r.actualBenefit || '',
+                    approved: r.approved === '1',
+                    approvedDate: r.approvedDate || '',
+                    approvedNote: r.approvedNote || '',
+                    linkedTaskIds: r.linkedTaskIds ? r.linkedTaskIds.split(';').filter(x => x) : [],
+                    createdAt: r.createdAt || '',
+                    updatedAt: r.updatedAt || '',
+                    checklist: [],
+                    financial: { investBreakdown: [], benefitBreakdown: [] }
+                };
+                byId[item.id] = item;
+                order.push(item);
+            });
+
+            (checkRows || []).forEach(r => {
+                const item = byId[r.initiativeId];
+                if (!item) return;
+                item.checklist.push({
+                    id: r.id || 'C' + Math.random().toString(36).substr(2, 4),
+                    text: r.text || '',
+                    done: r.done === '1',
+                    assignee: r.assignee || '',
+                    pushedToTask: r.pushedToTask === '1',
+                    taskId: r.taskId || null
+                });
+            });
+
+            (finRows || []).forEach(r => {
+                const item = byId[r.initiativeId];
+                if (!item) return;
+                const entry = { id: r.id || '', label: r.label || '', amount: Number(r.amount) || 0 };
+                if (r.bdType === 'invest') item.financial.investBreakdown.push(entry);
+                else if (r.bdType === 'benefit') item.financial.benefitBreakdown.push(entry);
+            });
+
+            return order;
+        }
+
         // --- Load từ Sheets ---
         async function loadStateFromSheets() {
             const tasksData = await sheetsGet('danh_sach_cong_viec');
@@ -198,16 +314,32 @@
                 }));
             }
 
-            const initData = await sheetsGet('sang_kien_kaizen');
-            if (initData) {
-                state.initiatives = initData.map(r => ({
-                    id: r.id || 'I' + Math.random().toString(36).substr(2, 4),
-                    type: r.type || 'initiative',
-                    title: r.title || '',
-                    desc: r.desc || '',
-                    status: r.status || 'Đề xuất mới',
-                    progress: Number(r.progress) || 0
-                }));
+            // --- Sáng kiến v2: đọc 3 sheet ---
+            const [initMain, initCheck, initFin] = await Promise.all([
+                sheetsGet('sang_kien_kaizen'),
+                sheetsGet('sang_kien_checklist'),
+                sheetsGet('sang_kien_financial')
+            ]);
+
+            if (initMain && initMain.length > 0) {
+                // Kiểm tra có phải dữ liệu cũ không (cũ chỉ có id/type/title/desc/status/progress)
+                const isLegacy = initMain.some(r => r.code === undefined);
+                if (isLegacy) {
+                    // Dữ liệu cũ: load vào state rồi chạy migration
+                    state.initiatives = initMain.map(r => ({
+                        id: r.id || 'I' + Math.random().toString(36).substr(2, 4),
+                        type: r.type || 'kaizen',
+                        title: r.title || '',
+                        desc: r.desc || '',
+                        status: r.status || 'Đề xuất mới',
+                        progress: Number(r.progress) || 0
+                    }));
+                    migrateInitiatives();
+                } else {
+                    state.initiatives = buildInitiativesFromRows(initMain, initCheck, initFin);
+                }
+            } else if (initMain && initMain.length === 0) {
+                // Sheet tồn tại nhưng rỗng -> giữ nguyên state hiện tại
             }
 
             const logsData = await sheetsGet('nhat_ky_cong_viec');
@@ -281,7 +413,7 @@
             saveToLocalStorage();
         }
 
-        // --- Indicator trạng thái sync (hiển thị ngay trên nút Sheets ở header trên cùng) ---
+        // --- Indicator trạng thái sync ---
         function setSyncStatus(status, msg) {
             const dot  = document.getElementById('sync-status-dot');
             const text = document.getElementById('folder-status-text');
@@ -312,7 +444,7 @@
             }
         }
 
-        // --- Chỉ ghi sheet Tasks (nhanh, dùng sau mỗi thao tác task) ---
+        // --- Chỉ ghi sheet Tasks ---
         async function syncTasksOnly() {
             if (!state.sheetsUrl) return false;
             try {
@@ -323,7 +455,29 @@
             } catch(e) { return false; }
         }
 
-        // --- Ghi vào Sheets ---
+        // --- Chỉ ghi sheet Sáng kiến (3 sheet) ---
+        async function syncInitiativesOnly() {
+            if (!state.sheetsUrl) return false;
+            try {
+                const [r1, r2, r3] = await Promise.all([
+                    sheetsPost('sang_kien_kaizen',
+                        ['id','code','title','type','status','proposer','department','proposedDate','problemDesc','solution','hasFinancial','actualResult','actualBenefit','approved','approvedDate','approvedNote','linkedTaskIds','createdAt','updatedAt'],
+                        flattenInitiativesToRows(state.initiatives)
+                    ),
+                    sheetsPost('sang_kien_checklist',
+                        ['id','initiativeId','text','done','assignee','pushedToTask','taskId'],
+                        flattenChecklistToRows(state.initiatives)
+                    ),
+                    sheetsPost('sang_kien_financial',
+                        ['id','initiativeId','bdType','label','amount'],
+                        flattenFinancialToRows(state.initiatives)
+                    )
+                ]);
+                return r1 && r2 && r3;
+            } catch(e) { return false; }
+        }
+
+        // --- Ghi toàn bộ ---
         async function syncStateToSheets() {
             if (!state.sheetsUrl) return;
 
@@ -331,10 +485,23 @@
                 ['id','title','desc','areaType','areaValue','areaWorkshop','areaPerson','relation','personName','status','priority','startdate','deadline','gtask','createdAt','objective','expectedResult','category','tags','planData','googleTaskId'],
                 state.tasks.map(t => [t.id, t.title, t.desc||'', t.areaType||'', t.areaValue||'', t.areaWorkshop||'', t.areaPerson||'', t.relation, t.personName||'', t.status, t.priority, t.startdate||'', t.deadline||'', t.gtask?'1':'0', t.createdAt||'', t.objective||'', t.expectedResult||'', t.category||'', (t.tags||[]).join(';'), t.plan ? JSON.stringify(t.plan) : '', t.googleTaskId||''])
             );
-            await sheetsPost('sang_kien_kaizen',
-                ['id','type','title','desc','status','progress'],
-                state.initiatives.map(i => [i.id,i.type,i.title,i.desc,i.status,i.progress])
-            );
+
+            // Sáng kiến: 3 sheet song song
+            await Promise.all([
+                sheetsPost('sang_kien_kaizen',
+                    ['id','code','title','type','status','proposer','department','proposedDate','problemDesc','solution','hasFinancial','actualResult','actualBenefit','approved','approvedDate','approvedNote','linkedTaskIds','createdAt','updatedAt'],
+                    flattenInitiativesToRows(state.initiatives)
+                ),
+                sheetsPost('sang_kien_checklist',
+                    ['id','initiativeId','text','done','assignee','pushedToTask','taskId'],
+                    flattenChecklistToRows(state.initiatives)
+                ),
+                sheetsPost('sang_kien_financial',
+                    ['id','initiativeId','bdType','label','amount'],
+                    flattenFinancialToRows(state.initiatives)
+                )
+            ]);
+
             await sheetsPost('nhat_ky_cong_viec',
                 ['id','timestamp','author','type','title','text','attendees','linkedTaskId','tags'],
                 state.logs.map(l => [l.id, l.timestamp, l.author, l.type || 'work', l.title || '', l.text, (l.attendees||[]).join(';'), l.linkedTaskId || '', (l.tags||[]).join(';')])
@@ -357,7 +524,7 @@
             );
         }
 
-        // --- Hàm lưu chính: ghi cả Sheets lẫn localStorage ---
+        // --- Hàm lưu chính ---
         async function syncStateToCSV() {
             saveToLocalStorage();
             if (!state.sheetsUrl) { setSyncStatus('idle'); return; }
@@ -372,4 +539,3 @@
                 showNotification('⚠️ Mất kết nối Sheets. Đã lưu tạm, sẽ tự đồng bộ khi có mạng lại.', 'error');
             }
         }
-

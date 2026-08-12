@@ -1,18 +1,16 @@
         // 1. GLOBAL STATE DATA
         let state = {
-            dirHandle: null,   // giữ lại để không lỗi các hàm cũ
-            sheetsUrl: '',     // (Tái sử dụng tên field cũ) Cờ báo đã kết nối Google Sheets —
-                               // khi đăng nhập Google + tìm thấy Sheet thành công, field này được
-                               // gán = activeSpreadsheetId (xem js/google-drive-api.js). Rỗng = chưa kết nối.
-            geminiKey: '',     // Gemini API key
+            dirHandle: null,
+            sheetsUrl: '',
+            geminiKey: '',
             tasks: [],
             initiatives: [],
             logs: [],
             config: {
                 factories: [],
-                departments: [],   // [{id,name,members:[{id,name,role,phone,email}]}]
-                specialTeams: [],  // [{id,name,members:[{id,name,role,phone,email}]}]
-                partners: []       // [{id,name,type,members:[{id,name,role,phone,email}]}]
+                departments: [],
+                specialTeams: [],
+                partners: []
             },
             currentTaskFilter: 'all',
             currentTaskSubView: 'list',
@@ -21,14 +19,9 @@
             lastAiOutput: ''
         };
 
-        // =============================================================
-        // STORAGE LAYER - Hybrid: Google Sheets (ưu tiên) + localStorage (fallback)
-        // =============================================================
-
         const LS_KEY = 'wms_v2_state';
         const LS_GEMINI_KEY = 'wms_gemini_key';
 
-        // --- localStorage helpers ---
         function saveToLocalStorage() {
             try {
                 const snapshot = {
@@ -51,12 +44,58 @@
                 if (snap.logs)        state.logs        = snap.logs;
                 if (snap.config)      state.config      = { ...state.config, ...snap.config };
                 migrateLegacyConfig();
+                migrateInitiatives();
                 return true;
             } catch (e) { return false; }
         }
 
-        // Chuyển dữ liệu cấu hình từ bản cũ (phòng ban/tổ đội là chuỗi tên, danh bạ là 1 danh sách phẳng)
-        // sang cấu trúc mới (đơn vị có danh sách nhân sự namecard bên trong), để không mất dữ liệu đã lưu trước đó.
+        // Chuyển sáng kiến cũ (chỉ có title/desc/status/progress)
+        // sang cấu trúc mới đầy đủ — không mất dữ liệu cũ.
+        function migrateInitiatives() {
+            const year = new Date().getFullYear();
+            state.initiatives = (state.initiatives || []).map((item, idx) => {
+                // Nếu đã có cấu trúc mới (có field 'code') thì bỏ qua
+                if (item.code) return item;
+
+                // Map trạng thái cũ -> mới
+                const statusMap = {
+                    'Đề xuất mới':     'draft',
+                    'Đang triển khai': 'implementing',
+                    'Hoàn thành':      'done'
+                };
+
+                return {
+                    id: item.id || 'I' + Date.now() + idx,
+                    code: 'SK-' + year + '-' + String(idx + 1).padStart(3, '0'),
+                    title: item.title || '',
+                    problemDesc: item.desc || '',
+                    solution: '',
+                    type: item.type === 'kaizen' ? 'kaizen' : (item.type === 'initiative' ? 'energy' : 'kaizen'),
+                    proposer: '',
+                    department: '',
+                    proposedDate: new Date().toISOString().split('T')[0],
+                    status: statusMap[item.status] || 'draft',
+
+                    hasFinancial: false,
+                    financial: {
+                        investBreakdown: [],
+                        benefitBreakdown: []
+                    },
+
+                    actualResult: '',
+                    actualBenefit: '',
+
+                    checklist: [],
+                    approved: false,
+                    approvedDate: '',
+                    approvedNote: '',
+                    linkedTaskIds: [],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+            });
+        }
+
         function migrateLegacyConfig() {
             if ((state.config.factories || []).some(f => (f.workshops || []).some(w => typeof w === 'string') || f.members === undefined)) {
                 state.config.factories = (state.config.factories || []).map(f => ({
@@ -82,7 +121,7 @@
                     }
                 });
                 state.config.partners = Object.values(groups);
-                showNotification('Đã chuyển danh bạ cũ sang Đối Tác. Nhân sự nội bộ cũ (Employee) cần thêm lại thủ công vào đúng Phòng ban/Tổ đội.', 'success');
+                showNotification('Đã chuyển danh bạ cũ sang Đối Tác.', 'success');
             }
             state.config.partners = (state.config.partners || []).map(p => {
                 if (p.type && !p.categories) {
@@ -97,4 +136,3 @@
             });
             delete state.config.contacts;
         }
-

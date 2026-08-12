@@ -1,38 +1,11 @@
         function renderInitiatives() {
-            const container = document.getElementById('initiatives-render-area');
-            if (!container) return;
-            container.innerHTML = '';
-
-            if (state.initiatives.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-[#14161C] p-8 rounded-2xl border border-[#353945] text-center text-[#777E90] text-xs">
-                        💡 Chưa có đề xuất sáng kiến / dự án nào. Hãy nhập thông tin đề xuất ở form bên trái!
-                    </div>
-                `;
-                return;
+            // Đã chuyển sang js/initiatives.js — hàm này được giữ lại
+            // để tương thích với các lời gọi cũ (switchView, app-init...)
+            if (typeof renderInitiativeStats === 'function') {
+                renderInitiativeStats();
+                renderInitiativeFilterChips();
+                renderInitiativeCards();
             }
-
-            state.initiatives.forEach(item => {
-                const card = document.createElement('div');
-                card.className = "bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-3";
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <h4 class="font-bold text-sm text-[#F4F5F6]">${item.title}</h4>
-                        <span class="text-[10px] bg-[#B6FF2E]/10 text-[#B6FF2E] border border-[#B6FF2E]/30 px-2 py-0.5 rounded font-mono">${item.status || 'Đang triển khai'}</span>
-                    </div>
-                    <p class="text-xs text-[#777E90]">${item.desc}</p>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[11px]">
-                            <span class="text-[#777E90]">Tiến độ thực hiện</span>
-                            <span class="text-[#B6FF2E] font-mono">${item.progress || 0}%</span>
-                        </div>
-                        <div class="w-full bg-[#23262F] h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-[#B6FF2E] h-full" style="width: ${item.progress || 0}%"></div>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
         }
 
         const LOG_TYPE_DEFS = {
@@ -64,14 +37,12 @@
                 : '');
         }
 
-        // Hiện/ẩn ô "Người tham dự" tuỳ theo Loại đang chọn (chỉ có ý nghĩa với Biên bản họp)
         function onLogTypeChange() {
             const typeInput = document.getElementById('log-type-input');
             const wrap = document.getElementById('log-attendees-wrap');
             if (typeInput && wrap) wrap.classList.toggle('hidden', typeInput.value !== 'meeting');
         }
 
-        // Đổ danh sách công việc vào select "Liên kết công việc" (gọi lại mỗi khi renderLogs)
         function populateLogLinkedTaskSelect() {
             const sel = document.getElementById('log-linked-task-input');
             if (!sel) return;
@@ -151,17 +122,13 @@
         }
 
         function renderConfigView() {
-            // Đồng bộ luôn options ở form tạo Công việc (Khu vực / Phân quyền) mỗi khi Cấu hình thay đổi
             refreshTaskFormOptions();
-
             renderOrgChartMindmap();
             renderPartnerCards();
-
             renderPersonnelDirectory();
             if (document.getElementById('personnel-scope-input')) onPersonnelScopeChange();
         }
 
-        // Namecard nhân sự dùng chung cho phòng ban/tổ đội/đối tác
         function renderMemberCard(m, onDelete) {
             const phoneDisplay = normalizePhone(m.phone);
             return `
@@ -180,9 +147,8 @@
             `;
         }
 
-        // ============ SƠ ĐỒ TỔ CHỨC DẠNG MINDMAP (D3.js, cây ngang mở từ trái sang phải) ============
-        let orgExpandedIds = new Set();   // các node đã được người dùng bấm mở (mặc định mọi thứ ngoài gốc đều thu gọn)
-        let orgZoomTransform = null;       // giữ lại vị trí kéo/phóng to giữa các lần vẽ lại
+        let orgExpandedIds = new Set();
+        let orgZoomTransform = null;
         let orgZoomBehavior = null;
         let selectedOrgId = null;
         let selectedOrgRef = null;
@@ -203,7 +169,6 @@
             };
         }
 
-        // Dựng cây dữ liệu Công Ty > Nhà máy (> Xưởng) / Phòng ban / Tổ chuyên trách > Nhân sự
         function buildOrgHierarchy() {
             const factories = state.config.factories || [];
             const depts = state.config.departments || [];
@@ -354,8 +319,6 @@
             }
         }
 
-        // Vẽ sơ đồ tổ chức dạng mindmap cây ngang, gốc bên trái mở dần sang phải (giống NotebookLM)
-        // Có kéo (pan) & phóng to/thu nhỏ (zoom), bấm vào 1 nhánh để mở/thu gọn hoặc xem chi tiết
         function renderOrgChartMindmap() {
             const container = document.getElementById('orgchart-mindmap');
             if (!container || typeof d3 === 'undefined') return;
@@ -365,14 +328,13 @@
 
             container.innerHTML = '';
 
-            const dx = 28;   // khoảng cách dọc giữa 2 node liền kề cùng cấp
-            const dy = 250;  // khoảng cách ngang giữa các cấp (độ sâu)
+            const dx = 28;
+            const dy = 250;
             const cssHeight = 640;
 
             const data = buildOrgHierarchy();
             const root = d3.hierarchy(data);
 
-            // Áp trạng thái mở/thu gọn: mọi thứ ngoài gốc đều thu gọn mặc định, trừ khi người dùng đã bấm mở
             root.each(d => {
                 if (d.depth === 0) return;
                 if (d.children && !orgExpandedIds.has(d.data.id)) {
@@ -409,19 +371,14 @@
             if (orgZoomTransform) svg.call(zoomBehavior.transform, orgZoomTransform);
             orgZoomBehavior = zoomBehavior;
 
-            // Đường nối kiểu vuông góc (elbow, bo góc nhẹ): đi thẳng ra ngoài trước ở đúng hàng của cha
-            // (đoạn chạy ngang dài nằm gọn trên hàng của cha, không cắt qua chữ của nhánh khác),
-            // rồi mới rẽ dọc sát về phía nhánh con để vào đúng hàng của con.
             function elbowPath(link) {
                 const sy = link.source.y, sx = link.source.x;
                 const ty = link.target.y, tx = link.target.x;
                 if (sx === tx) return `M${sy},${sx}H${ty}`;
-
-                const stub = 24; // khoảng cách từ trục xương sống đến nhánh con
+                const stub = 24;
                 const midY = Math.max(sy + 6, ty - stub);
                 const r = Math.min(10, Math.abs(tx - sx) / 2, Math.abs(midY - sy) / 2, Math.abs(ty - midY) / 2);
                 if (r < 1) return `M${sy},${sx}H${midY}V${tx}H${ty}`;
-
                 const dirV = tx > sx ? 1 : -1;
                 return `M${sy},${sx}` +
                     `H${midY - r}` +
@@ -431,7 +388,6 @@
                     `H${ty}`;
             }
 
-            // Vẽ đường nối trước (nằm dưới cùng), để node và chữ luôn hiện rõ phía trên
             g.append('g').attr('fill', 'none').attr('stroke', '#353945').attr('stroke-width', 1.5)
                 .selectAll('path').data(root.links()).join('path').attr('d', elbowPath);
 
@@ -446,13 +402,12 @@
                 .attr('stroke', d => selectedOrgId === d.data.id ? '#FFFFFF' : '#0D0E12')
                 .attr('stroke-width', d => selectedOrgId === d.data.id ? 3 : 2);
 
-            // Số lượng nhân sự hiển thị ngay trong chấm tròn — có số nghĩa là còn cấp bên dưới, không cần dấu +/- nữa
             node.filter(d => d.data.kind !== 'member' && d.depth > 0).append('text')
                 .attr('text-anchor', 'middle').attr('dy', '0.32em')
                 .attr('fill', '#0D0E12').attr('font-size', '9px').attr('font-weight', '900')
                 .text(d => d.data.count);
 
-            const nameText = node.append('text')
+            node.append('text')
                 .attr('x', 18)
                 .attr('dy', '0.32em')
                 .attr('text-anchor', 'start')
@@ -470,7 +425,6 @@
             }
         }
 
-        // Vẽ sao đánh giá bằng SVG (không dùng ký tự ★ vì font hiển thị viền khó nhìn ở sao chưa chọn)
         function renderStarsSVG(rating, opts) {
             opts = opts || {};
             const size = opts.size || 16;
@@ -490,7 +444,6 @@
             return html;
         }
 
-        // Bộ lọc Đối tác: tìm theo tên đơn vị/người liên hệ + chọn nhiều phân loại cùng lúc
         let selectedPartnerCategoryFilters = new Set();
 
         function getAllPartnerCategories() {
@@ -605,18 +558,16 @@
                     <div class="flex justify-end -mt-1">
                         <button onclick="deletePartner('${p.id}')" class="text-rose-400 hover:text-rose-300 text-xs">Xóa đơn vị</button>
                     </div>
-
                     <div class="space-y-1.5">
                         <span class="text-[10px] font-mono text-[#777E90]">PHÂN LOẠI</span>
                         <div class="flex flex-wrap gap-1.5">
                             ${categories.map(c => `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1">${c} <button onclick="removePartnerCategory('${p.id}', '${c}')" class="hover:text-rose-400 font-bold">✕</button></span>`).join('')}
                         </div>
                         <div class="flex gap-2">
-                            <input id="cfg-pcat-input-${p.id}" type="text" placeholder="Thêm phân loại (VD: Nhà thầu điện...)" class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
+                            <input id="cfg-pcat-input-${p.id}" type="text" placeholder="Thêm phân loại..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
                             <button onclick="addPartnerCategory('${p.id}')" class="px-3 py-1.5 rounded-xl bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 text-xs font-semibold hover:bg-[#B6FF2E]/10">+</button>
                         </div>
                     </div>
-
                     <div class="space-y-1.5 pt-2 border-t border-[#353945]">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] font-mono text-[#777E90]">NGƯỜI LIÊN HỆ (${(p.members || []).length})</span>
@@ -629,21 +580,19 @@
                             }
                         </div>
                     </div>
-
                     <div class="space-y-1.5 pt-2 border-t border-[#353945]">
-                        <span class="text-[10px] font-mono text-[#777E90]">THIẾT BỊ ĐÃ CUNG CẤP / CÔNG VIỆC ĐÃ & ĐANG LÀM</span>
+                        <span class="text-[10px] font-mono text-[#777E90]">THIẾT BỊ / CÔNG VIỆC ĐÃ LÀM</span>
                         <div class="flex flex-wrap gap-1.5">
                             ${(p.equipment && p.equipment.length > 0)
                                 ? p.equipment.map((e, i) => `<span class="bg-[#23262F] text-[#F4F5F6] border border-[#353945] px-2 py-0.5 rounded text-[10px] flex items-center gap-1">🔧 ${e} <button onclick="removePartnerEquipment('${p.id}', ${i})" class="text-[#777E90] hover:text-rose-400 font-bold">✕</button></span>`).join('')
-                                : `<span class="text-[11px] text-[#777E90] italic">Chưa có thiết bị / công việc nào được ghi nhận.</span>`
+                                : `<span class="text-[11px] text-[#777E90] italic">Chưa có.</span>`
                             }
                         </div>
                         <div class="flex gap-2">
-                            <input id="cfg-pequip-input-${p.id}" type="text" placeholder="VD: Bảo trì lò hơi số 1, Cung cấp băng tải..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
+                            <input id="cfg-pequip-input-${p.id}" type="text" placeholder="VD: Bảo trì lò hơi số 1..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
                             <button onclick="addPartnerEquipment('${p.id}')" class="px-3 py-1.5 rounded-xl bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 text-xs font-semibold hover:bg-[#B6FF2E]/10">+</button>
                         </div>
                     </div>
-
                     <div class="space-y-1.5 pt-2 border-t border-[#353945]">
                         <span class="text-[10px] font-mono text-[#777E90]">ĐÁNH GIÁ CHẤT LƯỢNG</span>
                         <div class="flex items-center gap-1">
@@ -651,7 +600,7 @@
                             <span class="text-[10px] text-[#777E90] ml-1">${rating > 0 ? rating + '/5' : 'Chưa đánh giá'}</span>
                         </div>
                         <div class="flex gap-2">
-                            <textarea id="cfg-prating-comment-${p.id}" placeholder="Nhận xét đánh giá (chất lượng thi công, tiến độ, thái độ...)" class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none resize-none" rows="2">${p.ratingComment || ''}</textarea>
+                            <textarea id="cfg-prating-comment-${p.id}" placeholder="Nhận xét đánh giá..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-1.5 text-xs text-[#F4F5F6] focus:outline-none resize-none" rows="2">${p.ratingComment || ''}</textarea>
                             <button onclick="savePartnerRatingComment('${p.id}')" class="px-3 py-1.5 rounded-xl bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/30 text-xs font-semibold hover:bg-[#B6FF2E]/10 self-start">Lưu</button>
                         </div>
                     </div>
@@ -661,7 +610,6 @@
             });
         }
 
-        // Trạng thái mở/thu gọn của từng thẻ Đối tác (chỉ tồn tại trong phiên làm việc, không lưu lên Sheets)
         let expandedPartnerIds = new Set();
         function togglePartnerExpand(partnerId) {
             if (expandedPartnerIds.has(partnerId)) expandedPartnerIds.delete(partnerId);
@@ -669,10 +617,46 @@
             renderPartnerCards();
         }
 
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            if (!calendarGrid) return;
+            calendarGrid.innerHTML = '';
 
+            const today = new Date();
+            const daysInMonth = 31;
+            const firstDayOffset = 2;
 
-        // renderCalendar() — đã chuyển sang js/weekly-calendar.js (kèm tính năng
-        // chuyển tháng theo ngày hệ thống, chọn tuần, hiện "Lịch Tuần" và nút In).
+            for (let i = 0; i < firstDayOffset; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'p-3 bg-[#14161C]/30 rounded-xl border border-[#353945]/30 min-h-[60px]';
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
+                const dayTasks = state.tasks.filter(t => t.deadline === dateStr);
+                const isToday = day === today.getDate();
+
+                const cell = document.createElement('div');
+                cell.className = `p-2 rounded-xl border min-h-[60px] flex flex-col justify-between text-left transition ${isToday ? 'border-[#B6FF2E] bg-[#B6FF2E]/10' : 'border-[#353945] bg-[#23262F]'}`;
+
+                let taskDots = '';
+                if (dayTasks.length > 0) {
+                    taskDots = `<div class="mt-1 space-y-1">
+                        ${dayTasks.map(t => `<div class="text-[9px] truncate px-1 py-0.5 rounded bg-[#353945] text-[#B6FF2E]">${t.title}</div>`).join('')}
+                    </div>`;
+                }
+
+                cell.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-mono text-xs ${isToday ? 'font-bold text-[#B6FF2E]' : 'text-[#F4F5F6]'}">${day}</span>
+                        ${dayTasks.length > 0 ? `<span class="w-1.5 h-1.5 rounded-full bg-[#B6FF2E]"></span>` : ''}
+                    </div>
+                    ${taskDots}
+                `;
+                calendarGrid.appendChild(cell);
+            }
+        }
 
         function updateDashboardMetrics() {
             const todayTasksCount = state.tasks.length;
@@ -688,4 +672,3 @@
             const elemKaizen = document.getElementById('kpi-kaizen-count');
             if (elemKaizen) elemKaizen.innerText = state.initiatives.length;
         }
-
