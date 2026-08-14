@@ -496,6 +496,21 @@
 
                 <!-- 2.5. KẾ HOẠCH NĂM -->
                 <section id="view-roadmap" class="view-section space-y-5 hidden">
+
+                    <!-- Tab switcher: Ma Trận Năm | Kho Mục Tiêu -->
+                    <div class="flex bg-[#14161C] p-1.5 rounded-2xl border border-[#353945] w-fit gap-1">
+                        <button onclick="switchRoadmapSubTab('matrix')" id="roadmap-tab-matrix"
+                            class="px-5 py-2 text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C] transition">
+                            📅 Ma Trận Năm
+                        </button>
+                        <button onclick="switchRoadmapSubTab('goalbank')" id="roadmap-tab-goalbank"
+                            class="px-5 py-2 text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6] transition">
+                            🗃️ Kho Mục Tiêu
+                        </button>
+                    </div>
+
+                    <!-- SUB: MA TRẬN NĂM -->
+                    <div id="roadmap-subview-matrix">
                     <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-4">
                         <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-3">
                             <h3 class="font-bold text-[#F4F5F6] text-lg flex items-center gap-2">🗺️ Kế Hoạch Năm</h3>
@@ -534,7 +549,37 @@
                         </div>
                         <p class="text-[10px] text-[#777E90] text-center">💡 Nhấp giữ chuột trái và kéo để cuộn ngang bảng. Bấm vào 1 ô tháng để mở lập kế hoạch chi tiết theo tuần.</p>
                     </div>
-                </section>
+                    </div><!-- end roadmap-subview-matrix -->
+
+                    <!-- SUB: KHO MỤC TIÊU -->
+                    <div id="roadmap-subview-goalbank" class="hidden space-y-4">
+
+                        <!-- Toolbar -->
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#14161C] p-4 rounded-2xl border border-[#353945]">
+                            <div>
+                                <h3 class="font-bold text-[#F4F5F6] text-base">🗃️ Kho Mục Tiêu Chiến Lược</h3>
+                                <p class="text-xs text-[#777E90] mt-0.5">Lưu trữ mục tiêu lớn & nội dung con — bấm 📋 để copy đưa vào Kế Hoạch Năm</p>
+                            </div>
+                            <button onclick="addGoal()"
+                                class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)] flex items-center gap-1.5 whitespace-nowrap">
+                                <span>+</span><span>Thêm Mục Tiêu</span>
+                            </button>
+                        </div>
+
+                        <!-- Vùng cuộn ngang -->
+                        <div id="goal-bank-scroll"
+                            class="overflow-x-auto rounded-xl border border-[#353945] bg-[#0D0E12] p-4 cursor-grab select-none"
+                            style="min-height: 300px;">
+                            <div id="goal-bank-container"></div>
+                        </div>
+                        <p class="text-[10px] text-[#777E90] text-center">
+                            💡 Nhấp giữ chuột trái và kéo để cuộn ngang. Hover vào từng nội dung để thấy nút 📋 Copy / ✏️ Sửa / ✕ Xóa.
+                            Dùng <kbd class="bg-[#353945] px-1 rounded text-[9px]">Ctrl+Enter</kbd> để lưu nhanh khi nhập nội dung.
+                        </p>
+
+                    </div><!-- end roadmap-subview-goalbank -->
+
+                </section><!-- end view-roadmap -->
 
                 <div id="roadmap-modal-overlay" class="hidden fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                     <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
@@ -935,6 +980,7 @@
     <script src="js/roadmap.js"></script>
     <script src="js/weekly-calendar.js"></script>
     <script src="js/initiatives.js"></script>
+    <script src="js/goal-bank.js"></script>
     <script src="js/app-init.js"></script>
 </body>
 </html>
