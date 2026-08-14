@@ -410,6 +410,9 @@
                 }
             }
 
+            // Kho mục tiêu
+            await loadGoalBankFromSheets();
+
             saveToLocalStorage();
         }
 
@@ -516,6 +519,14 @@
                     sheetsPost('cau_hinh_doi_tac',
                         ['unitId','unitName','categories','equipment','rating','ratingComment','memberId','memberName','memberRole','memberPhone','memberEmail'],
                         flattenPartnersToRows(state.config.partners)
+                    ),
+                    sheetsPost('kho_muc_tieu_goals',
+                        ['id', 'title', 'color', 'createdAt', 'updatedAt'],
+                        flattenGoalBankToRows(state.goalBank)
+                    ),
+                    sheetsPost('kho_muc_tieu_items',
+                        ['id', 'goalId', 'text', 'createdAt'],
+                        flattenGoalBankItemsToRows(state.goalBank)
                     )
                 ]);
                 const _failed = _results.filter(r => r.status === 'rejected' || r.value === false);
@@ -526,6 +537,91 @@
                 return true;
             } catch(e) {
                 console.warn('[Sync] Lỗi kết nối khi ghi Sheets:', e.message || e);
+                return false;
+            }
+        }
+
+        // =============================================================
+        // KHO MỤC TIÊU — đọc/ghi sheet riêng 'kho_muc_tieu'
+        // Cấu trúc: 2 sheet
+        //   kho_muc_tieu_goals   : 1 dòng / mục tiêu chính
+        //   kho_muc_tieu_items   : nhiều dòng / mục tiêu chính (nội dung con)
+        // =============================================================
+
+        function flattenGoalBankToRows(goalBank) {
+            return (goalBank || []).map(g => [
+                g.id || '',
+                g.title || '',
+                g.color || '#38bdf8',
+                g.createdAt || '',
+                g.updatedAt || ''
+            ]);
+        }
+
+        function flattenGoalBankItemsToRows(goalBank) {
+            const rows = [];
+            (goalBank || []).forEach(g => {
+                (g.items || []).forEach(it => {
+                    rows.push([it.id || '', g.id || '', it.text || '', it.createdAt || '']);
+                });
+            });
+            return rows;
+        }
+
+        function buildGoalBankFromRows(goalRows, itemRows) {
+            const byId = {};
+            const order = [];
+            (goalRows || []).forEach(r => {
+                if (!r.id) return;
+                const g = {
+                    id: r.id,
+                    title: r.title || '',
+                    color: r.color || '#38bdf8',
+                    createdAt: r.createdAt || '',
+                    updatedAt: r.updatedAt || '',
+                    items: []
+                };
+                byId[g.id] = g;
+                order.push(g);
+            });
+            (itemRows || []).forEach(r => {
+                const g = byId[r.goalId];
+                if (!g || !r.text) return;
+                g.items.push({
+                    id: r.id || ('GI' + Math.random().toString(36).substr(2, 4)),
+                    text: r.text,
+                    createdAt: r.createdAt || ''
+                });
+            });
+            return order;
+        }
+
+        async function loadGoalBankFromSheets() {
+            const [goalRows, itemRows] = await Promise.all([
+                sheetsGet('kho_muc_tieu_goals'),
+                sheetsGet('kho_muc_tieu_items')
+            ]);
+            if (goalRows && goalRows.length > 0) {
+                state.goalBank = buildGoalBankFromRows(goalRows, itemRows);
+            }
+        }
+
+        async function syncGoalBankToSheets() {
+            if (!state.sheetsUrl) return false;
+            try {
+                const [r1, r2] = await Promise.all([
+                    sheetsPost('kho_muc_tieu_goals',
+                        ['id', 'title', 'color', 'createdAt', 'updatedAt'],
+                        flattenGoalBankToRows(state.goalBank)
+                    ),
+                    sheetsPost('kho_muc_tieu_items',
+                        ['id', 'goalId', 'text', 'createdAt'],
+                        flattenGoalBankItemsToRows(state.goalBank)
+                    )
+                ]);
+                return r1 && r2;
+            } catch(e) {
+                console.warn('[GoalBank] Lỗi ghi Sheets:', e);
                 return false;
             }
         }

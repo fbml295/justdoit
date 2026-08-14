@@ -6,6 +6,7 @@
             tasks: [],
             initiatives: [],
             logs: [],
+            goalBank: [],   // Kho mục tiêu chiến lược
             config: {
                 factories: [],
                 departments: [],
@@ -28,6 +29,7 @@
                     tasks: state.tasks,
                     initiatives: state.initiatives,
                     logs: state.logs,
+                    goalBank: state.goalBank,
                     config: state.config
                 };
                 localStorage.setItem(LS_KEY, JSON.stringify(snapshot));
@@ -42,6 +44,7 @@
                 if (snap.tasks)       state.tasks       = snap.tasks;
                 if (snap.initiatives) state.initiatives = snap.initiatives;
                 if (snap.logs)        state.logs        = snap.logs;
+                if (snap.goalBank)    state.goalBank    = snap.goalBank;
                 if (snap.config)      state.config      = { ...state.config, ...snap.config };
                 migrateLegacyConfig();
                 migrateInitiatives();

@@ -8,6 +8,46 @@
             }
         }
 
+        // =============================================================
+        // TAB CON CỦA KẾ HOẠCH NĂM: Ma Trận Năm | Kho Mục Tiêu
+        // =============================================================
+        function switchRoadmapSubTab(tab) {
+            const matrixEl   = document.getElementById('roadmap-subview-matrix');
+            const goalbankEl = document.getElementById('roadmap-subview-goalbank');
+            const tabMatrix  = document.getElementById('roadmap-tab-matrix');
+            const tabGoal    = document.getElementById('roadmap-tab-goalbank');
+
+            if (tab === 'matrix') {
+                if (matrixEl)   matrixEl.classList.remove('hidden');
+                if (goalbankEl) goalbankEl.classList.add('hidden');
+                if (tabMatrix) {
+                    tabMatrix.className = 'px-5 py-2 text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C] transition';
+                }
+                if (tabGoal) {
+                    tabGoal.className = 'px-5 py-2 text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6] transition';
+                }
+                // Kích hoạt drag scroll cho roadmap matrix
+                initRoadmapDragScroll();
+            } else {
+                if (matrixEl)   matrixEl.classList.add('hidden');
+                if (goalbankEl) goalbankEl.classList.remove('hidden');
+                if (tabGoal) {
+                    tabGoal.className = 'px-5 py-2 text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C] transition';
+                }
+                if (tabMatrix) {
+                    tabMatrix.className = 'px-5 py-2 text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6] transition';
+                }
+                // Load và render Kho Mục Tiêu
+                if (typeof ensureGoalBankLoaded === 'function') {
+                    ensureGoalBankLoaded();
+                }
+                // Kích hoạt drag scroll cho goal bank
+                setTimeout(() => {
+                    if (typeof initGoalBankDragScroll === 'function') initGoalBankDragScroll();
+                }, 100);
+            }
+        }
+
         const LOG_TYPE_DEFS = {
             work:     { label: '📋 Nhật ký công việc', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' },
             meeting:  { label: '🗓️ Biên bản họp',      color: 'text-blue-400 bg-blue-500/10 border-blue-500/30' },
