@@ -522,8 +522,13 @@
                             </div>
                             <button onclick="addRoadmapAnnualGoal()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition flex items-center gap-1.5 justify-center"><span>+</span><span>Thêm Mục Tiêu Năm</span></button>
                         </div>
-                        <div class="bg-gradient-to-r from-[#23262F] to-[#0D0E12] border border-[#353945] border-t-2 border-t-[#B6FF2E] border-b-2 border-b-[#B6FF2E] rounded-xl px-5 py-3 text-center">
-                            <input id="roadmap-slogan-input" type="text" onchange="onRoadmapSloganChange()" placeholder="✍️ Nhập Slogan / Châm ngôn hành động của năm..." class="w-full bg-transparent border-none outline-none text-[#F4F5F6] text-base font-bold italic text-center placeholder:text-[#777E90] placeholder:font-normal">
+                        <div class="bg-gradient-to-r from-[#23262F] to-[#0D0E12] border border-[#353945] border-t-2 border-t-[#B6FF2E] border-b-2 border-b-[#B6FF2E] rounded-xl px-5 py-3 text-center cursor-pointer hover:bg-[#23262F]/80 transition group"
+                             onclick="openSloganDialog()" title="Bấm để sửa slogan">
+                            <input id="roadmap-slogan-input" type="text" onchange="onRoadmapSloganChange()"
+                                placeholder="✍️ Bấm để nhập Slogan / Châm ngôn hành động của năm..."
+                                class="w-full bg-transparent border-none outline-none text-[#F4F5F6] text-base font-bold italic text-center placeholder:text-[#777E90] placeholder:font-normal cursor-pointer pointer-events-none"
+                                readonly>
+                            <span class="text-[10px] text-[#777E90] group-hover:text-[#B6FF2E] transition">✍️ Bấm để sửa</span>
                         </div>
                         <div id="roadmap-matrix-container" class="overflow-x-auto rounded-xl border border-[#353945] cursor-grab select-none bg-[#0D0E12]">
                             <table class="border-collapse" style="min-width:3250px; width:100%;">
@@ -977,6 +982,7 @@
     <script src="js/tasks.js"></script>
     <script src="js/views.js"></script>
     <script src="js/ui-actions.js"></script>
+    <script src="js/dialog.js"></script>
     <script src="js/roadmap.js"></script>
     <script src="js/weekly-calendar.js"></script>
     <script src="js/initiatives.js"></script>
