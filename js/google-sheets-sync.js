@@ -521,11 +521,11 @@
                         flattenPartnersToRows(state.config.partners)
                     ),
                     sheetsPost('kho_muc_tieu_goals',
-                        ['id', 'title', 'color', 'createdAt', 'updatedAt'],
+                        ['id', 'title', 'color', 'stars', 'createdAt', 'updatedAt'],
                         flattenGoalBankToRows(state.goalBank)
                     ),
                     sheetsPost('kho_muc_tieu_items',
-                        ['id', 'goalId', 'text', 'createdAt'],
+                        ['id', 'goalId', 'text', 'stars', 'createdAt'],
                         flattenGoalBankItemsToRows(state.goalBank)
                     )
                 ]);
@@ -553,6 +553,7 @@
                 g.id || '',
                 g.title || '',
                 g.color || '#38bdf8',
+                String(g.stars || 5),
                 g.createdAt || '',
                 g.updatedAt || ''
             ]);
@@ -562,7 +563,7 @@
             const rows = [];
             (goalBank || []).forEach(g => {
                 (g.items || []).forEach(it => {
-                    rows.push([it.id || '', g.id || '', it.text || '', it.createdAt || '']);
+                    rows.push([it.id || '', g.id || '', it.text || '', String(it.stars || 5), it.createdAt || '']);
                 });
             });
             return rows;
@@ -577,6 +578,7 @@
                     id: r.id,
                     title: r.title || '',
                     color: r.color || '#38bdf8',
+                    stars: parseInt(r.stars) || 5,
                     createdAt: r.createdAt || '',
                     updatedAt: r.updatedAt || '',
                     items: []
@@ -590,6 +592,7 @@
                 g.items.push({
                     id: r.id || ('GI' + Math.random().toString(36).substr(2, 4)),
                     text: r.text,
+                    stars: parseInt(r.stars) || 5,
                     createdAt: r.createdAt || ''
                 });
             });
@@ -611,11 +614,11 @@
             try {
                 const [r1, r2] = await Promise.all([
                     sheetsPost('kho_muc_tieu_goals',
-                        ['id', 'title', 'color', 'createdAt', 'updatedAt'],
+                        ['id', 'title', 'color', 'stars', 'createdAt', 'updatedAt'],
                         flattenGoalBankToRows(state.goalBank)
                     ),
                     sheetsPost('kho_muc_tieu_items',
-                        ['id', 'goalId', 'text', 'createdAt'],
+                        ['id', 'goalId', 'text', 'stars', 'createdAt'],
                         flattenGoalBankItemsToRows(state.goalBank)
                     )
                 ]);

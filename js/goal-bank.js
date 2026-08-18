@@ -8,13 +8,13 @@
 
 const GOAL_BANK_COLORS = [
     '#38bdf8', '#c084fc', '#fb923c', '#10b981',
-    '#f43f5e', '#facc15', '#60a5fa', '#34d399'
+    '#f43f5e', '#facc15', '#60a5fa', '#34d399',
+    '#f97316', '#a78bfa', '#2dd4bf', '#fb7185'
 ];
 
 let goalBankLoaded = false;
 let _goalBankSyncTimer = null;
 
-// --- Đảm bảo state.goalBank tồn tại ---
 if (!state.goalBank) state.goalBank = [];
 
 // =============================================================
@@ -67,16 +67,32 @@ function renderGoalBank() {
         <div class="flex gap-4 pb-4" style="min-width: max-content;">
             ${goals.map(g => renderGoalBankColumn(g)).join('')}
         </div>`;
+
+    // Kích hoạt drag scroll sau khi render
+    setTimeout(() => initGoalBankDragScroll(), 50);
 }
 
 function renderGoalBankColumn(goal) {
     const color = goal.color || GOAL_BANK_COLORS[0];
     const items = goal.items || [];
+    const stars = goal.stars || 0;
+
+    const starsHtml = stars > 0
+        ? `<div class="text-amber-400 text-[10px]">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)}</div>`
+        : '';
 
     const itemsHtml = items.length > 0
-        ? items.map(it => `
+        ? items.map(it => {
+            const itStars = it.stars || 0;
+            const itStarsHtml = itStars > 0
+                ? `<div class="text-amber-400 text-[9px] mt-0.5">${'★'.repeat(itStars)}${'☆'.repeat(5 - itStars)}</div>`
+                : '';
+            return `
             <div class="group flex items-start gap-2 bg-[#0D0E12] border border-[#353945] rounded-xl p-3 hover:border-[#B6FF2E]/30 transition">
-                <span class="flex-1 text-[11px] text-[#F4F5F6] leading-relaxed break-words">${escapeGoalHtml(it.text)}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[11px] text-[#F4F5F6] leading-relaxed break-words whitespace-pre-wrap">${escapeGoalHtml(it.text)}</p>
+                    ${itStarsHtml}
+                </div>
                 <div class="flex flex-col gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition">
                     <button onclick="copyGoalItem('${escapeGoalAttr(it.text)}')"
                         title="Copy nội dung"
@@ -94,34 +110,41 @@ function renderGoalBankColumn(goal) {
                         ✕
                     </button>
                 </div>
-            </div>`).join('')
-        : `<div class="text-[11px] text-[#777E90] italic text-center py-4">Chưa có nội dung. Bấm "+ Thêm" để thêm.</div>`;
+            </div>`;
+        }).join('')
+        : `<div class="text-[11px] text-[#777E90] italic text-center py-4">Chưa có nội dung.<br>Bấm "+ Thêm Nội Dung" để thêm.</div>`;
 
     return `
-        <div class="flex-shrink-0 bg-[#14161C] border border-[#353945] rounded-2xl overflow-hidden"
+        <div class="flex-shrink-0 bg-[#14161C] border border-[#353945] rounded-2xl overflow-hidden flex flex-col"
              style="width:280px; border-top: 3px solid ${color};">
             <!-- Header cột -->
-            <div class="px-4 py-3 flex items-start justify-between gap-2">
-                <h4 class="font-bold text-sm text-[#F4F5F6] leading-snug flex-1 break-words">${escapeGoalHtml(goal.title)}</h4>
-                <div class="flex gap-1 flex-shrink-0">
-                    <button onclick="editGoalTitle('${goal.id}')"
-                        title="Sửa tên mục tiêu"
-                        class="w-6 h-6 rounded-lg bg-[#23262F] border border-[#353945] text-[#777E90] hover:text-[#F4F5F6] flex items-center justify-center text-[10px]">
-                        ✏️
-                    </button>
-                    <button onclick="deleteGoal('${goal.id}')"
-                        title="Xóa mục tiêu"
-                        class="w-6 h-6 rounded-lg bg-[#23262F] border border-rose-500/30 text-[#777E90] hover:text-rose-400 flex items-center justify-center text-[10px]">
-                        🗑️
-                    </button>
+            <div class="px-4 py-3 border-b border-[#353945]" style="background: linear-gradient(135deg, ${color}15, transparent);">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold text-sm text-[#F4F5F6] leading-snug break-words">${escapeGoalHtml(goal.title)}</h4>
+                        ${starsHtml}
+                    </div>
+                    <div class="flex gap-1 flex-shrink-0">
+                        <button onclick="editGoalTitle('${goal.id}')"
+                            title="Sửa mục tiêu"
+                            class="w-6 h-6 rounded-lg bg-[#23262F] border border-[#353945] text-[#777E90] hover:text-[#F4F5F6] flex items-center justify-center text-[10px]">
+                            ✏️
+                        </button>
+                        <button onclick="deleteGoal('${goal.id}')"
+                            title="Xóa mục tiêu"
+                            class="w-6 h-6 rounded-lg bg-[#23262F] border border-rose-500/30 text-[#777E90] hover:text-rose-400 flex items-center justify-center text-[10px]">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
+                <div class="text-[10px] text-[#777E90] mt-1">${items.length} nội dung</div>
             </div>
             <!-- Nội dung con -->
-            <div class="px-3 pb-3 space-y-2 max-h-[520px] overflow-y-auto">
+            <div class="px-3 py-3 space-y-2 flex-1 overflow-y-auto" style="max-height: 480px;">
                 ${itemsHtml}
             </div>
             <!-- Nút thêm nội dung con -->
-            <div class="px-3 pb-3">
+            <div class="px-3 pb-3 pt-1 border-t border-[#353945]">
                 <button onclick="addGoalItem('${goal.id}')"
                     class="w-full text-[11px] py-2 rounded-xl border border-dashed border-[#B6FF2E]/40 text-[#B6FF2E] hover:bg-[#B6FF2E]/10 transition font-semibold">
                     + Thêm Nội Dung
@@ -139,21 +162,19 @@ function escapeGoalAttr(str) {
 }
 
 // =============================================================
-// ACTIONS — MỤC TIÊU CHÍNH
+// ACTIONS — MỤC TIÊU CHÍNH (dùng dialog)
 // =============================================================
 
-function addGoal() {
-    const title = prompt('Nhập tên mục tiêu chính:');
-    if (!title || !title.trim()) return;
-
-    const usedColors = (state.goalBank || []).map(g => g.color);
-    const color = GOAL_BANK_COLORS.find(c => !usedColors.includes(c)) || GOAL_BANK_COLORS[Math.floor(Math.random() * GOAL_BANK_COLORS.length)];
+async function addGoal() {
+    const result = await dlgGoalBankGoal({});
+    if (!result) return;
 
     if (!state.goalBank) state.goalBank = [];
     state.goalBank.push({
         id: 'GB' + Date.now(),
-        title: title.trim(),
-        color,
+        title: result.title,
+        stars: result.stars || 5,
+        color: result.color || GOAL_BANK_COLORS[0],
         items: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -164,25 +185,28 @@ function addGoal() {
     showNotification('Đã thêm mục tiêu mới!', 'success');
 }
 
-function editGoalTitle(goalId) {
+async function editGoalTitle(goalId) {
     const goal = (state.goalBank || []).find(g => g.id === goalId);
     if (!goal) return;
 
-    const newTitle = prompt('Sửa tên mục tiêu:', goal.title);
-    if (!newTitle || !newTitle.trim()) return;
+    const result = await dlgGoalBankGoal({ title: goal.title, stars: goal.stars, color: goal.color });
+    if (!result) return;
 
-    goal.title = newTitle.trim();
+    goal.title = result.title;
+    goal.stars = result.stars || 5;
+    goal.color = result.color || goal.color;
     goal.updatedAt = new Date().toISOString();
+
     renderGoalBank();
     scheduleGoalBankSync();
-    showNotification('Đã cập nhật tên mục tiêu!', 'success');
+    showNotification('Đã cập nhật mục tiêu!', 'success');
 }
 
 function deleteGoal(goalId) {
     const goal = (state.goalBank || []).find(g => g.id === goalId);
     if (!goal) return;
 
-    confirmAction(`Xóa mục tiêu "${goal.title}" và toàn bộ ${goal.items.length} nội dung con?`, () => {
+    confirmAction(`Xóa mục tiêu "${goal.title}" và toàn bộ ${(goal.items||[]).length} nội dung con?`, () => {
         state.goalBank = state.goalBank.filter(g => g.id !== goalId);
         renderGoalBank();
         scheduleGoalBankSync();
@@ -191,97 +215,46 @@ function deleteGoal(goalId) {
 }
 
 // =============================================================
-// ACTIONS — NỘI DUNG CON
+// ACTIONS — NỘI DUNG CON (dùng dialog)
 // =============================================================
 
-function addGoalItem(goalId) {
+async function addGoalItem(goalId) {
     const goal = (state.goalBank || []).find(g => g.id === goalId);
     if (!goal) return;
 
-    // Dùng modal nhỏ thay vì prompt để nhập thoải mái hơn
-    const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
-    overlay.innerHTML = `
-        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl">
-            <h4 class="font-bold text-sm text-[#F4F5F6]">+ Thêm Nội Dung</h4>
-            <p class="text-[11px] text-[#777E90]">Mục tiêu: <span class="text-[#B6FF2E]">${escapeGoalHtml(goal.title)}</span></p>
-            <textarea id="goal-item-input" rows="4"
-                placeholder="Nhập nội dung cần làm để đạt mục tiêu này..."
-                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] resize-none"></textarea>
-            <div class="flex justify-end gap-2">
-                <button id="goal-item-cancel" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945]">Hủy</button>
-                <button id="goal-item-ok" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] text-xs font-bold hover:opacity-90">Thêm</button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
+    const result = await dlgGoalBankItem({});
+    if (!result || !result.text) return;
 
-    const textarea = overlay.querySelector('#goal-item-input');
-    textarea.focus();
-
-    overlay.querySelector('#goal-item-cancel').onclick = () => overlay.remove();
-    overlay.querySelector('#goal-item-ok').onclick = () => {
-        const text = textarea.value.trim();
-        if (!text) { showNotification('Vui lòng nhập nội dung!', 'error'); return; }
-
-        if (!goal.items) goal.items = [];
-        goal.items.push({
-            id: 'GI' + Date.now(),
-            text,
-            createdAt: new Date().toISOString()
-        });
-        goal.updatedAt = new Date().toISOString();
-
-        overlay.remove();
-        renderGoalBank();
-        scheduleGoalBankSync();
-        showNotification('Đã thêm nội dung!', 'success');
-    };
-
-    // Enter + Ctrl/Cmd để submit nhanh
-    textarea.addEventListener('keydown', e => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            overlay.querySelector('#goal-item-ok').click();
-        }
+    if (!goal.items) goal.items = [];
+    goal.items.push({
+        id: 'GI' + Date.now(),
+        text: result.text,
+        stars: result.stars || 5,
+        createdAt: new Date().toISOString()
     });
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    goal.updatedAt = new Date().toISOString();
+
+    renderGoalBank();
+    scheduleGoalBankSync();
+    showNotification('Đã thêm nội dung!', 'success');
 }
 
-function editGoalItem(goalId, itemId) {
+async function editGoalItem(goalId, itemId) {
     const goal = (state.goalBank || []).find(g => g.id === goalId);
     if (!goal) return;
     const item = (goal.items || []).find(i => i.id === itemId);
     if (!item) return;
 
-    const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
-    overlay.innerHTML = `
-        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl">
-            <h4 class="font-bold text-sm text-[#F4F5F6]">✏️ Sửa Nội Dung</h4>
-            <textarea id="goal-item-edit-input" rows="4"
-                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] resize-none">${escapeGoalHtml(item.text)}</textarea>
-            <div class="flex justify-end gap-2">
-                <button id="goal-item-edit-cancel" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945]">Hủy</button>
-                <button id="goal-item-edit-ok" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] text-xs font-bold hover:opacity-90">Lưu</button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
+    const result = await dlgGoalBankItem({ text: item.text, stars: item.stars });
+    if (!result || !result.text) return;
 
-    const textarea = overlay.querySelector('#goal-item-edit-input');
-    textarea.focus();
-    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    item.text = result.text;
+    item.stars = result.stars || 5;
+    goal.updatedAt = new Date().toISOString();
 
-    overlay.querySelector('#goal-item-edit-cancel').onclick = () => overlay.remove();
-    overlay.querySelector('#goal-item-edit-ok').onclick = () => {
-        const text = textarea.value.trim();
-        if (!text) { showNotification('Nội dung không được để trống!', 'error'); return; }
-        item.text = text;
-        goal.updatedAt = new Date().toISOString();
-        overlay.remove();
-        renderGoalBank();
-        scheduleGoalBankSync();
-        showNotification('Đã cập nhật nội dung!', 'success');
-    };
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    renderGoalBank();
+    scheduleGoalBankSync();
+    showNotification('Đã cập nhật nội dung!', 'success');
 }
 
 function deleteGoalItem(goalId, itemId) {
@@ -296,12 +269,17 @@ function deleteGoalItem(goalId, itemId) {
 
 // Copy nội dung vào clipboard
 function copyGoalItem(text) {
-    // Decode HTML entities trước khi copy
-    const decoded = text.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    const decoded = text
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>');
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(decoded).then(() => {
-            showNotification('✅ Đã copy vào clipboard!', 'success');
-        }).catch(() => _copyFallback(decoded));
+        navigator.clipboard.writeText(decoded)
+            .then(() => showNotification('✅ Đã copy vào clipboard!', 'success'))
+            .catch(() => _copyFallback(decoded));
     } else {
         _copyFallback(decoded);
     }
@@ -310,8 +288,7 @@ function copyGoalItem(text) {
 function _copyFallback(text) {
     const el = document.createElement('textarea');
     el.value = text;
-    el.style.position = 'fixed';
-    el.style.opacity = '0';
+    el.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
     document.body.appendChild(el);
     el.select();
     try {
@@ -324,7 +301,7 @@ function _copyFallback(text) {
 }
 
 // =============================================================
-// DRAG SCROLL cho Kho Mục Tiêu (giống roadmap)
+// DRAG SCROLL cho Kho Mục Tiêu
 // =============================================================
 function initGoalBankDragScroll() {
     const slider = document.getElementById('goal-bank-scroll');
