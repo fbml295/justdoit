@@ -161,12 +161,48 @@
             });
         }
 
+        function switchConfigSubTab(tab) {
+            // Ẩn tất cả subviews
+            ['api', 'orgchart', 'addnew'].forEach(t => {
+                const el = document.getElementById('cfg-subview-' + t);
+                if (el) el.classList.add('hidden');
+                const btn = document.getElementById('cfg-tab-' + t);
+                if (btn) {
+                    btn.className = 'cfg-tab flex-1 min-w-[130px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]';
+                }
+            });
+
+            // Hiện subview được chọn
+            const activeEl = document.getElementById('cfg-subview-' + tab);
+            if (activeEl) activeEl.classList.remove('hidden');
+            const activeBtn = document.getElementById('cfg-tab-' + tab);
+            if (activeBtn) {
+                activeBtn.className = 'cfg-tab flex-1 min-w-[130px] py-2.5 text-center text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]';
+            }
+
+            state.currentConfigSubTab = tab;
+
+            // Render nội dung phù hợp
+            if (tab === 'orgchart') {
+                setTimeout(() => renderOrgChartMindmap(), 50);
+            } else if (tab === 'addnew') {
+                if (typeof renderAddNewPanel === 'function') renderAddNewPanel();
+                if (typeof syncAddNewFormScope === 'function') syncAddNewFormScope();
+            }
+        }
+
         function renderConfigView() {
             refreshTaskFormOptions();
-            renderOrgChartMindmap();
-            renderPartnerCards();
-            renderPersonnelDirectory();
-            if (document.getElementById('personnel-scope-input')) onPersonnelScopeChange();
+            // Render mindmap nếu đang ở tab orgchart
+            const orgEl = document.getElementById('cfg-subview-orgchart');
+            if (orgEl && !orgEl.classList.contains('hidden')) {
+                renderOrgChartMindmap();
+            }
+            // Render panel thêm mới nếu đang ở tab addnew
+            const addnewEl = document.getElementById('cfg-subview-addnew');
+            if (addnewEl && !addnewEl.classList.contains('hidden')) {
+                if (typeof renderAddNewPanel === 'function') renderAddNewPanel();
+            }
         }
 
         function renderMemberCard(m, onDelete) {

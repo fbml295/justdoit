@@ -1,5 +1,15 @@
 
-        function showNotification(msg, type = 'success') {
+
+        function normalizePhone(v) {
+            if (v === null || v === undefined) return '';
+            let s = String(v).trim();
+            if (!s) return '';
+            s = s.replace(/^'/, '').replace(/\.0$/, '');
+            if (/^[0-9]{9}$/.test(s)) s = '0' + s;
+            return s;
+        }
+
+                function showNotification(msg, type = 'success') {
             const box = document.createElement('div');
             box.className = `fixed bottom-20 right-5 z-50 text-xs px-4 py-3 rounded-xl border shadow-lg transition-all transform duration-300 ${type === 'error' ? 'bg-rose-900/90 text-rose-200 border-rose-500' : 'bg-[#23262F]/90 text-[#B6FF2E] border-[#B6FF2E]/50'}`;
             box.innerText = msg;
@@ -583,4 +593,10 @@
             syncStateToCSV();
         }
 
-        // INITIAL BOOT
+
+        // Tương thích — chuyển hướng sang saveAddNew mới
+        function addPersonnelUnified() {
+            if (typeof saveAddNew === 'function') saveAddNew();
+        }
+
+                // INITIAL BOOT
