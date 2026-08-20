@@ -793,18 +793,33 @@
 
                 <!-- 7. CẤU HÌNH -->
                 <section id="view-config" class="view-section space-y-6 hidden">
+
+                    <!-- Tab bar: 3 tab -->
                     <div class="flex flex-wrap gap-2 bg-[#14161C] p-2 rounded-2xl border border-[#353945]">
-                        <button onclick="switchConfigSubTab('api')" id="cfg-tab-api" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]">☁️ Kết Nối API</button>
-                        <button onclick="switchConfigSubTab('orgchart')" id="cfg-tab-orgchart" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">🗺️ Sơ Đồ Tổ Chức</button>
-                        <button onclick="switchConfigSubTab('contacts')" id="cfg-tab-contacts" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">🤝 Đối Tác</button>
-                        <button onclick="switchConfigSubTab('personnel')" id="cfg-tab-personnel" class="cfg-tab flex-1 min-w-[140px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">👤 Nhân Sự</button>
+                        <button onclick="switchConfigSubTab('api')" id="cfg-tab-api"
+                            class="cfg-tab flex-1 min-w-[130px] py-2.5 text-center text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]">
+                            ☁️ Kết Nối API
+                        </button>
+                        <button onclick="switchConfigSubTab('orgchart')" id="cfg-tab-orgchart"
+                            class="cfg-tab flex-1 min-w-[130px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">
+                            🗺️ Sơ Đồ Tổ Chức
+                        </button>
+                        <button onclick="switchConfigSubTab('addnew')" id="cfg-tab-addnew"
+                            class="cfg-tab flex-1 min-w-[130px] py-2.5 text-center text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">
+                            ➕ Thêm Mới
+                        </button>
                     </div>
 
+                    <!-- ===== TAB: KẾT NỐI API ===== -->
                     <div id="cfg-subview-api" class="space-y-5">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            <!-- Google Sheets -->
                             <div class="bg-[#14161C] p-6 rounded-2xl border border-[#B6FF2E]/30 space-y-4">
                                 <div class="flex items-center justify-between border-b border-[#353945] pb-3">
-                                    <div><h3 class="font-bold text-[#F4F5F6]">☁️ Google Sheets — Lưu Trữ Đám Mây</h3><p class="text-[10px] text-[#777E90] mt-0.5">Đăng nhập Google để truy cập trực tiếp Sheets & Drive</p></div>
+                                    <div>
+                                        <h3 class="font-bold text-[#F4F5F6]">☁️ Google Sheets — Lưu Trữ Đám Mây</h3>
+                                        <p class="text-[10px] text-[#777E90] mt-0.5">Đăng nhập Google để truy cập trực tiếp Sheets & Drive</p>
+                                    </div>
                                     <span id="sheets-status-badge" class="text-[10px] px-2 py-0.5 rounded font-mono bg-[#353945] text-[#777E90]">Chưa kết nối</span>
                                 </div>
                                 <div class="space-y-3 text-xs">
@@ -812,7 +827,10 @@
                                     <div id="btn-google-signout" class="hidden flex items-center justify-between bg-[#23262F] rounded-xl p-3 border border-[#353945]">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <img id="google-user-avatar" class="hidden w-8 h-8 rounded-full flex-shrink-0" alt="">
-                                            <div class="min-w-0"><p id="google-user-name" class="text-xs font-semibold text-[#F4F5F6] truncate"></p><p id="google-user-email" class="text-[10px] text-[#777E90] truncate"></p></div>
+                                            <div class="min-w-0">
+                                                <p id="google-user-name" class="text-xs font-semibold text-[#F4F5F6] truncate"></p>
+                                                <p id="google-user-email" class="text-[10px] text-[#777E90] truncate"></p>
+                                            </div>
                                         </div>
                                         <button onclick="signOutGoogle()" class="flex-shrink-0 px-3 py-1.5 rounded-lg bg-[#353945] text-rose-400 text-[10px] font-semibold hover:bg-rose-500/10">Đăng xuất</button>
                                     </div>
@@ -824,16 +842,20 @@
                                     <div id="storage-mode-indicator" class="text-xs p-3 rounded-xl bg-[#23262F] border border-[#353945] space-y-1.5">
                                         <div class="flex items-center gap-2">
                                             <span id="storage-mode-dot" class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
-                                            <span id="storage-mode-text" class="text-[#777E90]">Chưa kết nối — dữ liệu chỉ lưu tạm trong trình duyệt này</span>
+                                            <span id="storage-mode-text" class="text-[#777E90]">Chưa kết nối</span>
                                         </div>
                                         <a id="storage-mode-file-link" href="#" target="_blank" class="hidden text-[11px] text-[#B6FF2E] underline pl-4 break-all"></a>
                                     </div>
                                     <button onclick="exportAllToJSON()" class="w-full py-2 rounded-xl bg-[#353945] text-[#777E90] font-medium text-[11px] border border-[#353945] hover:text-[#F4F5F6] transition">📥 Xuất toàn bộ dữ liệu ra JSON</button>
                                 </div>
                             </div>
+                            <!-- Gemini AI -->
                             <div class="bg-[#14161C] p-6 rounded-2xl border border-[#B6FF2E]/30 space-y-4">
                                 <div class="flex items-center justify-between border-b border-[#353945] pb-3">
-                                    <div><h3 class="font-bold text-[#F4F5F6]">🤖 Gemini AI — API Key</h3><p class="text-[10px] text-[#777E90] mt-0.5">Kích hoạt tính năng tổng hợp báo cáo, gợi ý và đọc giọng nói</p></div>
+                                    <div>
+                                        <h3 class="font-bold text-[#F4F5F6]">🤖 Gemini AI — API Key</h3>
+                                        <p class="text-[10px] text-[#777E90] mt-0.5">Kích hoạt tính năng tổng hợp báo cáo, gợi ý và đọc giọng nói</p>
+                                    </div>
                                     <span id="gemini-status-badge" class="text-[10px] px-2 py-0.5 rounded font-mono bg-[#353945] text-[#777E90]">Chưa có key</span>
                                 </div>
                                 <div class="space-y-3 text-xs">
@@ -858,12 +880,8 @@
                         </div>
                     </div>
 
-                    <div id="cfg-subview-orgchart" class="space-y-4 hidden">
-                        <div class="bg-[#14161C] p-4 rounded-2xl border border-[#353945] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                            <div class="flex gap-2"><input id="cfg-factory-name" type="text" placeholder="+ Tên nhà máy mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"><button onclick="addNewFactory()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🏭 Thêm</button></div>
-                            <div class="flex gap-2"><input id="cfg-dept-name" type="text" placeholder="+ Tên phòng ban mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"><button onclick="addDepartment()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🏢 Thêm</button></div>
-                            <div class="flex gap-2"><input id="cfg-team-name" type="text" placeholder="+ Tên tổ chuyên trách mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]"><button onclick="addSpecialTeam()" class="px-3 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 whitespace-nowrap">🛠️ Thêm</button></div>
-                        </div>
+                    <!-- ===== TAB: SƠ ĐỒ TỔ CHỨC ===== -->
+                    <div id="cfg-subview-orgchart" class="hidden space-y-4">
                         <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945]">
                             <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
                                 <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center gap-2"><span>🧠</span> Sơ Đồ Tổ Chức Công Ty (Mindmap)</h4>
@@ -876,85 +894,147 @@
                                     <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#34D399"></span> Nhân sự</span>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                <div class="lg:col-span-2 relative bg-[#0D0E12] rounded-2xl border border-[#353945] overflow-hidden">
-                                    <div id="orgchart-mindmap" class="w-full relative" style="height:640px;"></div>
-                                    <div class="absolute bottom-3 right-3 flex flex-col gap-1.5">
-                                        <button onclick="orgZoomIn()" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] font-bold">+</button>
-                                        <button onclick="orgZoomOut()" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] font-bold">−</button>
-                                        <button onclick="orgZoomReset()" title="Về giữa" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] text-xs">⟲</button>
+                            <!-- Mindmap chiếm toàn bộ chiều rộng -->
+                            <div class="relative bg-[#0D0E12] rounded-2xl border border-[#353945] overflow-hidden">
+                                <div id="orgchart-mindmap" class="w-full relative" style="height:640px;"></div>
+                                <div class="absolute bottom-3 right-3 flex flex-col gap-1.5">
+                                    <button onclick="orgZoomIn()" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] font-bold">+</button>
+                                    <button onclick="orgZoomOut()" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] font-bold">−</button>
+                                    <button onclick="orgZoomReset()" class="w-8 h-8 rounded-lg bg-[#23262F]/90 border border-[#353945] text-[#F4F5F6] hover:bg-[#353945] text-xs">⟲</button>
+                                </div>
+                                <div class="absolute top-3 left-3 text-[10px] text-[#777E90] bg-[#0D0E12]/80 px-2 py-1 rounded-lg">
+                                    Kéo để di chuyển • Cuộn/chụm để phóng to • Bấm nhánh để xem chi tiết
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== TAB: THÊM MỚI ===== -->
+                    <div id="cfg-subview-addnew" class="hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+
+                            <!-- CỘT TRÁI: Form thêm mới -->
+                            <div class="lg:col-span-2 bg-[#14161C] p-5 rounded-2xl border border-[#B6FF2E]/30 space-y-4 h-fit">
+                                <h3 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">➕ Thêm Đối Tượng Mới</h3>
+
+                                <div class="space-y-3 text-xs">
+                                    <!-- Loại đối tượng -->
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1.5">LOẠI ĐỐI TƯỢNG</label>
+                                        <select id="addnew-scope-input" onchange="syncAddNewFormScope()"
+                                            class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+                                            <optgroup label="── Đơn vị ──">
+                                                <option value="factory">🏭 Nhà máy</option>
+                                                <option value="workshop">🏗️ Xưởng (thuộc nhà máy)</option>
+                                                <option value="dept">🏢 Phòng ban</option>
+                                                <option value="team">🛠️ Tổ chuyên trách</option>
+                                                <option value="partner">🤝 Đối tác</option>
+                                            </optgroup>
+                                            <optgroup label="── Nhân sự ──">
+                                                <option value="member_factory">👤 Nhân sự nhà máy</option>
+                                                <option value="member_workshop">👤 Nhân sự xưởng</option>
+                                                <option value="member_dept">👤 Nhân sự phòng ban / tổ</option>
+                                                <option value="member_partner">👤 Liên hệ đối tác</option>
+                                            </optgroup>
+                                        </select>
                                     </div>
-                                    <div class="absolute top-3 left-3 text-[10px] text-[#777E90] bg-[#0D0E12]/80 px-2 py-1 rounded-lg">Kéo để di chuyển • Cuộn/chụm để phóng to • Bấm vào 1 nhánh để xem & thêm nhân sự</div>
+
+                                    <!-- Chọn nhà máy cha (cho workshop, member_factory) -->
+                                    <div id="addnew-parent-factory-wrap" class="hidden">
+                                        <label class="block font-medium text-[#777E90] mb-1">CHỌN NHÀ MÁY</label>
+                                        <select id="addnew-parent-factory-select"
+                                            class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </select>
+                                    </div>
+
+                                    <!-- Chọn nhà máy + xưởng (cho member_workshop) -->
+                                    <div id="addnew-parent-ws-factory-wrap" class="hidden space-y-2">
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">CHỌN NHÀ MÁY</label>
+                                            <select id="addnew-parent-ws-factory-select"
+                                                onchange="onAddNewWsFactoryChange()"
+                                                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">CHỌN XƯỞNG</label>
+                                            <select id="addnew-parent-ws-select"
+                                                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chọn phòng ban / tổ (cho member_dept) -->
+                                    <div id="addnew-parent-dept-wrap" class="hidden">
+                                        <label class="block font-medium text-[#777E90] mb-1">CHỌN PHÒNG BAN / TỔ</label>
+                                        <select id="addnew-parent-dept-select"
+                                            class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </select>
+                                    </div>
+
+                                    <!-- Chọn đối tác (cho member_partner) -->
+                                    <div id="addnew-parent-partner-wrap" class="hidden">
+                                        <label class="block font-medium text-[#777E90] mb-1" id="addnew-partner-label">CHỌN ĐỐI TÁC</label>
+                                        <select id="addnew-parent-partner-select"
+                                            class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </select>
+                                        <!-- Phân loại (chỉ cho scope=partner) -->
+                                        <div id="addnew-partner-cat-wrap" class="mt-2 hidden">
+                                            <label class="block font-medium text-[#777E90] mb-1">PHÂN LOẠI (cách nhau dấu phẩy)</label>
+                                            <input id="addnew-partner-cat-input" type="text"
+                                                placeholder="VD: Nhà thầu cơ điện, Cung cấp vật tư"
+                                                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </div>
+                                    </div>
+
+                                    <!-- Tên -->
+                                    <div>
+                                        <label id="addnew-name-label" class="block font-medium text-[#777E90] mb-1">Tên nhà máy *</label>
+                                        <input id="addnew-name-input" type="text" placeholder="Nhập tên..."
+                                            class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-sm">
+                                    </div>
+
+                                    <!-- Trường nhân sự (ẩn khi thêm đơn vị) -->
+                                    <div id="addnew-person-fields" class="hidden space-y-2 border-t border-[#353945] pt-3">
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">CHỨC VỤ</label>
+                                            <input id="addnew-role-input" type="text" placeholder="VD: Trưởng ca, Kỹ sư..."
+                                                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </div>
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">SỐ ĐIỆN THOẠI</label>
+                                            <input id="addnew-phone-input" type="text" placeholder="0901 234 567"
+                                                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </div>
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">EMAIL</label>
+                                            <input id="addnew-email-input" type="email" placeholder="ten@congty.com"
+                                                class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] text-[11px]">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div id="orgchart-sidepanel" class="bg-[#0D0E12] rounded-2xl border border-[#353945] p-4">
-                                    <div class="text-center text-xs text-[#777E90] py-6">🏢 <span class="text-[#F4F5F6] font-bold">CÔNG TY</span><br>Bấm vào 1 nhánh trên sơ đồ để xem chi tiết & thêm nhân sự.</div>
-                                </div>
+
+                                <button onclick="saveAddNew()"
+                                    class="w-full py-3 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-sm hover:opacity-90 active:scale-95 transition shadow-[0_0_15px_rgba(182,255,46,0.2)]">
+                                    💾 Lưu
+                                </button>
                             </div>
+
+                            <!-- CỘT PHẢI: Tags + Danh mục -->
+                            <div class="lg:col-span-3 space-y-3">
+                                <!-- Tags lọc -->
+                                <div class="bg-[#14161C] p-3 rounded-2xl border border-[#353945]">
+                                    <p class="text-[10px] font-mono text-[#777E90] mb-2 uppercase tracking-wider">Lọc theo đơn vị</p>
+                                    <div id="addnew-tags-container" class="flex flex-wrap gap-1.5"></div>
+                                </div>
+                                <!-- Danh mục -->
+                                <div id="addnew-directory-container" class="space-y-3"></div>
+                            </div>
+
                         </div>
                     </div>
 
-                    <div id="cfg-subview-contacts" class="grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
-                        <div class="bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-4 h-fit">
-                            <h4 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">🤝 Thêm Đơn Vị Đối Tác Mới</h4>
-                            <div class="space-y-3 text-xs">
-                                <div><label class="block text-[#777E90] mb-1">TÊN ĐƠN VỊ / CÔNG TY</label><input id="cfg-partner-name" type="text" placeholder="Ví dụ: Công ty AET..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
-                                <div><label class="block text-[#777E90] mb-1">PHÂN LOẠI BAN ĐẦU (tuỳ chọn, cách nhau bởi dấu phẩy)</label><input id="cfg-partner-type" type="text" placeholder="Ví dụ: Nhà thầu cơ điện..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
-                                <button onclick="addNewPartner()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">Thêm Đơn Vị</button>
-                            </div>
-                        </div>
-                        <div class="lg:col-span-2 space-y-3">
-                            <div class="bg-[#14161C] p-3 rounded-2xl border border-[#353945] space-y-2">
-                                <input id="partner-search-input" oninput="renderPartnerCards()" type="text" placeholder="🔍 Tìm theo tên đối tác hoặc tên người liên hệ..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
-                                <div id="partner-category-filter-chips" class="flex flex-wrap gap-1.5"></div>
-                            </div>
-                            <div id="cfg-partners-list" class="space-y-3"></div>
-                        </div>
-                    </div>
-
-                    <div id="cfg-subview-personnel" class="grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
-                        <div class="bg-[#14161C] p-5 rounded-2xl border border-[#B6FF2E]/30 space-y-4 h-fit">
-                            <h4 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">👤 Thêm Nhân Sự Mới</h4>
-                            <div class="space-y-3 text-xs">
-                                <div><label class="block text-[#777E90] mb-1">THUỘC VỀ</label>
-                                    <select id="personnel-scope-input" onchange="onPersonnelScopeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
-                                        <option value="factory">🏭 Nhà máy (chung, không riêng xưởng)</option>
-                                        <option value="workshop">🏗️ Xưởng cụ thể</option>
-                                        <option value="dept">🏢 Phòng ban</option>
-                                        <option value="team">🛠️ Tổ chuyên trách</option>
-                                        <option value="partner">🤝 Đối tác</option>
-                                    </select>
-                                </div>
-                                <div id="personnel-factory-wrap"><label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label><select id="personnel-factory-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
-                                <div id="personnel-workshop-wrap" class="hidden space-y-3">
-                                    <div><label class="block text-[#777E90] mb-1">CHỌN NHÀ MÁY</label><select id="personnel-ws-factory-input" onchange="onPersonnelFactoryChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
-                                    <div><label class="block text-[#777E90] mb-1">CHỌN XƯỞNG</label><select id="personnel-workshop-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
-                                </div>
-                                <div id="personnel-unit-wrap" class="hidden"><label class="block text-[#777E90] mb-1">CHỌN ĐƠN VỊ</label><select id="personnel-unit-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></select></div>
-                                <div class="border-t border-[#353945] pt-3 space-y-3">
-                                    <div><label class="block text-[#777E90] mb-1">HỌ TÊN <span class="text-rose-400">*</span></label><input id="personnel-name-input" type="text" placeholder="Nhập họ tên..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
-                                    <div><label class="block text-[#777E90] mb-1">CHỨC VỤ</label><input id="personnel-role-input" type="text" placeholder="Ví dụ: Trưởng phòng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
-                                    <div><label class="block text-[#777E90] mb-1">SỐ ĐIỆN THOẠI</label><input id="personnel-phone-input" type="text" placeholder="0901 234 567" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
-                                    <div><label class="block text-[#777E90] mb-1">EMAIL</label><input id="personnel-email-input" type="email" placeholder="ten@congty.com" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none"></div>
-                                </div>
-                                <button onclick="addPersonnelUnified()" class="w-full py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold hover:opacity-90 transition">💾 Lưu Nhân Sự</button>
-                            </div>
-                        </div>
-                        <div class="lg:col-span-2 space-y-3">
-                            <div class="flex items-center justify-between bg-[#14161C] p-3 rounded-2xl border border-[#353945]">
-                                <span class="text-xs font-bold text-[#F4F5F6]">📇 Danh Mục Nhân Sự — <span id="cfg-personnel-count" class="text-[#B6FF2E]">0 người</span></span>
-                                <select id="personnel-filter-input" onchange="renderPersonnelDirectory()" class="bg-[#23262F] border border-[#353945] rounded-xl px-3 py-1.5 text-xs text-[#F4F5F6] focus:outline-none">
-                                    <option value="all">Tất cả</option>
-                                    <option value="factory">🏭 Nhà máy / Xưởng</option>
-                                    <option value="dept">🏢 Phòng ban</option>
-                                    <option value="team">🛠️ Tổ chuyên trách</option>
-                                    <option value="partner">🤝 Đối tác</option>
-                                </select>
-                            </div>
-                            <div id="cfg-personnel-list"></div>
-                        </div>
-                    </div>
                 </section>
-
             </div>
         </main>
 
@@ -987,6 +1067,7 @@
     <script src="js/weekly-calendar.js"></script>
     <script src="js/initiatives.js"></script>
     <script src="js/goal-bank.js"></script>
+    <script src="js/config-panel.js"></script>
     <script src="js/app-init.js"></script>
 </body>
 </html>
