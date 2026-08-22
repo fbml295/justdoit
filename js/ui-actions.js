@@ -176,7 +176,7 @@
             relInput.value = 'my-task';
             onRelationChange();
             resetAiPlanState();
-
+            closeCreateTaskModal();
             renderTasks(); renderCalendar(); updateDashboardMetrics();
             saveToLocalStorage();
 
@@ -594,9 +594,24 @@
         }
 
 
-        // Tương thích — chuyển hướng sang saveAddNew mới
+                // Tương thích — chuyển hướng sang saveAddNew mới
         function addPersonnelUnified() {
             if (typeof saveAddNew === 'function') saveAddNew();
+        }
+
+        // =============================================================
+        // MODAL TẠO CÔNG VIỆC MỚI
+        // =============================================================
+        function openCreateTaskModal() {
+            refreshTaskFormOptions();
+            resetAiPlanState();
+            const hint = document.getElementById('ai-plan-empty-hint');
+            if (hint) hint.classList.remove('hidden');
+            document.getElementById('create-task-modal-overlay').classList.remove('hidden');
+        }
+
+        function closeCreateTaskModal() {
+            document.getElementById('create-task-modal-overlay').classList.add('hidden');
         }
 
                 // INITIAL BOOT
