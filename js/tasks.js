@@ -616,7 +616,9 @@
             `).join('');
         }
 
-        function renderAiPlanSuggestions(suggestion) {
+             function renderAiPlanSuggestions(suggestion) {
+            const hint = document.getElementById('ai-plan-empty-hint');
+            if (hint) hint.classList.add('hidden');
             const smartEl = document.getElementById('ai-plan-smart-text');
             if (smartEl) smartEl.textContent = suggestion.smart || '(không có)';
 
@@ -703,7 +705,9 @@
             const smartEl = document.getElementById('ai-plan-smart-text');
             if (smartEl) smartEl.textContent = '';
 
-            setAiPlanStatus(null);
+        setAiPlanStatus(null);
+            const hint = document.getElementById('ai-plan-empty-hint');
+            if (hint) hint.classList.remove('hidden');
         }
 
         // --- Theo dõi kế hoạch của 1 công việc ĐÃ TẠO (trong thẻ công việc ở danh sách) ---
