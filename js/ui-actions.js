@@ -1,5 +1,4 @@
 
-
         function normalizePhone(v) {
             if (v === null || v === undefined) return '';
             let s = String(v).trim();
@@ -120,29 +119,33 @@
         }
 
         async function createNewTask() {
-            const titleInput      = document.getElementById('task-title-input');
-            const categoryInput   = document.getElementById('task-category-input');
-            const tagsInput       = document.getElementById('task-tags-input');
-            const areaTypeInput   = document.getElementById('task-area-type-input');
-            const areaValueInput  = document.getElementById('task-area-value-input');
-            const areaWorkshopInput = document.getElementById('task-area-workshop-input');
-            const areaPersonInput = document.getElementById('task-area-person-input');
-            const relInput        = document.getElementById('task-relation-input');
-            const personInput     = document.getElementById('task-person-input');
-            const startInput      = document.getElementById('task-startdate-input');
-            const deadlineInput   = document.getElementById('task-deadline-input');
+            const modal = document.getElementById('create-task-modal-overlay');
+            const titleInput      = modal.querySelector('#modal-task-title');
+            const categoryInput   = modal.querySelector('#modal-task-category');
+            const tagsInput       = modal.querySelector('#modal-task-tags');
+            const areaTypeInput   = modal.querySelector('#modal-task-area-type');
+            const areaValueInput  = modal.querySelector('#modal-task-area-value');
+            const areaWorkshopInput = modal.querySelector('#modal-task-area-workshop');
+            const areaPersonInput = modal.querySelector('#modal-task-area-person');
+            const relInput        = modal.querySelector('#modal-task-relation');
+            const personInput     = modal.querySelector('#modal-task-person');
+            const startInput      = modal.querySelector('#modal-task-startdate');
+            const deadlineInput   = modal.querySelector('#modal-task-deadline');
 
-            const title = titleInput.value.trim();
+            const title = titleInput ? titleInput.value.trim() : '';
             if (!title) return showNotification('Vui lòng nhập tên công việc!', 'error');
 
             const areaValue = areaValueInput ? areaValueInput.value : '';
-            if (!areaValue) return showNotification('Vui lòng chọn Khu vực cụ thể (hoặc thêm dữ liệu ở Cấu Hình)!', 'error');
+            if (!areaValue) return showNotification('Vui lòng chọn Khu vực cụ thể!', 'error');
 
-            const relation = relInput.value;
+            const relation = relInput ? relInput.value : 'my-task';
             const personName = (relation !== 'my-task' && personInput) ? personInput.value : '';
             if (relation !== 'my-task' && !personName) {
                 return showNotification('Vui lòng chọn người ở mục Phân quyền!', 'error');
             }
+
+            const workshopWrap = modal.querySelector('#modal-task-area-workshop-wrap');
+            const personWrap   = modal.querySelector('#modal-task-area-person-wrap');
 
             const newTask = {
                 id:          'T' + Date.now(),
@@ -150,8 +153,8 @@
                 desc:        '',
                 areaType:    areaTypeInput ? areaTypeInput.value : 'factory',
                 areaValue:   areaValue,
-                areaWorkshop: (areaWorkshopInput && !document.getElementById('task-area-workshop-wrap').classList.contains('hidden')) ? areaWorkshopInput.value : '',
-                areaPerson:  (areaPersonInput && !document.getElementById('task-area-person-wrap').classList.contains('hidden')) ? areaPersonInput.value : '',
+                areaWorkshop: (areaWorkshopInput && workshopWrap && !workshopWrap.classList.contains('hidden')) ? areaWorkshopInput.value : '',
+                areaPerson:  (areaPersonInput && personWrap && !personWrap.classList.contains('hidden')) ? areaPersonInput.value : '',
                 relation:    relation,
                 personName:  personName,
                 status:      'Todo',
@@ -168,14 +171,6 @@
             };
 
             state.tasks.unshift(newTask);
-            titleInput.value = '';
-            if (categoryInput) categoryInput.value = '';
-            if (tagsInput)     tagsInput.value = '';
-            if (startInput)    startInput.value = '';
-            if (deadlineInput) deadlineInput.value = '';
-            relInput.value = 'my-task';
-            onRelationChange();
-            resetAiPlanState();
             closeCreateTaskModal();
             renderTasks(); renderCalendar(); updateDashboardMetrics();
             saveToLocalStorage();
@@ -593,8 +588,7 @@
             syncStateToCSV();
         }
 
-
-                // Tương thích — chuyển hướng sang saveAddNew mới
+        // Tương thích — chuyển hướng sang saveAddNew mới
         function addPersonnelUnified() {
             if (typeof saveAddNew === 'function') saveAddNew();
         }
@@ -614,4 +608,4 @@
             document.getElementById('create-task-modal-overlay').classList.add('hidden');
         }
 
-                // INITIAL BOOT
+        // INITIAL BOOT
