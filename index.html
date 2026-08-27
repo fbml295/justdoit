@@ -247,9 +247,14 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#14161C] p-4 rounded-2xl border border-[#353945]">
-                        <div class="flex bg-[#23262F] p-1.5 rounded-xl border border-[#353945] w-full sm:w-auto">
-                            <button onclick="switchTaskSubView('list')" id="btn-subview-list" class="px-5 py-2 text-xs md:text-sm font-semibold rounded-lg bg-[#B6FF2E] text-[#14161C] transition">📋 Danh Sách</button>
-                            <button onclick="switchTaskSubView('calendar')" id="btn-subview-calendar" class="px-5 py-2 text-xs md:text-sm font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition">📅 Lịch</button>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="flex bg-[#23262F] p-1.5 rounded-xl border border-[#353945]">
+                                <button onclick="switchTaskSubView('list')" id="btn-subview-list" class="px-5 py-2 text-xs md:text-sm font-semibold rounded-lg bg-[#B6FF2E] text-[#14161C] transition">📋 Danh Sách</button>
+                                <button onclick="switchTaskSubView('calendar')" id="btn-subview-calendar" class="px-5 py-2 text-xs md:text-sm font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition">📅 Lịch</button>
+                            </div>
+                            <button onclick="openCreateTaskModal()" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)] flex items-center gap-1.5 whitespace-nowrap">
+                                <span>+</span><span>Tạo công việc</span>
+                            </button>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="generateAiTasksSuggest()" class="px-3 py-2 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold text-xs hover:bg-[#B6FF2E]/25 transition flex items-center gap-1.5"><span>&#x2728;</span><span>AI Đề Xuất</span></button>
@@ -492,6 +497,96 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal: TẠO CÔNG VIỆC MỚI -->
+                    <div id="create-task-modal-overlay" class="hidden fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+                            <!-- Header -->
+                            <div class="flex items-center justify-between px-5 py-4 bg-[#111827] border-b border-[#353945] flex-shrink-0">
+                                <h4 class="font-bold text-sm text-[#F4F5F6]">🎯 Tạo Công Việc Mới</h4>
+                                <button onclick="closeCreateTaskModal()" class="text-[#777E90] hover:text-rose-400 text-xl px-1 leading-none">✕</button>
+                            </div>
+                            <!-- Body -->
+                            <div class="overflow-y-auto p-5 space-y-4 text-xs flex-1">
+
+                                <!-- Tên công việc -->
+                                <div>
+                                    <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
+                                    <input id="modal-task-title" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
+                                </div>
+
+                                <!-- Khu vực -->
+                                <div>
+                                    <label class="block font-medium text-[#777E90] mb-1">KHU VỰC <span class="text-rose-400">*</span></label>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <select id="modal-task-area-type" onchange="onModalAreaTypeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
+                                            <option value="factory">🏭 Nhà máy</option>
+                                            <option value="unit">🏢 Phòng ban / Tổ đội</option>
+                                            <option value="partner">🤝 Đối tác</option>
+                                        </select>
+                                        <select id="modal-task-area-value" onchange="onModalAreaValueChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition"></select>
+                                    </div>
+                                    <div id="modal-task-area-workshop-wrap" class="hidden mt-2">
+                                        <select id="modal-task-area-workshop" onchange="onModalAreaWorkshopChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                            <option value="">-- Toàn nhà máy --</option>
+                                        </select>
+                                    </div>
+                                    <div id="modal-task-area-person-wrap" class="hidden mt-2">
+                                        <select id="modal-task-area-person" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                            <option value="">-- Cả đơn vị --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Phân quyền -->
+                                <div>
+                                    <label class="block font-medium text-[#777E90] mb-1">PHÂN QUYỀN</label>
+                                    <select id="modal-task-relation" onchange="onModalRelationChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
+                                        <option value="my-task">Việc cá nhân tự làm</option>
+                                        <option value="boss-assign">Cấp trên giao</option>
+                                        <option value="delegate">Giao cấp dưới</option>
+                                    </select>
+                                    <div id="modal-task-person-wrap" class="hidden mt-2">
+                                        <select id="modal-task-person" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                            <option value="">-- Chọn người --</option>
+                                        </select>
+                                        <p id="modal-task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách.</p>
+                                    </div>
+                                </div>
+
+                                <!-- Ngày giờ -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
+                                        <input id="modal-task-startdate" type="datetime-local" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                    </div>
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">DEADLINE</label>
+                                        <input id="modal-task-deadline" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                    </div>
+                                </div>
+
+                                <!-- Danh mục & Thẻ -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
+                                        <input id="modal-task-category" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                    </div>
+                                    <div>
+                                        <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách bằng dấu phẩy)</label>
+                                        <input id="modal-task-tags" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                    </div>
+                                </div>
+
+                            </div>
+                            <!-- Footer -->
+                            <div class="flex justify-end gap-2 px-5 py-4 border-t border-[#353945] bg-[#111827] flex-shrink-0">
+                                <button onclick="closeCreateTaskModal()" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945] transition">Hủy</button>
+                                <button onclick="createNewTask()" class="px-5 py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition shadow-[0_0_15px_rgba(182,255,46,0.2)]">🚀 Làm Việc Đi!</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </section>
 
                 <!-- 2.5. KẾ HOẠCH NĂM -->
