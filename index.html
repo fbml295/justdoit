@@ -262,117 +262,8 @@
                         </div>
                     </div>
 
-                    <div id="subview-tasks-list" class="grid grid-cols-1 lg:grid-cols-5 gap-5">
-                        <div class="lg:col-span-2 bg-[#14161C] p-5 rounded-2xl border border-[#353945] space-y-3 h-fit">
-                            <h3 class="font-bold text-[#F4F5F6] text-sm border-b border-[#353945] pb-2">&#x1F3AF; Khởi Tạo Công Việc Mới</h3>
-                            <div class="space-y-3 text-xs">
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
-                                    <input id="task-title-input" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
-                                </div>
-                                <div class="border-t-2 border-dashed border-[#353945] pt-3 space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="text-xs font-bold text-[#B6FF2E] flex items-center gap-1.5">🧠 AI Lập Kế Hoạch</h4>
-                                        <button type="button" onclick="triggerAiPlanAnalysis()" class="text-[11px] px-3 py-1.5 rounded-lg bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold hover:bg-[#B6FF2E]/25">🧠 Phân Tích Kế Hoạch AI</button>
-                                    </div>
-                                    <p id="ai-plan-status" class="hidden text-[10px] text-[#777E90]"></p>
-                                    <div class="flex gap-1.5">
-                                        <select id="manual-plan-group-select" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
-                                            <option value="pareto">📊 Pareto</option>
-                                            <option value="actionPlan" selected>🪜 Action Plan</option>
-                                            <option value="kpi">🎯 KPI</option>
-                                            <option value="risks">⚠️ Rủi ro</option>
-                                            <option value="mitigations">🛡️ Biện pháp</option>
-                                            <option value="documents">📁 Hồ sơ</option>
-                                            <option value="eisenhower.doNow">⏰ Làm ngay</option>
-                                            <option value="eisenhower.schedule">⏰ Lên lịch</option>
-                                            <option value="eisenhower.delegate">⏰ Giao người khác</option>
-                                            <option value="eisenhower.eliminate">⏰ Không ưu tiên</option>
-                                        </select>
-                                        <input id="manual-plan-text-input" type="text" placeholder="Tự gõ thêm 1 mục vào kế hoạch..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
-                                        <button type="button" onclick="addManualPlanItemToForm('manual-plan-group-select', 'manual-plan-text-input')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
-                                    </div>
-                                    <div id="ai-plan-suggestions-block" class="hidden space-y-2 bg-[#0D0E12] rounded-xl p-3 border border-[#353945]">
-                                        <p class="text-[10px] text-[#777E90] italic">✓ Tick chọn mục muốn dùng</p>
-                                        <div class="bg-[#23262F] rounded-lg p-2.5"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">🎯 SMART</p><p id="ai-plan-smart-text" class="text-[11px] text-[#F4F5F6] leading-relaxed"></p></div>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5" open><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📊 Pareto</summary><div id="ai-plan-list-pareto" class="mt-1.5 space-y-0.5"></div></details>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⏰ Eisenhower</summary>
-                                            <div class="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">🔥 Làm ngay</p><div id="ai-plan-list-eisenhower-doNow" class="space-y-0.5"></div></div>
-                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">📅 Lên lịch</p><div id="ai-plan-list-eisenhower-schedule" class="space-y-0.5"></div></div>
-                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">🤝 Giao người khác</p><div id="ai-plan-list-eisenhower-delegate" class="space-y-0.5"></div></div>
-                                                <div><p class="text-[10px] text-[#777E90] mb-0.5">🚫 Không ưu tiên</p><div id="ai-plan-list-eisenhower-eliminate" class="space-y-0.5"></div></div>
-                                            </div>
-                                        </details>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🪜 Action Plan</summary><div id="ai-plan-list-actionPlan" class="mt-1.5 space-y-0.5"></div></details>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🎯 KPI</summary><div id="ai-plan-list-kpi" class="mt-1.5 space-y-0.5"></div></details>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⚠️ Rủi ro</summary><div id="ai-plan-list-risks" class="mt-1.5 space-y-0.5"></div></details>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🛡️ Biện pháp</summary><div id="ai-plan-list-mitigations" class="mt-1.5 space-y-0.5"></div></details>
-                                        <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📁 Hồ sơ</summary><div id="ai-plan-list-documents" class="mt-1.5 space-y-0.5"></div></details>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">KHU VỰC</label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <select id="task-area-type-input" onchange="onAreaTypeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
-                                            <option value="factory">&#x1F3ED; Nhà máy</option>
-                                            <option value="unit">&#x1F3E2; Phòng ban / Tổ đội</option>
-                                            <option value="partner">&#x1F91D; Đối tác</option>
-                                        </select>
-                                        <select id="task-area-value-input" onchange="onAreaValueChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition"></select>
-                                    </div>
-                                    <div id="task-area-workshop-wrap" class="hidden mt-2">
-                                        <select id="task-area-workshop-input" onchange="onAreaWorkshopChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Toàn nhà máy --</option>
-                                        </select>
-                                    </div>
-                                    <div id="task-area-person-wrap" class="hidden mt-2">
-                                        <select id="task-area-person-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Cả đơn vị --</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">PHÂN QUYỀN</label>
-                                    <select id="task-relation-input" onchange="onRelationChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
-                                        <option value="my-task">Việc cá nhân tự làm</option>
-                                        <option value="boss-assign">Cấp trên giao</option>
-                                        <option value="delegate">Giao cấp dưới</option>
-                                    </select>
-                                    <div id="task-person-wrap" class="hidden mt-2">
-                                        <select id="task-person-input" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Chọn người --</option>
-                                        </select>
-                                        <p id="task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách.</p>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
-                                        <input id="task-startdate-input" type="datetime-local" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">DEADLINE</label>
-                                        <input id="task-deadline-input" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
-                                        <input id="task-category-input" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách bằng dấu phẩy)</label>
-                                        <input id="task-tags-input" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="createNewTask()" class="w-full py-3 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-sm hover:opacity-90 active:scale-95 transition shadow-[0_0_15px_rgba(182,255,46,0.2)]">
-                                &#x1F680; Làm Việc Đi!
-                            </button>
-                        </div>
-
-                        <div class="lg:col-span-3 space-y-3">
+                    <div id="subview-tasks-list" class="space-y-3">
+                        <div class="space-y-3">
                             <div id="deadline-reminder-banner" class="hidden bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 space-y-1.5">
                                 <div class="flex items-center justify-between">
                                     <p class="text-[11px] font-bold text-amber-400" id="deadline-reminder-title"></p>
@@ -485,6 +376,153 @@
                         </div>
                     </div>
 
+                    <!-- Modal: TẠO CÔNG VIỆC MỚI (2 cột) -->
+                    <div id="create-task-modal-overlay" class="hidden fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+                            <!-- Header -->
+                            <div class="flex items-center justify-between px-5 py-4 bg-[#111827] border-b border-[#353945] flex-shrink-0">
+                                <h4 class="font-bold text-sm text-[#F4F5F6]">🎯 Tạo Công Việc Mới</h4>
+                                <button onclick="closeCreateTaskModal()" class="text-[#777E90] hover:text-rose-400 text-xl px-1 leading-none">✕</button>
+                            </div>
+                            <!-- Body: 2 cột -->
+                            <div class="overflow-y-auto flex-1">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#353945]">
+
+                                    <!-- CỘT TRÁI: Thông tin công việc -->
+                                    <div class="p-5 space-y-4 text-xs">
+                                        <p class="text-[10px] font-mono text-[#B6FF2E] font-bold uppercase tracking-wider">Thông tin công việc</p>
+
+                                        <!-- Tên -->
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
+                                            <input id="modal-task-title" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
+                                        </div>
+
+                                        <!-- Khu vực -->
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">KHU VỰC <span class="text-rose-400">*</span></label>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <select id="modal-task-area-type" onchange="onModalAreaTypeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
+                                                    <option value="factory">🏭 Nhà máy</option>
+                                                    <option value="unit">🏢 Phòng ban / Tổ đội</option>
+                                                    <option value="partner">🤝 Đối tác</option>
+                                                </select>
+                                                <select id="modal-task-area-value" onchange="onModalAreaValueChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition"></select>
+                                            </div>
+                                            <div id="modal-task-area-workshop-wrap" class="hidden mt-2">
+                                                <select id="modal-task-area-workshop" onchange="onModalAreaWorkshopChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                                    <option value="">-- Toàn nhà máy --</option>
+                                                </select>
+                                            </div>
+                                            <div id="modal-task-area-person-wrap" class="hidden mt-2">
+                                                <select id="modal-task-area-person" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                                    <option value="">-- Cả đơn vị --</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Phân quyền -->
+                                        <div>
+                                            <label class="block font-medium text-[#777E90] mb-1">PHÂN QUYỀN</label>
+                                            <select id="modal-task-relation" onchange="onModalRelationChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
+                                                <option value="my-task">Việc cá nhân tự làm</option>
+                                                <option value="boss-assign">Cấp trên giao</option>
+                                                <option value="delegate">Giao cấp dưới</option>
+                                            </select>
+                                            <div id="modal-task-person-wrap" class="hidden mt-2">
+                                                <select id="modal-task-person" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
+                                                    <option value="">-- Chọn người --</option>
+                                                </select>
+                                                <p id="modal-task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách.</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Ngày giờ -->
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block font-medium text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
+                                                <input id="modal-task-startdate" type="datetime-local" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                            </div>
+                                            <div>
+                                                <label class="block font-medium text-[#777E90] mb-1">DEADLINE</label>
+                                                <input id="modal-task-deadline" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                            </div>
+                                        </div>
+
+                                        <!-- Danh mục & Thẻ -->
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
+                                                <input id="modal-task-category" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                            </div>
+                                            <div>
+                                                <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách dấu phẩy)</label>
+                                                <input id="modal-task-tags" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- CỘT PHẢI: AI Lập Kế Hoạch -->
+                                    <div class="p-5 space-y-3 text-xs">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-[10px] font-mono text-[#B6FF2E] font-bold uppercase tracking-wider">🧠 AI Lập Kế Hoạch</p>
+                                            <button type="button" onclick="triggerAiPlanAnalysis()" class="text-[11px] px-3 py-1.5 rounded-lg bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold hover:bg-[#B6FF2E]/25 transition">Phân Tích AI</button>
+                                        </div>
+                                        <p id="ai-plan-status" class="hidden text-[10px] text-[#777E90]"></p>
+                                        <div class="flex gap-1.5">
+                                            <select id="manual-plan-group-select" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none flex-shrink-0">
+                                                <option value="pareto">📊 Pareto</option>
+                                                <option value="actionPlan" selected>🪜 Action Plan</option>
+                                                <option value="kpi">🎯 KPI</option>
+                                                <option value="risks">⚠️ Rủi ro</option>
+                                                <option value="mitigations">🛡️ Biện pháp</option>
+                                                <option value="documents">📁 Hồ sơ</option>
+                                                <option value="eisenhower.doNow">⏰ Làm ngay</option>
+                                                <option value="eisenhower.schedule">⏰ Lên lịch</option>
+                                                <option value="eisenhower.delegate">⏰ Giao người khác</option>
+                                                <option value="eisenhower.eliminate">⏰ Không ưu tiên</option>
+                                            </select>
+                                            <input id="manual-plan-text-input" type="text" placeholder="Tự gõ thêm 1 mục..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none min-w-0">
+                                            <button type="button" onclick="addManualPlanItemToForm('manual-plan-group-select', 'manual-plan-text-input')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10 flex-shrink-0">+</button>
+                                        </div>
+                                        <p id="ai-plan-empty-hint" class="text-[10px] text-[#777E90] italic">💡 Nhập tên công việc ở cột trái, rồi bấm "Phân Tích AI" để nhận gợi ý SMART / Pareto / Eisenhower...</p>
+                                        <div id="ai-plan-suggestions-block" class="hidden space-y-2 bg-[#0D0E12] rounded-xl p-3 border border-[#353945] overflow-y-auto" style="max-height:420px">
+                                            <p class="text-[10px] text-[#777E90] italic">✓ Tick chọn mục muốn dùng — sẽ thành checklist khi bấm "Làm Việc Đi!"</p>
+                                            <div class="bg-[#23262F] rounded-lg p-2.5">
+                                                <p class="text-[10px] font-bold text-[#B6FF2E] mb-1">🎯 SMART</p>
+                                                <p id="ai-plan-smart-text" class="text-[11px] text-[#F4F5F6] leading-relaxed"></p>
+                                            </div>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5" open>
+                                                <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📊 Pareto</summary>
+                                                <div id="ai-plan-list-pareto" class="mt-1.5 space-y-0.5"></div>
+                                            </details>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5">
+                                                <summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⏰ Eisenhower</summary>
+                                                <div class="mt-1.5 grid grid-cols-2 gap-2">
+                                                    <div><p class="text-[10px] text-[#777E90] mb-0.5">🔥 Làm ngay</p><div id="ai-plan-list-eisenhower-doNow" class="space-y-0.5"></div></div>
+                                                    <div><p class="text-[10px] text-[#777E90] mb-0.5">📅 Lên lịch</p><div id="ai-plan-list-eisenhower-schedule" class="space-y-0.5"></div></div>
+                                                    <div><p class="text-[10px] text-[#777E90] mb-0.5">🤝 Giao người khác</p><div id="ai-plan-list-eisenhower-delegate" class="space-y-0.5"></div></div>
+                                                    <div><p class="text-[10px] text-[#777E90] mb-0.5">🚫 Không ưu tiên</p><div id="ai-plan-list-eisenhower-eliminate" class="space-y-0.5"></div></div>
+                                                </div>
+                                            </details>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🪜 Action Plan</summary><div id="ai-plan-list-actionPlan" class="mt-1.5 space-y-0.5"></div></details>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🎯 KPI</summary><div id="ai-plan-list-kpi" class="mt-1.5 space-y-0.5"></div></details>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">⚠️ Rủi ro</summary><div id="ai-plan-list-risks" class="mt-1.5 space-y-0.5"></div></details>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">🛡️ Biện pháp</summary><div id="ai-plan-list-mitigations" class="mt-1.5 space-y-0.5"></div></details>
+                                            <details class="bg-[#23262F] rounded-lg p-2.5"><summary class="text-[10px] font-bold text-[#B6FF2E] cursor-pointer">📁 Hồ sơ</summary><div id="ai-plan-list-documents" class="mt-1.5 space-y-0.5"></div></details>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <!-- Footer -->
+                            <div class="flex justify-end gap-2 px-5 py-4 border-t border-[#353945] bg-[#111827] flex-shrink-0">
+                                <button onclick="closeCreateTaskModal()" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945] transition">Hủy</button>
+                                <button onclick="createNewTask()" class="px-5 py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition shadow-[0_0_15px_rgba(182,255,46,0.2)]">🚀 Làm Việc Đi!</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Modal: CHỌN TUẦN ĐỂ IN -->
                     <div id="print-week-select-modal-overlay" class="hidden fixed inset-0 z-[210] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                         <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-xs p-5 space-y-4 shadow-2xl">
@@ -497,96 +535,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Modal: TẠO CÔNG VIỆC MỚI -->
-                    <div id="create-task-modal-overlay" class="hidden fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-                            <!-- Header -->
-                            <div class="flex items-center justify-between px-5 py-4 bg-[#111827] border-b border-[#353945] flex-shrink-0">
-                                <h4 class="font-bold text-sm text-[#F4F5F6]">🎯 Tạo Công Việc Mới</h4>
-                                <button onclick="closeCreateTaskModal()" class="text-[#777E90] hover:text-rose-400 text-xl px-1 leading-none">✕</button>
-                            </div>
-                            <!-- Body -->
-                            <div class="overflow-y-auto p-5 space-y-4 text-xs flex-1">
-
-                                <!-- Tên công việc -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">TÊN CÔNG VIỆC <span class="text-rose-400">*</span></label>
-                                    <input id="modal-task-title" type="text" placeholder="Nhập tên đầu việc..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-sm">
-                                </div>
-
-                                <!-- Khu vực -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">KHU VỰC <span class="text-rose-400">*</span></label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <select id="modal-task-area-type" onchange="onModalAreaTypeChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
-                                            <option value="factory">🏭 Nhà máy</option>
-                                            <option value="unit">🏢 Phòng ban / Tổ đội</option>
-                                            <option value="partner">🤝 Đối tác</option>
-                                        </select>
-                                        <select id="modal-task-area-value" onchange="onModalAreaValueChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition"></select>
-                                    </div>
-                                    <div id="modal-task-area-workshop-wrap" class="hidden mt-2">
-                                        <select id="modal-task-area-workshop" onchange="onModalAreaWorkshopChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Toàn nhà máy --</option>
-                                        </select>
-                                    </div>
-                                    <div id="modal-task-area-person-wrap" class="hidden mt-2">
-                                        <select id="modal-task-area-person" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Cả đơn vị --</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Phân quyền -->
-                                <div>
-                                    <label class="block font-medium text-[#777E90] mb-1">PHÂN QUYỀN</label>
-                                    <select id="modal-task-relation" onchange="onModalRelationChange()" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2.5 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition">
-                                        <option value="my-task">Việc cá nhân tự làm</option>
-                                        <option value="boss-assign">Cấp trên giao</option>
-                                        <option value="delegate">Giao cấp dưới</option>
-                                    </select>
-                                    <div id="modal-task-person-wrap" class="hidden mt-2">
-                                        <select id="modal-task-person" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E] transition text-[11px]">
-                                            <option value="">-- Chọn người --</option>
-                                        </select>
-                                        <p id="modal-task-person-hint" class="text-[10px] text-amber-400 mt-1 hidden">Chưa có ai trong danh sách.</p>
-                                    </div>
-                                </div>
-
-                                <!-- Ngày giờ -->
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">NGÀY & GIỜ BẮT ĐẦU</label>
-                                        <input id="modal-task-startdate" type="datetime-local" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">DEADLINE</label>
-                                        <input id="modal-task-deadline" type="date" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                </div>
-
-                                <!-- Danh mục & Thẻ -->
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">DANH MỤC</label>
-                                        <input id="modal-task-category" type="text" placeholder="VD: Tiết kiệm năng lượng..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                    <div>
-                                        <label class="block font-medium text-[#777E90] mb-1">THẺ (phân cách bằng dấu phẩy)</label>
-                                        <input id="modal-task-tags" type="text" placeholder="VD: Biến tần, Máy ép..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-2.5 py-2 text-[#F4F5F6] focus:ring-1 focus:ring-[#B6FF2E] focus:outline-none transition text-[11px]">
-                                    </div>
-                                </div>
-
-                            </div>
-                            <!-- Footer -->
-                            <div class="flex justify-end gap-2 px-5 py-4 border-t border-[#353945] bg-[#111827] flex-shrink-0">
-                                <button onclick="closeCreateTaskModal()" class="px-4 py-2 rounded-xl bg-[#23262F] text-[#F4F5F6] border border-[#353945] text-xs font-semibold hover:bg-[#353945] transition">Hủy</button>
-                                <button onclick="createNewTask()" class="px-5 py-2.5 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition shadow-[0_0_15px_rgba(182,255,46,0.2)]">🚀 Làm Việc Đi!</button>
-                            </div>
-                        </div>
-                    </div>
-
                 </section>
 
                 <!-- 2.5. KẾ HOẠCH NĂM -->
