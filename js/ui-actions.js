@@ -178,24 +178,20 @@
             await trySyncTasks('✅ Đã lưu lên Google Sheets!');
         }
 
-        let _toggleTaskDoneInFlight = false;
         async function toggleTaskDone(id) {
-            if (_toggleTaskDoneInFlight) return;
-            _toggleTaskDoneInFlight = true;
-            try {
-                const task = state.tasks.find(t => t.id === id);
-                if (task) {
-                    task.status = task.status === 'Done' ? 'Todo' : 'Done';
-                    renderTasks(); renderCalendar(); updateDashboardMetrics();
-                    saveToLocalStorage();
-                    if (task.gtask && task.googleTaskId) {
-                        updateGoogleTaskStatus(task).catch(e => console.warn('[Google Tasks] Không đồng bộ được trạng thái:', e));
-                    }
-                    await trySyncTasks();
-                }
-            } finally {
-                _toggleTaskDoneInFlight = false;
+            const task = state.tasks.find(t => t.id === id);
+            if (!task) return;
+            task.status = task.status === 'Done' ? 'Todo' : 'Done';
+            saveToLocalStorage();
+            if (task.gtask && task.googleTaskId) {
+                updateGoogleTaskStatus(task).catch(e => console.warn('[Google Tasks] Không đồng bộ được trạng thái:', e));
             }
+            // Dùng requestAnimationFrame để browser hoàn tất xử lý event
+            // trước khi rebuild DOM — tránh double-fire do DOM bị destroy giữa chừng
+            requestAnimationFrame(() => {
+                renderTasks(); renderCalendar(); updateDashboardMetrics();
+            });
+            await trySyncTasks();
         }
 
         function deleteTask(id) {
