@@ -488,10 +488,11 @@
 
                 const borderColor = overdue ? 'border-rose-500/40' : (isDone ? 'border-[#353945]' : 'border-[#353945] hover:border-[#B6FF2E]/30');
 
+                // --- Tạo card bằng DOM thuần để checkbox không bị event bubbling ---
                 const card = document.createElement('div');
                 card.className = `bg-[#14161C] p-3.5 rounded-xl border ${borderColor} transition ${isDone ? 'opacity-50' : ''}`;
 
-                // Tạo checkbox riêng bằng JS để tránh onchange bị mất khi innerHTML rebuild
+                // Checkbox hoàn thành — tạo riêng, gắn listener trực tiếp
                 const cbDone = document.createElement('input');
                 cbDone.type = 'checkbox';
                 cbDone.checked = isDone;
@@ -500,50 +501,59 @@
                     e.stopPropagation();
                     toggleTaskDone('${task.id}');
                 });
+                cbDone.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
 
-                card.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                        <!-- NGĂN TRÁI - rộng hơn: tên + nội dung -->
-                        <div class="md:col-span-7 min-w-0">
-                            <div class="flex items-start gap-2.5">
-                                <span class="cb-done-placeholder mt-1 flex-shrink-0"></span>
-                                <div class="min-w-0 flex-1">
-                                    <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
-                                    ${categoryTagsHtml}
-                                </div>
-                            </div>
-                            ${renderTaskPlanSection(task)}
+                // Nội dung bên phải checkbox (title + tags + plan) — dùng innerHTML bình thường
+                const leftInner = document.createElement('div');
+                leftInner.className = 'min-w-0 flex-1';
+                leftInner.innerHTML = `
+                    <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
+                    ${categoryTagsHtml}
+                    ${renderTaskPlanSection(task)}
+                `;
+
+                // Cột trái: checkbox + nội dung
+                const leftCol = document.createElement('div');
+                leftCol.className = 'md:col-span-7 flex items-start gap-2.5 min-w-0';
+                leftCol.appendChild(cbDone);
+                leftCol.appendChild(leftInner);
+
+                // Cột phải: badges + gtask + dates — dùng innerHTML
+                const rightCol = document.createElement('div');
+                rightCol.className = 'md:col-span-5 space-y-1.5 md:border-l md:border-[#23262F] md:pl-3';
+                rightCol.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            ${relBadge}
                         </div>
-                        <!-- NGĂN PHẢI - hẹp hơn: thông tin còn lại -->
-                        <div class="md:col-span-5 space-y-1.5 md:border-l md:border-[#23262F] md:pl-3">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex flex-wrap items-center gap-1.5">
-                                    ${relBadge}
-                                </div>
-                                <div class="flex items-center gap-1.5 flex-shrink-0">
-                                    <button onclick="openEditTaskModal('${task.id}')" title="Sửa công việc" class="text-[#777E90] hover:text-[#B6FF2E] text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-[#B6FF2E]/30 transition">&#x270F;&#xFE0F;</button>
-                                    <button onclick="deleteTask('${task.id}')" title="Xoá công việc" class="text-[#777E90] hover:text-rose-400 text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-rose-500/30 transition">&#x2715;</button>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-1.5">
-                                ${areaBadge}
-                            </div>
-                            <label class="flex items-center gap-1.5 cursor-pointer w-fit">
-                                <input type="checkbox" ${task.gtask ? 'checked' : ''} onchange="toggleTaskGtask('${task.id}')" class="w-3.5 h-3.5 rounded accent-[#B6FF2E] cursor-pointer">
-                                <span class="text-[10px] ${task.gtask ? 'text-[#B6FF2E]' : 'text-[#777E90]'}">G-Task ${task.gtask ? '(đã đưa vào Google Tasks)' : ''}</span>
-                            </label>
-                            <div class="flex flex-wrap gap-x-3 gap-y-0.5 pt-0.5">
-                                ${startHtml}
-                                ${deadlineHtml}
-                                ${createdHtml}
-                            </div>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <button onclick="openEditTaskModal('${task.id}')" title="Sửa công việc" class="text-[#777E90] hover:text-[#B6FF2E] text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-[#B6FF2E]/30 transition">&#x270F;&#xFE0F;</button>
+                            <button onclick="deleteTask('${task.id}')" title="Xoá công việc" class="text-[#777E90] hover:text-rose-400 text-xs px-2 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-rose-500/30 transition">&#x2715;</button>
                         </div>
                     </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        ${areaBadge}
+                    </div>
+                    <label class="flex items-center gap-1.5 cursor-pointer w-fit">
+                        <input type="checkbox" ${task.gtask ? 'checked' : ''} onchange="toggleTaskGtask('${task.id}')" class="w-3.5 h-3.5 rounded accent-[#B6FF2E] cursor-pointer">
+                        <span class="text-[10px] ${task.gtask ? 'text-[#B6FF2E]' : 'text-[#777E90]'}">G-Task ${task.gtask ? '(đã đưa vào Google Tasks)' : ''}</span>
+                    </label>
+                    <div class="flex flex-wrap gap-x-3 gap-y-0.5 pt-0.5">
+                        ${startHtml}
+                        ${deadlineHtml}
+                        ${createdHtml}
+                    </div>
                 `;
+
+                // Grid wrapper
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-12 gap-3';
+                grid.appendChild(leftCol);
+                grid.appendChild(rightCol);
+                card.appendChild(grid);
                 container.appendChild(card);
-                // Gắn checkbox thật vào placeholder (tránh onchange bị mất do innerHTML)
-                const placeholder = card.querySelector('.cb-done-placeholder');
-                if (placeholder) placeholder.replaceWith(cbDone);
             });
         }
 
@@ -932,15 +942,17 @@
             const allGroupOptions = PLAN_GROUP_DEFS.map(d => `<option value="${d.key}">${d.label}</option>`)
                 .concat(PLAN_EISENHOWER_DEFS.map(d => `<option value="eisenhower.${d.key}">⏰ ${d.label}</option>`)).join('');
 
-            const planId = 'plan-body-' + task.id;
+            const planBodyId = 'plan-body-' + task.id;
             return `
                 <div class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <button type="button" onclick="togglePlanBody('${planId}')" class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
+                    <button type="button"
+                        onclick="event.stopPropagation(); var b=document.getElementById('${planBodyId}'); if(b) b.classList.toggle('hidden');"
+                        class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
                     </button>
-                    <div id="${planId}" class="hidden mt-2 space-y-1.5">
-                        <div class="space-y-1.5">${groupsHtml}</div>
+                    <div id="${planBodyId}" class="hidden mt-2 space-y-1.5">
+                        ${groupsHtml}
                         <div class="mt-2 flex gap-1.5">
                             <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
                             <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
@@ -951,9 +963,3 @@
             `;
         }
 
-
-        // Toggle hiển thị body kế hoạch (thay thế <details> native)
-        function togglePlanBody(planId) {
-            const el = document.getElementById(planId);
-            if (el) el.classList.toggle('hidden');
-        }
