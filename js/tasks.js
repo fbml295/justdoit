@@ -490,12 +490,23 @@
 
                 const card = document.createElement('div');
                 card.className = `bg-[#14161C] p-3.5 rounded-xl border ${borderColor} transition ${isDone ? 'opacity-50' : ''}`;
+
+                // Tạo checkbox riêng bằng JS để tránh onchange bị mất khi innerHTML rebuild
+                const cbDone = document.createElement('input');
+                cbDone.type = 'checkbox';
+                cbDone.checked = isDone;
+                cbDone.className = 'mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0';
+                cbDone.addEventListener('change', function(e) {
+                    e.stopPropagation();
+                    toggleTaskDone('${task.id}');
+                });
+
                 card.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                         <!-- NGĂN TRÁI - rộng hơn: tên + nội dung -->
                         <div class="md:col-span-7 min-w-0">
                             <div class="flex items-start gap-2.5">
-                                <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" onclick="event.stopPropagation()" class="mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0 relative z-10">
+                                <span class="cb-done-placeholder mt-1 flex-shrink-0"></span>
                                 <div class="min-w-0 flex-1">
                                     <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
                                     ${categoryTagsHtml}
@@ -530,6 +541,9 @@
                     </div>
                 `;
                 container.appendChild(card);
+                // Gắn checkbox thật vào placeholder (tránh onchange bị mất do innerHTML)
+                const placeholder = card.querySelector('.cb-done-placeholder');
+                if (placeholder) placeholder.replaceWith(cbDone);
             });
         }
 
@@ -918,19 +932,28 @@
             const allGroupOptions = PLAN_GROUP_DEFS.map(d => `<option value="${d.key}">${d.label}</option>`)
                 .concat(PLAN_EISENHOWER_DEFS.map(d => `<option value="eisenhower.${d.key}">⏰ ${d.label}</option>`)).join('');
 
+            const planId = 'plan-body-' + task.id;
             return `
-                <details class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <summary onclick="event.stopPropagation()" class="cursor-pointer text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
+                <div class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
+                    <button type="button" onclick="togglePlanBody('${planId}')" class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
-                    </summary>
-                    <div class="mt-2 space-y-1.5">${groupsHtml}</div>
-                    <div class="mt-2 flex gap-1.5">
-                        <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
-                        <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
-                        <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                    </button>
+                    <div id="${planId}" class="hidden mt-2 space-y-1.5">
+                        <div class="space-y-1.5">${groupsHtml}</div>
+                        <div class="mt-2 flex gap-1.5">
+                            <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
+                            <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
+                            <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                        </div>
                     </div>
-                </details>
+                </div>
             `;
         }
 
+
+        // Toggle hiển thị body kế hoạch (thay thế <details> native)
+        function togglePlanBody(planId) {
+            const el = document.getElementById(planId);
+            if (el) el.classList.toggle('hidden');
+        }
