@@ -493,13 +493,15 @@
                 card.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                         <!-- NGĂN TRÁI - rộng hơn: tên + nội dung -->
-                        <div class="md:col-span-7 flex items-start gap-2.5 min-w-0">
-                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
-                            <div class="min-w-0">
-                                <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
-                                ${categoryTagsHtml}
-                                ${renderTaskPlanSection(task)}
+                        <div class="md:col-span-7 min-w-0">
+                            <div class="flex items-start gap-2.5">
+                                <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" onclick="event.stopPropagation()" class="mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0 relative z-10">
+                                <div class="min-w-0 flex-1">
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
+                                    ${categoryTagsHtml}
+                                </div>
                             </div>
+                            ${renderTaskPlanSection(task)}
                         </div>
                         <!-- NGĂN PHẢI - hẹp hơn: thông tin còn lại -->
                         <div class="md:col-span-5 space-y-1.5 md:border-l md:border-[#23262F] md:pl-3">
@@ -918,7 +920,7 @@
 
             return `
                 <details class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <summary class="cursor-pointer text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
+                    <summary onclick="event.stopPropagation()" class="cursor-pointer text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
                     </summary>
