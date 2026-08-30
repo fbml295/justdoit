@@ -181,17 +181,62 @@
         async function toggleTaskDone(id) {
             const task = state.tasks.find(t => t.id === id);
             if (!task) return;
+
             task.status = task.status === 'Done' ? 'Todo' : 'Done';
+            const isDone = task.status === 'Done';
             saveToLocalStorage();
+
+            // Nếu bộ lọc trạng thái hiện tại sẽ làm task này cần ẩn/hiện lại trong danh
+            // sách (VD đang lọc "Chưa hoàn thành" mà vừa tick Xong), phải render lại toàn
+            // bộ danh sách. Các trường hợp còn lại chỉ cập nhật DOM tại chỗ — không đụng
+            // tới phần "Kế hoạch AI" bên trong card, tránh bị thu gọn ngoài ý muốn.
+            const statusFilterEl = document.getElementById('task-status-filter');
+            const statusVal = statusFilterEl ? statusFilterEl.value : 'all';
+            const needFullRerender =
+                (statusVal === 'todo' && isDone) ||
+                (statusVal === 'done' && !isDone) ||
+                (statusVal === 'overdue'); // phụ thuộc deadline, an toàn thì render lại
+
+            if (needFullRerender) {
+                renderTasks();
+            } else {
+                updateTaskDoneVisual(id, isDone);
+            }
+            renderCalendar(); updateDashboardMetrics();
+
             if (task.gtask && task.googleTaskId) {
                 updateGoogleTaskStatus(task).catch(e => console.warn('[Google Tasks] Không đồng bộ được trạng thái:', e));
             }
-            // Dùng requestAnimationFrame để browser hoàn tất xử lý event
-            // trước khi rebuild DOM — tránh double-fire do DOM bị destroy giữa chừng
-            requestAnimationFrame(() => {
-                renderTasks(); renderCalendar(); updateDashboardMetrics();
-            });
             await trySyncTasks();
+        }
+
+        // Cập nhật trực tiếp giao diện 1 thẻ công việc khi tick Xong/Chưa xong,
+        // KHÔNG rebuild lại DOM của thẻ đó — giữ nguyên trạng thái mở/đóng của khối
+        // "Kế hoạch AI" bên trong, tránh hiện tượng bị thu gọn khi vừa bấm tick.
+        function updateTaskDoneVisual(taskId, isDone) {
+            const card = document.querySelector(`[data-task-id="${taskId}"]`);
+            if (!card) { renderTasks(); return; }
+
+            const task = state.tasks.find(t => t.id === taskId);
+            const overdue = !isDone && task && isOverdue(task.deadline);
+
+            card.classList.toggle('opacity-50', isDone);
+            card.classList.remove('border-rose-500/40', 'border-[#353945]', 'hover:border-[#B6FF2E]/30');
+            if (overdue) {
+                card.classList.add('border-rose-500/40');
+            } else {
+                card.classList.add('border-[#353945]');
+                if (!isDone) card.classList.add('hover:border-[#B6FF2E]/30');
+            }
+
+            const titleEl = card.querySelector('.task-title-text');
+            if (titleEl) {
+                titleEl.classList.toggle('line-through', isDone);
+                titleEl.classList.toggle('text-[#777E90]', isDone);
+            }
+
+            const cb = card.querySelector('.task-done-checkbox');
+            if (cb) cb.checked = isDone;
         }
 
         function deleteTask(id) {

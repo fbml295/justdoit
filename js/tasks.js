@@ -488,34 +488,21 @@
 
                 const borderColor = overdue ? 'border-rose-500/40' : (isDone ? 'border-[#353945]' : 'border-[#353945] hover:border-[#B6FF2E]/30');
 
-                // Card wrapper
                 const card = document.createElement('div');
+                card.dataset.taskId = task.id;
                 card.className = `bg-[#14161C] p-3.5 rounded-xl border ${borderColor} transition ${isDone ? 'opacity-50' : ''}`;
-
-                // Outer flex: [checkbox] [nội dung card]
-                const outerFlex = document.createElement('div');
-                outerFlex.className = 'flex items-start gap-3';
-
-                // === CHECKBOX — tạo bằng DOM, không nằm trong innerHTML ===
-                const cbDone = document.createElement('input');
-                cbDone.type = 'checkbox';
-                cbDone.checked = isDone;
-                cbDone.className = 'mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0';
-                cbDone.addEventListener('click', function(e) { e.stopPropagation(); });
-                cbDone.addEventListener('change', function(e) { e.stopPropagation(); toggleTaskDone('${task.id}'); });
-
-                // === NỘI DUNG CARD — innerHTML bình thường, không chứa checkbox ===
-                const cardBody = document.createElement('div');
-                cardBody.className = 'flex-1 min-w-0';
-                cardBody.innerHTML = `
+                card.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                        <!-- NGĂN TRÁI -->
-                        <div class="md:col-span-7 min-w-0">
-                            <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
-                            ${categoryTagsHtml}
-                            ${renderTaskPlanSection(task)}
+                        <!-- NGĂN TRÁI - rộng hơn: tên + nội dung -->
+                        <div class="md:col-span-7 flex items-start gap-2.5 min-w-0">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="task-done-checkbox mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
+                            <div class="min-w-0">
+                                <h4 class="task-title-text font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
+                                ${categoryTagsHtml}
+                                ${renderTaskPlanSection(task)}
+                            </div>
                         </div>
-                        <!-- NGĂN PHẢI -->
+                        <!-- NGĂN PHẢI - hẹp hơn: thông tin còn lại -->
                         <div class="md:col-span-5 space-y-1.5 md:border-l md:border-[#23262F] md:pl-3">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex flex-wrap items-center gap-1.5">
@@ -541,10 +528,6 @@
                         </div>
                     </div>
                 `;
-
-                outerFlex.appendChild(cbDone);
-                outerFlex.appendChild(cardBody);
-                card.appendChild(outerFlex);
                 container.appendChild(card);
             });
         }
@@ -934,24 +917,19 @@
             const allGroupOptions = PLAN_GROUP_DEFS.map(d => `<option value="${d.key}">${d.label}</option>`)
                 .concat(PLAN_EISENHOWER_DEFS.map(d => `<option value="eisenhower.${d.key}">⏰ ${d.label}</option>`)).join('');
 
-            const _planId = 'pb_' + task.id;
             return `
-                <div class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <button type="button"
-                        onclick="(function(e){e.stopPropagation();var d=document.getElementById('${_planId}');if(d)d.classList.toggle('hidden');})(event)"
-                        class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between hover:opacity-80">
+                <details class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
+                    <summary class="cursor-pointer text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
-                    </button>
-                    <div id="${_planId}" class="hidden mt-2 space-y-1.5">
-                        ${groupsHtml}
-                        <div class="mt-2 flex gap-1.5">
-                            <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
-                            <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
-                            <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
-                        </div>
+                    </summary>
+                    <div class="mt-2 space-y-1.5">${groupsHtml}</div>
+                    <div class="mt-2 flex gap-1.5">
+                        <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
+                        <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
+                        <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
                     </div>
-                </div>
+                </details>
             `;
         }
 
