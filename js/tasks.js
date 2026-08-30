@@ -489,15 +489,14 @@
                 const borderColor = overdue ? 'border-rose-500/40' : (isDone ? 'border-[#353945]' : 'border-[#353945] hover:border-[#B6FF2E]/30');
 
                 const card = document.createElement('div');
-                card.dataset.taskId = task.id;
                 card.className = `bg-[#14161C] p-3.5 rounded-xl border ${borderColor} transition ${isDone ? 'opacity-50' : ''}`;
                 card.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                         <!-- NGĂN TRÁI - rộng hơn: tên + nội dung -->
                         <div class="md:col-span-7 flex items-start gap-2.5 min-w-0">
-                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="task-done-checkbox mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
                             <div class="min-w-0">
-                                <h4 class="task-title-text font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
+                                <h4 class="font-bold text-sm text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug">${task.title}</h4>
                                 ${categoryTagsHtml}
                                 ${renderTaskPlanSection(task)}
                             </div>
@@ -542,6 +541,21 @@
         // đổi trạng thái theo vòng. Có thể xoá bất cứ lúc nào. Dashboard tự cập nhật theo
         // thời gian thực. Không nhóm nào bị trộn lẫn với nhóm khác.
         // =============================================================
+
+        // Lưu trạng thái MỞ/ĐÓNG của khối "Kế hoạch" theo từng task, độc lập với DOM —
+        // để dù renderTasks() có rebuild lại bao nhiêu lần (tick checklist, sửa việc...),
+        // khối đang mở vẫn giữ nguyên trạng thái mở, không tự động đóng lại.
+        let expandedPlanTaskIds = new Set();
+
+        // Bấm dòng "🧠 Kế hoạch: x/y hoàn thành" để mở/đóng — CHỈ hàm này được phép
+        // đổi trạng thái mở/đóng của khối. Các thao tác bên trong (tick, xoá, thêm mục)
+        // không được đụng tới trạng thái này.
+        function togglePlanPanel(taskId) {
+            if (expandedPlanTaskIds.has(taskId)) expandedPlanTaskIds.delete(taskId);
+            else expandedPlanTaskIds.add(taskId);
+            const el = document.getElementById('plan-body-' + taskId);
+            if (el) el.classList.toggle('hidden');
+        }
 
         const PLAN_GROUP_DEFS = [
             { key: 'pareto',      aiKey: 'pareto',       label: '📊 Pareto' },
@@ -917,19 +931,23 @@
             const allGroupOptions = PLAN_GROUP_DEFS.map(d => `<option value="${d.key}">${d.label}</option>`)
                 .concat(PLAN_EISENHOWER_DEFS.map(d => `<option value="eisenhower.${d.key}">⏰ ${d.label}</option>`)).join('');
 
+            const isOpen = expandedPlanTaskIds.has(task.id);
             return `
-                <details class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <summary class="cursor-pointer text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between">
+                <div class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
+                    <button type="button" onclick="togglePlanPanel('${task.id}')"
+                        class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between hover:opacity-80">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
-                    </summary>
-                    <div class="mt-2 space-y-1.5">${groupsHtml}</div>
-                    <div class="mt-2 flex gap-1.5">
-                        <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
-                        <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
-                        <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                    </button>
+                    <div id="plan-body-${task.id}" class="${isOpen ? '' : 'hidden'} mt-2 space-y-1.5">
+                        <div class="space-y-1.5">${groupsHtml}</div>
+                        <div class="mt-2 flex gap-1.5">
+                            <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
+                            <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
+                            <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                        </div>
                     </div>
-                </details>
+                </div>
             `;
         }
 
