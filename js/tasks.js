@@ -691,13 +691,16 @@
         // hoạch đã lưu kèm công việc, trong thẻ công việc ở danh sách)
         function renderPlanChecklistGroup(items, toggleFnName, deleteFnName, ownerId) {
             if (!items || items.length === 0) return '';
-            return items.map(it => `
+            return items.map(it => {
+                const iconId = 'plan-icon-' + it.id;
+                const textId = 'plan-text-' + it.id;
+                return `
                 <div class="flex items-center gap-2 py-0.5 text-[11px] text-[#F4F5F6]">
-                    <button type="button" onclick="event.stopPropagation();${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
-                    <span class="flex-1 ${it.status === 'done' ? 'line-through text-[#777E90]' : ''}">${it.text}</span>
+                    <button type="button" id="${iconId}" onclick="event.stopPropagation();${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
+                    <span id="${textId}" class="flex-1 ${it.status === 'done' ? 'line-through text-[#777E90]' : ''}">${it.text}</span>
                     <button type="button" onclick="event.stopPropagation();${deleteFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="text-[#777E90] hover:text-rose-400 flex-shrink-0 text-[10px]">✕</button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         // Gọi sau khi tạo công việc thành công, để chuẩn bị sạch cho công việc tiếp theo
@@ -728,7 +731,7 @@
         // --- Refresh CHỈ phần plan section của 1 task (không rebuild toàn bộ renderTasks()) ---
         function refreshTaskPlanUI(taskId) {
             const task = state.tasks.find(t => t.id === taskId);
-            if (!task) return;
+            if (!task || !task.plan) return;
 
             const progress = calcPlanProgress(task.plan);
 
@@ -738,21 +741,24 @@
                 headerEl.innerHTML = '<span>🧠 Kế hoạch: ' + progress.done + '/' + progress.total + ' hoàn thành</span><span class="text-[#F4F5F6]">' + progress.percent + '%</span>';
             }
 
-            // Cập nhật nội dung groups bên trong plan-groups
-            let groupsHtml = '';
+            // Cập nhật từng item trực tiếp qua id — không rebuild innerHTML tránh mất event
+            function updateItems(items) {
+                (items || []).forEach(function(it) {
+                    const iconBtn = document.getElementById('plan-icon-' + it.id);
+                    if (iconBtn) iconBtn.textContent = it.status === 'done' ? '✅' : it.status === 'progress' ? '🔄' : '⬜';
+                    const textSpan = document.getElementById('plan-text-' + it.id);
+                    if (textSpan) {
+                        textSpan.className = 'flex-1 ' + (it.status === 'done' ? 'line-through text-[#777E90]' : '');
+                    }
+                });
+            }
+
             PLAN_GROUP_DEFS.forEach(function(def) {
-                const items = task.plan.groups[def.key];
-                if (!items || items.length === 0) return;
-                groupsHtml += '<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">' + def.label + '</p>' + renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId) + '</div>';
+                updateItems(task.plan.groups[def.key]);
             });
             PLAN_EISENHOWER_DEFS.forEach(function(def) {
-                const items = task.plan.groups.eisenhower[def.key];
-                if (!items || items.length === 0) return;
-                groupsHtml += '<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ ' + def.label + '</p>' + renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId) + '</div>';
+                updateItems(task.plan.groups.eisenhower[def.key]);
             });
-
-            const groupsDiv = document.getElementById('plan-groups-' + taskId);
-            if (groupsDiv) groupsDiv.innerHTML = groupsHtml;
         }
 
         // --- Theo dõi kế hoạch của 1 công việc ĐÃ TẠO (trong thẻ công việc ở danh sách) ---
