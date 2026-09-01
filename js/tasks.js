@@ -730,34 +730,28 @@
             const task = state.tasks.find(t => t.id === taskId);
             if (!task) return;
 
-            // Cập nhật nội dung bên trong plan-body
-            const planBody = document.getElementById('plan-body-' + taskId);
-            if (!planBody) return;
-
             const progress = calcPlanProgress(task.plan);
 
             // Cập nhật header: bộ đếm + %
-            const planContainer = planBody.parentElement;
-            const headerBtn = planContainer ? planContainer.querySelector('button') : null;
-            if (headerBtn) {
-                headerBtn.innerHTML = `<span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span><span class="text-[#F4F5F6]">${progress.percent}%</span>`;
+            const headerEl = document.getElementById('plan-header-' + taskId);
+            if (headerEl) {
+                headerEl.innerHTML = '<span>🧠 Kế hoạch: ' + progress.done + '/' + progress.total + ' hoàn thành</span><span class="text-[#F4F5F6]">' + progress.percent + '%</span>';
             }
 
-            // Cập nhật nội dung groups bên trong plan-body
+            // Cập nhật nội dung groups bên trong plan-groups
             let groupsHtml = '';
-            PLAN_GROUP_DEFS.forEach(def => {
+            PLAN_GROUP_DEFS.forEach(function(def) {
                 const items = task.plan.groups[def.key];
                 if (!items || items.length === 0) return;
-                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId)}</div>`;
+                groupsHtml += '<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">' + def.label + '</p>' + renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId) + '</div>';
             });
-            PLAN_EISENHOWER_DEFS.forEach(def => {
+            PLAN_EISENHOWER_DEFS.forEach(function(def) {
                 const items = task.plan.groups.eisenhower[def.key];
                 if (!items || items.length === 0) return;
-                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ ${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId)}</div>`;
+                groupsHtml += '<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ ' + def.label + '</p>' + renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId) + '</div>';
             });
 
-            // Chỉ cập nhật div groups, giữ nguyên div input bên dưới
-            const groupsDiv = planBody.querySelector('.space-y-1\\.5');
+            const groupsDiv = document.getElementById('plan-groups-' + taskId);
             if (groupsDiv) groupsDiv.innerHTML = groupsHtml;
         }
 
@@ -976,13 +970,13 @@
             const isOpen = expandedPlanTaskIds.has(task.id);
             return `
                 <div class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <button type="button" onclick="togglePlanPanel('${task.id}')"
+                    <button type="button" id="plan-header-${task.id}" onclick="togglePlanPanel('${task.id}')"
                         class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between hover:opacity-80">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
                     </button>
                     <div id="plan-body-${task.id}" class="${isOpen ? '' : 'hidden'} mt-2 space-y-1.5" onclick="event.stopPropagation()">
-                        <div class="space-y-1.5">${groupsHtml}</div>
+                        <div id="plan-groups-${task.id}" class="space-y-1.5">${groupsHtml}</div>
                         <div class="mt-2 flex gap-1.5">
                             <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
                             <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
