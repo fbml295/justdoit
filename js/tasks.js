@@ -693,9 +693,9 @@
             if (!items || items.length === 0) return '';
             return items.map(it => `
                 <div class="flex items-center gap-2 py-0.5 text-[11px] text-[#F4F5F6]">
-                    <button type="button" onclick="${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
+                    <button type="button" onclick="event.stopPropagation();${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
                     <span class="flex-1 ${it.status === 'done' ? 'line-through text-[#777E90]' : ''}">${it.text}</span>
-                    <button type="button" onclick="${deleteFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="text-[#777E90] hover:text-rose-400 flex-shrink-0 text-[10px]">✕</button>
+                    <button type="button" onclick="event.stopPropagation();${deleteFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="text-[#777E90] hover:text-rose-400 flex-shrink-0 text-[10px]">✕</button>
                 </div>
             `).join('');
         }
@@ -939,12 +939,12 @@
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
                     </button>
-                    <div id="plan-body-${task.id}" class="${isOpen ? '' : 'hidden'} mt-2 space-y-1.5">
+                    <div id="plan-body-${task.id}" class="${isOpen ? '' : 'hidden'} mt-2 space-y-1.5" onclick="event.stopPropagation()">
                         <div class="space-y-1.5">${groupsHtml}</div>
                         <div class="mt-2 flex gap-1.5">
                             <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
                             <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
-                            <button type="button" onclick="addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
+                            <button type="button" onclick="event.stopPropagation();addManualPlanItem('${task.id}', '${selectId}', '${inputId}')" class="px-2.5 py-1.5 rounded-lg bg-[#353945] text-[#B6FF2E] text-[10px] font-semibold hover:bg-[#B6FF2E]/10">+</button>
                         </div>
                     </div>
                 </div>
