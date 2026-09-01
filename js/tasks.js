@@ -725,6 +725,42 @@
             if (hint) hint.classList.remove('hidden');
         }
 
+        // --- Refresh CHỈ phần plan section của 1 task (không rebuild toàn bộ renderTasks()) ---
+        function refreshTaskPlanUI(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            // Cập nhật nội dung bên trong plan-body
+            const planBody = document.getElementById('plan-body-' + taskId);
+            if (!planBody) return;
+
+            const progress = calcPlanProgress(task.plan);
+
+            // Cập nhật header: bộ đếm + %
+            const planContainer = planBody.parentElement;
+            const headerBtn = planContainer ? planContainer.querySelector('button') : null;
+            if (headerBtn) {
+                headerBtn.innerHTML = `<span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span><span class="text-[#F4F5F6]">${progress.percent}%</span>`;
+            }
+
+            // Cập nhật nội dung groups bên trong plan-body
+            let groupsHtml = '';
+            PLAN_GROUP_DEFS.forEach(def => {
+                const items = task.plan.groups[def.key];
+                if (!items || items.length === 0) return;
+                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId)}</div>`;
+            });
+            PLAN_EISENHOWER_DEFS.forEach(def => {
+                const items = task.plan.groups.eisenhower[def.key];
+                if (!items || items.length === 0) return;
+                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ ${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId)}</div>`;
+            });
+
+            // Chỉ cập nhật div groups, giữ nguyên div input bên dưới
+            const groupsDiv = planBody.querySelector('.space-y-1\\.5');
+            if (groupsDiv) groupsDiv.innerHTML = groupsHtml;
+        }
+
         // --- Theo dõi kế hoạch của 1 công việc ĐÃ TẠO (trong thẻ công việc ở danh sách) ---
         function toggleTaskPlanItem(taskId, itemId) {
             const task = state.tasks.find(t => t.id === taskId);
@@ -732,7 +768,9 @@
             const found = _findPlanItem(task.plan, itemId);
             if (found) {
                 found.arr[found.idx].status = planNextStatus(found.arr[found.idx].status);
-                renderTasks(); saveToLocalStorage(); trySyncTasks();
+                refreshTaskPlanUI(taskId);
+                saveToLocalStorage();
+                trySyncTasks();
             }
         }
         function deleteTaskPlanItem(taskId, itemId) {
@@ -741,7 +779,9 @@
             const found = _findPlanItem(task.plan, itemId);
             if (found) {
                 found.arr.splice(found.idx, 1);
-                renderTasks(); saveToLocalStorage(); trySyncTasks();
+                refreshTaskPlanUI(taskId);
+                saveToLocalStorage();
+                trySyncTasks();
             }
         }
         // Cho phép tự gõ thêm 1 mục vào kế hoạch NGAY LÚC ĐANG TẠO công việc, không cần chờ AI.
@@ -905,7 +945,9 @@
                 task.plan.groups[groupVal].push(newItem);
             }
             input.value = '';
-            renderTasks(); saveToLocalStorage(); trySyncTasks();
+            refreshTaskPlanUI(taskId);
+            saveToLocalStorage();
+            trySyncTasks();
         }
 
         // Render toàn bộ kế hoạch của 1 công việc đã tạo (dùng trong thẻ công việc, xem renderTasks())
