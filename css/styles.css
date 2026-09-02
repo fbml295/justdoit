@@ -5,14 +5,41 @@
             --color-lime-spark: #B6FF2E;
             --color-lime-spark-dim: rgba(182, 255, 46, 0.15);
             --color-text-light: #F4F5F6;
-            --color-text-muted: #777E90;
+            /* Sáng hơn bản gốc (#777E90 -> #9BA1B0) để tăng độ tương phản chữ phụ
+               trên nền tối, gần với chuẩn dễ đọc của giao diện Claude (~6.5:1 thay vì ~4.5:1) */
+            --color-text-muted: #9BA1B0;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--color-graphite);
             color: var(--color-text-light);
+            font-size: 15px;   /* cỡ chữ gốc thoải mái hơn, tham chiếu theo Claude (~15-16px) */
+            line-height: 1.6;  /* dòng thoáng hơn, dễ đọc hơn trên nền tối */
         }
+
+        /* =============================================================
+           TĂNG KHẢ NĂNG ĐỌC TOÀN TRANG
+           Toàn bộ app dùng class Tailwind cỡ chữ cố định theo px
+           (text-[9px], text-[10px], text-xs...) rải rác trong hàng chục
+           file JS/HTML — thay vì sửa từng nơi (rủi ro cao, dễ sót), ghi
+           đè trực tiếp các class này 1 lần duy nhất tại đây.
+           Mức tăng: ~+2px cho mỗi bậc, giữ nguyên tỷ lệ phân cấp giữa
+           các bậc chữ (label nhỏ vẫn nhỏ hơn nội dung chính).
+           ============================================================= */
+        .text-\[8px\]  { font-size: 10px !important; }
+        .text-\[9px\]  { font-size: 11px !important; }
+        .text-\[10px\] { font-size: 12px !important; line-height: 1.5 !important; }
+        .text-\[11px\] { font-size: 13px !important; line-height: 1.5 !important; }
+        .text-xs       { font-size: 13px !important; line-height: 1.55 !important; }
+        .text-sm       { font-size: 15px !important; line-height: 1.6 !important; }
+        .text-base     { font-size: 16px !important; line-height: 1.6 !important; }
+        .text-lg       { font-size: 19px !important; }
+        .text-xl       { font-size: 22px !important; }
+
+        /* Chữ phụ/mờ dùng trực tiếp mã hex trong class Tailwind (không qua biến CSS)
+           -> ghi đè đúng class đó để tăng tương phản đồng loạt toàn trang */
+        .text-\[\#777E90\] { color: var(--color-text-muted) !important; }
 
         ::-webkit-scrollbar {
             width: 6px;
