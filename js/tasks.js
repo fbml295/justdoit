@@ -426,10 +426,12 @@
             const statusVal = statusFilter ? statusFilter.value : 'all';
             if (statusVal === 'overdue') {
                 filteredList = filteredList.filter(t => t.status !== 'Done' && isOverdue(t.deadline));
-            } else if (statusVal === 'todo') {
-                filteredList = filteredList.filter(t => t.status !== 'Done');
             } else if (statusVal === 'done') {
                 filteredList = filteredList.filter(t => t.status === 'Done');
+            } else {
+                // Mặc định ('all') LUÔN ẩn việc đã hoàn thành — chỉ hiện khi
+                // người dùng chủ động chọn lọc "Đã hoàn thành" ở trên.
+                filteredList = filteredList.filter(t => t.status !== 'Done');
             }
 
             if (selectedTaskCategoryFilters.size > 0) {
@@ -602,8 +604,8 @@
             const progress = all.filter(i => i.status === 'progress').length;
             return { total, done, progress, pending: total - done - progress, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
         }
-        function planStatusIcon(status) { return status === 'done' ? '✅' : '⬜'; }
-        function planNextStatus(status) { return status === 'done' ? 'pending' : 'done'; }
+        function planStatusIcon(status) { return status === 'done' ? '✅' : status === 'progress' ? '🔄' : '⬜'; }
+        function planNextStatus(status) { return status === 'pending' ? 'progress' : status === 'progress' ? 'done' : 'pending'; }
 
         function setAiPlanStatus(text, type) {
             const el = document.getElementById('ai-plan-status');
@@ -691,16 +693,13 @@
         // hoạch đã lưu kèm công việc, trong thẻ công việc ở danh sách)
         function renderPlanChecklistGroup(items, toggleFnName, deleteFnName, ownerId) {
             if (!items || items.length === 0) return '';
-            return items.map(it => {
-                const iconId = 'plan-icon-' + it.id;
-                const textId = 'plan-text-' + it.id;
-                return `
+            return items.map(it => `
                 <div class="flex items-center gap-2 py-0.5 text-[11px] text-[#F4F5F6]">
-                    <button type="button" id="${iconId}" onclick="event.stopPropagation();${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
-                    <span id="${textId}" class="flex-1 ${it.status === 'done' ? 'line-through text-[#777E90]' : ''}">${it.text}</span>
+                    <button type="button" onclick="event.stopPropagation();${toggleFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="flex-shrink-0 leading-none">${planStatusIcon(it.status)}</button>
+                    <span class="flex-1 ${it.status === 'done' ? 'line-through text-[#777E90]' : ''}">${it.text}</span>
                     <button type="button" onclick="event.stopPropagation();${deleteFnName}('${ownerId ? ownerId + "', '" : ''}${it.id}')" class="text-[#777E90] hover:text-rose-400 flex-shrink-0 text-[10px]">✕</button>
-                </div>`;
-            }).join('');
+                </div>
+            `).join('');
         }
 
         // Gọi sau khi tạo công việc thành công, để chuẩn bị sạch cho công việc tiếp theo
@@ -731,34 +730,37 @@
         // --- Refresh CHỈ phần plan section của 1 task (không rebuild toàn bộ renderTasks()) ---
         function refreshTaskPlanUI(taskId) {
             const task = state.tasks.find(t => t.id === taskId);
-            if (!task || !task.plan) return;
+            if (!task) return;
+
+            // Cập nhật nội dung bên trong plan-body
+            const planBody = document.getElementById('plan-body-' + taskId);
+            if (!planBody) return;
 
             const progress = calcPlanProgress(task.plan);
 
             // Cập nhật header: bộ đếm + %
-            const headerEl = document.getElementById('plan-header-' + taskId);
-            if (headerEl) {
-                headerEl.innerHTML = '<span>🧠 Kế hoạch: ' + progress.done + '/' + progress.total + ' hoàn thành</span><span class="text-[#F4F5F6]">' + progress.percent + '%</span>';
+            const planContainer = planBody.parentElement;
+            const headerBtn = planContainer ? planContainer.querySelector('button') : null;
+            if (headerBtn) {
+                headerBtn.innerHTML = `<span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span><span class="text-[#F4F5F6]">${progress.percent}%</span>`;
             }
 
-            // Cập nhật từng item trực tiếp qua id — không rebuild innerHTML tránh mất event
-            function updateItems(items) {
-                (items || []).forEach(function(it) {
-                    const iconBtn = document.getElementById('plan-icon-' + it.id);
-                    if (iconBtn) iconBtn.textContent = planStatusIcon(it.status);
-                    const textSpan = document.getElementById('plan-text-' + it.id);
-                    if (textSpan) {
-                        textSpan.className = 'flex-1 ' + (it.status === 'done' ? 'line-through text-[#777E90]' : '');
-                    }
-                });
-            }
+            // Cập nhật nội dung groups bên trong plan-body
+            let groupsHtml = '';
+            PLAN_GROUP_DEFS.forEach(def => {
+                const items = task.plan.groups[def.key];
+                if (!items || items.length === 0) return;
+                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId)}</div>`;
+            });
+            PLAN_EISENHOWER_DEFS.forEach(def => {
+                const items = task.plan.groups.eisenhower[def.key];
+                if (!items || items.length === 0) return;
+                groupsHtml += `<div class="bg-[#0D0E12] rounded-lg p-2"><p class="text-[10px] font-bold text-[#B6FF2E] mb-1">⏰ ${def.label}</p>${renderPlanChecklistGroup(items, 'toggleTaskPlanItem', 'deleteTaskPlanItem', taskId)}</div>`;
+            });
 
-            PLAN_GROUP_DEFS.forEach(function(def) {
-                updateItems(task.plan.groups[def.key]);
-            });
-            PLAN_EISENHOWER_DEFS.forEach(function(def) {
-                updateItems(task.plan.groups.eisenhower[def.key]);
-            });
+            // Chỉ cập nhật div groups, giữ nguyên div input bên dưới
+            const groupsDiv = planBody.querySelector('.space-y-1\\.5');
+            if (groupsDiv) groupsDiv.innerHTML = groupsHtml;
         }
 
         // --- Theo dõi kế hoạch của 1 công việc ĐÃ TẠO (trong thẻ công việc ở danh sách) ---
@@ -976,13 +978,13 @@
             const isOpen = expandedPlanTaskIds.has(task.id);
             return `
                 <div class="mt-2 bg-[#14161C] rounded-xl border border-[#353945] p-2.5">
-                    <button type="button" id="plan-header-${task.id}" onclick="togglePlanPanel('${task.id}')"
+                    <button type="button" onclick="togglePlanPanel('${task.id}')"
                         class="w-full text-left text-[10px] font-bold text-[#B6FF2E] flex items-center justify-between hover:opacity-80">
                         <span>🧠 Kế hoạch: ${progress.done}/${progress.total} hoàn thành</span>
                         <span class="text-[#F4F5F6]">${progress.percent}%</span>
                     </button>
                     <div id="plan-body-${task.id}" class="${isOpen ? '' : 'hidden'} mt-2 space-y-1.5" onclick="event.stopPropagation()">
-                        <div id="plan-groups-${task.id}" class="space-y-1.5">${groupsHtml}</div>
+                        <div class="space-y-1.5">${groupsHtml}</div>
                         <div class="mt-2 flex gap-1.5">
                             <select id="${selectId}" class="bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6]">${allGroupOptions}</select>
                             <input id="${inputId}" type="text" placeholder="Thêm mục mới..." class="flex-1 bg-[#23262F] border border-[#353945] rounded-lg px-2 py-1.5 text-[10px] text-[#F4F5F6] focus:outline-none">
