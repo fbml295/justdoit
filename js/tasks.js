@@ -602,8 +602,8 @@
             const progress = all.filter(i => i.status === 'progress').length;
             return { total, done, progress, pending: total - done - progress, percent: total > 0 ? Math.round((done / total) * 100) : 0 };
         }
-        function planStatusIcon(status) { return status === 'done' ? '✅' : status === 'progress' ? '🔄' : '⬜'; }
-        function planNextStatus(status) { return status === 'pending' ? 'progress' : status === 'progress' ? 'done' : 'pending'; }
+        function planStatusIcon(status) { return status === 'done' ? '✅' : '⬜'; }
+        function planNextStatus(status) { return status === 'done' ? 'pending' : 'done'; }
 
         function setAiPlanStatus(text, type) {
             const el = document.getElementById('ai-plan-status');
@@ -745,7 +745,7 @@
             function updateItems(items) {
                 (items || []).forEach(function(it) {
                     const iconBtn = document.getElementById('plan-icon-' + it.id);
-                    if (iconBtn) iconBtn.textContent = it.status === 'done' ? '✅' : it.status === 'progress' ? '🔄' : '⬜';
+                    if (iconBtn) iconBtn.textContent = planStatusIcon(it.status);
                     const textSpan = document.getElementById('plan-text-' + it.id);
                     if (textSpan) {
                         textSpan.className = 'flex-1 ' + (it.status === 'done' ? 'line-through text-[#777E90]' : '');
