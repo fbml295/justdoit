@@ -385,6 +385,44 @@
             renderTasks();
         }
 
+        // =============================================================
+        // DROPDOWN "BỘ LỌC" — gộp Mức độ hoàn thành + Sắp xếp + Thẻ/Danh mục
+        // vào 1 panel duy nhất, thay vì 3 khối rời rạc trên hàng riêng.
+        // =============================================================
+        function toggleTaskFilterDropdown(e) {
+            if (e) e.stopPropagation();
+            const panel = document.getElementById('task-filter-dropdown-panel');
+            if (panel) panel.classList.toggle('hidden');
+        }
+        function closeTaskFilterDropdown() {
+            const panel = document.getElementById('task-filter-dropdown-panel');
+            if (panel) panel.classList.add('hidden');
+        }
+        // Đóng panel khi bấm ra ngoài hoặc nhấn Esc
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('task-filter-dropdown-panel');
+            const btn = document.getElementById('btn-task-filter-toggle');
+            if (!panel || panel.classList.contains('hidden')) return;
+            if (panel.contains(e.target) || (btn && btn.contains(e.target))) return;
+            panel.classList.add('hidden');
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeTaskFilterDropdown();
+        });
+
+        // Chấm xanh nhỏ trên nút "Bộ lọc" khi có ít nhất 1 điều kiện lọc/sắp xếp khác mặc định
+        function updateTaskFilterBadge() {
+            const badge = document.getElementById('task-filter-badge');
+            if (!badge) return;
+            const statusFilter = document.getElementById('task-status-filter');
+            const sortSelect = document.getElementById('task-sort-select');
+            const isActive =
+                (statusFilter && statusFilter.value !== 'all') ||
+                (sortSelect && sortSelect.value !== 'newest') ||
+                selectedTaskCategoryFilters.size > 0;
+            badge.classList.toggle('hidden', !isActive);
+        }
+
         function renderTaskCategoryFilterChips() {
             const chipContainer = document.getElementById('task-category-filter-chips');
             if (!chipContainer) return;
@@ -405,6 +443,7 @@
             container.innerHTML = '';
             renderTaskCategoryFilterChips();
             renderDeadlineReminderBanner();
+            updateTaskFilterBadge();
 
             let filteredList = state.tasks;
             if (state.currentTaskFilter !== 'all') {
