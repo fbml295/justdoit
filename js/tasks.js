@@ -392,7 +392,8 @@
         function toggleTaskFilterDropdown(e) {
             if (e) e.stopPropagation();
             const panel = document.getElementById('task-filter-dropdown-panel');
-            if (panel) panel.classList.toggle('hidden');
+            if (!panel) { console.warn('[Bộ lọc] Không tìm thấy #task-filter-dropdown-panel trong DOM'); return; }
+            panel.classList.toggle('hidden');
         }
         function closeTaskFilterDropdown() {
             const panel = document.getElementById('task-filter-dropdown-panel');
@@ -409,6 +410,17 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeTaskFilterDropdown();
         });
+        // Gắn thêm listener trực tiếp qua JS (dự phòng, đảm bảo hoạt động dù
+        // thuộc tính onclick trong HTML có vấn đề gì đó) — chạy ngay khi file
+        // này được tải vì lúc đó toàn bộ HTML phía trên đã tồn tại trong DOM.
+        (function bindTaskFilterToggleButton() {
+            const btn = document.getElementById('btn-task-filter-toggle');
+            if (!btn) return;
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggleTaskFilterDropdown();
+            });
+        })();
 
         // Chấm xanh nhỏ trên nút "Bộ lọc" khi có ít nhất 1 điều kiện lọc/sắp xếp khác mặc định
         function updateTaskFilterBadge() {
