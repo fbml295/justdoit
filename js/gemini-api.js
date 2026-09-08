@@ -385,6 +385,11 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 btnBottom.classList.remove('text-[#777E90]');
             }
 
+            // Cập nhật highlight mobile bottom sheet menu
+            if (typeof updateMobileMenuHighlight === 'function') {
+                updateMobileMenuHighlight(viewName);
+            }
+
             if (viewName === 'tasks') {
                 renderTasks();
                 ensureWeeklyCalLoaded(); // tự gọi renderCalendar() sau khi đảm bảo đã có dữ liệu Lịch Tuần
