@@ -63,3 +63,40 @@
         .ai-glow {
             box-shadow: 0 0 15px rgba(182, 255, 46, 0.25);
         }
+
+        /* =====================================================
+           MOBILE HAMBURGER MENU
+           ===================================================== */
+
+        /* Padding bottom cho nội dung trang trên mobile
+           để nút hamburger không che nội dung */
+        @media (max-width: 767px) {
+            .p-4.md\:p-8 {
+                padding-bottom: 88px !important;
+            }
+        }
+
+        /* Bottom sheet animation */
+        #mobile-menu-sheet {
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+
+        /* Nút hamburger — pulse nhẹ để người dùng nhận ra */
+        #btn-hamburger {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        #btn-hamburger:active {
+            transform: scale(0.92);
+        }
+
+        /* Các gạch hamburger */
+        #hamburger-icon span {
+            transition: transform 0.25s ease, opacity 0.2s ease;
+        }
+
+        /* Menu item tap feedback */
+        .mobile-menu-item {
+            -webkit-tap-highlight-color: transparent;
+        }
