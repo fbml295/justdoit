@@ -1098,14 +1098,174 @@
             </div>
         </main>
 
-        <!-- MENU DI ĐỘNG -->
-        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#14161C] border-t border-[#353945] flex justify-around py-3 z-40 shadow-lg">
-            <button onclick="switchView('dashboard')" id="btn-bottom-dashboard" class="nav-item-bottom flex flex-col items-center text-[#B6FF2E]"><span class="text-xl">📊</span><span class="text-[10px] font-semibold mt-0.5">Tổng quan</span></button>
-            <button onclick="switchView('tasks')" id="btn-bottom-tasks" class="nav-item-bottom flex flex-col items-center text-[#777E90]"><span class="text-xl">📋</span><span class="text-[10px] font-semibold mt-0.5">Công việc</span></button>
-            <button onclick="switchView('ai')" id="btn-bottom-ai" class="nav-item-bottom flex flex-col items-center text-[#B6FF2E]"><span class="text-xl">🤖</span><span class="text-[10px] font-semibold mt-0.5">Gemini AI</span></button>
-            <button onclick="switchView('tpm')" id="btn-bottom-tpm" class="nav-item-bottom flex flex-col items-center text-[#777E90]"><span class="text-xl">🛠️</span><span class="text-[10px] font-semibold mt-0.5">TPM/5S</span></button>
-            <button onclick="switchView('config')" id="btn-bottom-config" class="nav-item-bottom flex flex-col items-center text-[#777E90]"><span class="text-xl">⚙️</span><span class="text-[10px] font-semibold mt-0.5">Cấu hình</span></button>
-        </nav>
+        <!-- NÚT HAMBURGER CỐ ĐỊNH GÓC DƯỚI TRÁI (chỉ hiện trên mobile) -->
+        <button id="btn-hamburger" onclick="toggleMobileMenu()"
+            class="md:hidden fixed bottom-6 left-5 z-50 w-14 h-14 rounded-2xl bg-[#B6FF2E] text-[#14161C] flex flex-col items-center justify-center gap-1 shadow-[0_4px_20px_rgba(182,255,46,0.45)] active:scale-95 transition-transform">
+            <span id="hamburger-icon" class="flex flex-col gap-1.5 items-center justify-center">
+                <span class="block w-6 h-0.5 bg-[#14161C] rounded-full transition-all duration-200"></span>
+                <span class="block w-6 h-0.5 bg-[#14161C] rounded-full transition-all duration-200"></span>
+                <span class="block w-6 h-0.5 bg-[#14161C] rounded-full transition-all duration-200"></span>
+            </span>
+        </button>
+
+        <!-- BACKDROP MỜ KHI MENU MỞ -->
+        <div id="mobile-menu-backdrop"
+            onclick="closeMobileMenu()"
+            class="md:hidden hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity">
+        </div>
+
+        <!-- BOTTOM SHEET MENU -->
+        <div id="mobile-menu-sheet"
+            class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#14161C] border-t-2 border-[#B6FF2E]/30 rounded-t-3xl shadow-2xl transform translate-y-full transition-transform duration-300 ease-out">
+
+            <!-- Thanh kéo (drag handle) -->
+            <div class="flex justify-center pt-3 pb-1">
+                <div class="w-10 h-1 bg-[#353945] rounded-full"></div>
+            </div>
+
+            <!-- Tiêu đề -->
+            <div class="flex items-center justify-between px-5 py-3 border-b border-[#353945]">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-lg bg-[#B6FF2E] text-[#14161C] flex items-center justify-center font-extrabold text-xs">WE</div>
+                    <span class="text-sm font-bold text-[#F4F5F6]">Menu điều hướng</span>
+                </div>
+                <button onclick="closeMobileMenu()" class="w-8 h-8 rounded-xl bg-[#23262F] text-[#777E90] flex items-center justify-center text-lg leading-none">✕</button>
+            </div>
+
+            <!-- Danh sách menu -->
+            <div class="px-4 py-3 space-y-2 pb-8">
+
+                <button onclick="switchViewMobile('dashboard')" id="btn-mobile-dashboard"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#B6FF2E] text-[#14161C]">
+                    <span class="text-2xl w-8 text-center">📊</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">Tổng Quan</div>
+                        <div class="text-xs opacity-70 mt-0.5">Bảng điều khiển & KPI</div>
+                    </div>
+                </button>
+
+                <button onclick="switchViewMobile('tasks')" id="btn-mobile-tasks"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">📋</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">Công Việc</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Danh sách & lịch</div>
+                    </div>
+                </button>
+
+                <button onclick="switchViewMobile('roadmap')" id="btn-mobile-roadmap"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">🗺️</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">Kế Hoạch Năm</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Ma trận & kho mục tiêu</div>
+                    </div>
+                </button>
+
+                <button onclick="switchViewMobile('tpm')" id="btn-mobile-tpm"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">🛠️</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">TPM & 5S</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Bảo trì & tiêu chuẩn</div>
+                    </div>
+                </button>
+
+                <button onclick="switchViewMobile('kaizen')" id="btn-mobile-kaizen"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">💡</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">Sáng Kiến</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Kaizen & cải tiến</div>
+                    </div>
+                </button>
+
+                <button onclick="switchViewMobile('logs')" id="btn-mobile-logs"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">📝</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">Nhật Ký</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Ghi chép hàng ngày</div>
+                    </div>
+                </button>
+
+                <button onclick="switchViewMobile('config')" id="btn-mobile-config"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">⚙️</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">Cấu Hình</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Hệ thống & kết nối</div>
+                    </div>
+                </button>
+
+            </div>
+        </div>
+
+        <script>
+            // ===== MOBILE MENU =====
+            let _mobileMenuOpen = false;
+            let _currentMobileView = 'dashboard';
+
+            function toggleMobileMenu() {
+                _mobileMenuOpen ? closeMobileMenu() : openMobileMenu();
+            }
+
+            function openMobileMenu() {
+                _mobileMenuOpen = true;
+                document.getElementById('mobile-menu-backdrop').classList.remove('hidden');
+                // Đợi 1 frame để transition chạy đúng
+                requestAnimationFrame(() => {
+                    document.getElementById('mobile-menu-sheet').classList.remove('translate-y-full');
+                });
+                // Đổi icon hamburger thành X (xoay 3 gạch)
+                const bars = document.querySelectorAll('#hamburger-icon span');
+                if (bars.length === 3) {
+                    bars[0].style.transform = 'translateY(8px) rotate(45deg)';
+                    bars[1].style.opacity = '0';
+                    bars[2].style.transform = 'translateY(-8px) rotate(-45deg)';
+                }
+            }
+
+            function closeMobileMenu() {
+                _mobileMenuOpen = false;
+                document.getElementById('mobile-menu-sheet').classList.add('translate-y-full');
+                document.getElementById('mobile-menu-backdrop').classList.add('hidden');
+                // Trả lại icon hamburger
+                const bars = document.querySelectorAll('#hamburger-icon span');
+                if (bars.length === 3) {
+                    bars[0].style.transform = '';
+                    bars[1].style.opacity = '';
+                    bars[2].style.transform = '';
+                }
+            }
+
+            function switchViewMobile(viewName) {
+                closeMobileMenu();
+                // Gọi switchView gốc sau khi sheet đóng xong (300ms)
+                setTimeout(() => switchView(viewName), 50);
+                // Cập nhật highlight menu item
+                _currentMobileView = viewName;
+                updateMobileMenuHighlight(viewName);
+            }
+
+            function updateMobileMenuHighlight(viewName) {
+                const views = ['dashboard','tasks','roadmap','tpm','kaizen','logs','config'];
+                views.forEach(v => {
+                    const btn = document.getElementById('btn-mobile-' + v);
+                    if (!btn) return;
+                    if (v === viewName) {
+                        btn.className = 'mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#B6FF2E] text-[#14161C]';
+                        // Đổi màu chữ phụ khi active
+                        const sub = btn.querySelector('div > div:last-child');
+                        if (sub) sub.className = 'text-xs opacity-70 mt-0.5';
+                    } else {
+                        btn.className = 'mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]';
+                        const sub = btn.querySelector('div > div:last-child');
+                        if (sub) sub.className = 'text-xs text-[#777E90] mt-0.5';
+                    }
+                });
+            }
+        </script>
 
     </div>
     </div>
