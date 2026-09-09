@@ -100,3 +100,47 @@
         .mobile-menu-item {
             -webkit-tap-highlight-color: transparent;
         }
+
+        /* =====================================================
+           FIX OVERFLOW MOBILE — ngăn trang bị scale sang desktop
+           ===================================================== */
+        @media (max-width: 767px) {
+            /* Đảm bảo toàn bộ trang không vượt quá viewport */
+            html, body {
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
+            /* Các section view không được rộng hơn viewport */
+            .view-section {
+                min-width: 0 !important;
+                max-width: 100% !important;
+                overflow-x: hidden;
+            }
+
+            /* Fix flex/grid bị tràn */
+            .view-section * {
+                min-width: 0;
+            }
+
+            /* Ẩn bảng ma trận desktop (có min-width 3250px) trên mobile */
+            #roadmap-matrix-container {
+                display: none !important;
+            }
+
+            /* Sáng kiến: đảm bảo thẻ không tràn */
+            #initiatives-render-area > div {
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            /* Đảm bảo các nút action trong thẻ wrap đúng */
+            .flex.flex-wrap {
+                flex-wrap: wrap !important;
+            }
+
+            /* Modal overlay luôn fit màn hình */
+            .fixed.inset-0 > div {
+                max-width: 100vw;
+            }
+        }
