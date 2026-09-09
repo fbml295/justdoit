@@ -223,25 +223,28 @@ function renderInitiativeCards() {
                 <!-- Header -->
                 <div class="flex justify-between items-start border-b border-[#353945] pb-3 gap-3">
                     <div class="min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-[10px] font-mono text-[#777E90]">${item.code || ''}</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded border font-mono ${typeDef.color}">${typeDef.label}</span>
-                            <span class="text-[10px] px-2 py-0.5 rounded border font-mono ${statusDef.color}">${statusDef.label}</span>
-                            ${item.approved ? '<span class="text-[10px] text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded">✅ Đã phê duyệt</span>' : ''}
+                        <div class="flex items-start justify-between gap-2 flex-wrap">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-[10px] font-mono text-[#777E90]">${item.code || ''}</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded border font-mono ${typeDef.color}">${typeDef.label}</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded border font-mono ${statusDef.color}">${statusDef.label}</span>
+                                ${item.approved ? '<span class="text-[10px] text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 rounded">✅ Đã duyệt</span>' : ''}
+                            </div>
+                            <h4 class="font-bold text-sm text-[#F4F5F6] mt-1 break-words">${item.title || '(Chưa có tiêu đề)'}</h4>
+                            <div class="text-[10px] text-[#777E90] mt-0.5 flex gap-3 flex-wrap">
+                                ${item.proposer ? `<span>👤 ${item.proposer}</span>` : ''}
+                                ${item.department ? `<span>🏢 ${item.department}</span>` : ''}
+                                ${item.proposedDate ? `<span>📅 ${item.proposedDate}</span>` : ''}
+                            </div>
                         </div>
-                        <h4 class="font-bold text-base text-[#F4F5F6] mt-1">${item.title || '(Chưa có tiêu đề)'}</h4>
-                        <div class="text-[10px] text-[#777E90] mt-0.5 flex gap-3 flex-wrap">
-                            ${item.proposer ? `<span>👤 ${item.proposer}</span>` : ''}
-                            ${item.department ? `<span>🏢 ${item.department}</span>` : ''}
-                            ${item.proposedDate ? `<span>📅 ${item.proposedDate}</span>` : ''}
+                        <div class="flex flex-wrap gap-1.5 flex-shrink-0">
+                            <button onclick="openInitiativeAI('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold">✨ AI</button>
+                            <button onclick="openEditInitiativeModal('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#23262F] text-[#F4F5F6] border border-[#353945]">✏️ Sửa</button>
+                            <button onclick="printInitiative('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#23262F] text-[#F4F5F6] border border-[#353945]">🖨️</button>
+                            <button onclick="deleteInitiative('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30">🗑️</button>
+                            <button onclick="toggleInitiativeExpand('${item.id}')" class="text-[10px] px-2 py-1.5 rounded-lg bg-[#23262F] text-[#777E90] border border-[#353945]">▲</button>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-1.5 flex-shrink-0">
-                        <button onclick="openInitiativeAI('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 font-semibold hover:bg-[#B6FF2E]/25">✨ AI Tư Vấn</button>
-                        <button onclick="openEditInitiativeModal('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#23262F] text-[#F4F5F6] border border-[#353945] hover:bg-[#353945]">✏️ Sửa</button>
-                        <button onclick="printInitiative('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-[#23262F] text-[#F4F5F6] border border-[#353945] hover:bg-[#353945]">🖨️ In Phiếu</button>
-                        <button onclick="deleteInitiative('${item.id}')" class="text-[10px] px-2.5 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20">🗑️</button>
-                        <button onclick="toggleInitiativeExpand('${item.id}')" class="text-[10px] px-2 py-1.5 rounded-lg bg-[#23262F] text-[#777E90] border border-[#353945]">▲</button>
                     </div>
                 </div>
 
@@ -286,7 +289,7 @@ function renderInitiativeFinancialCard(item) {
     return `
         <div class="bg-[#23262F] rounded-xl p-3 border border-amber-500/20 text-xs space-y-3">
             <p class="text-[10px] font-mono text-amber-400">💰 TÀI CHÍNH & HIỆU QUẢ</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3">
                 <div>
                     <p class="text-[10px] text-[#777E90] mb-1">CHI PHÍ ĐẦU TƯ</p>
                     ${(item.financial.investBreakdown || []).map(r => `
@@ -409,11 +412,11 @@ function openEditInitiativeModal(id) {
     ];
 
     const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
+    overlay.className = 'fixed inset-0 z-[150] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4';
     overlay.id = 'initiative-edit-overlay';
 
     overlay.innerHTML = `
-        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="bg-[#14161C] border border-[#353945] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
             <div class="flex justify-between items-center px-5 py-3.5 bg-[#111827] border-b border-[#353945] flex-shrink-0">
                 <div>
                     <h4 class="font-bold text-sm text-[#F4F5F6]">✏️ Sáng Kiến — ${item.code}</h4>
@@ -429,7 +432,7 @@ function openEditInitiativeModal(id) {
                         <label class="block text-[#777E90] mb-1">TIÊU ĐỀ SÁNG KIẾN <span class="text-rose-400">*</span></label>
                         <input id="ie-title" type="text" value="${(item.title || '').replace(/"/g,'&quot;')}" placeholder="Nhập tiêu đề..." class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[#777E90] mb-1">LOẠI</label>
                             <select id="ie-type" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
@@ -443,7 +446,7 @@ function openEditInitiativeModal(id) {
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div>
                             <label class="block text-[#777E90] mb-1">NGƯỜI ĐỀ XUẤT</label>
                             <select id="ie-proposer" class="w-full bg-[#23262F] border border-[#353945] rounded-xl px-3 py-2 text-[#F4F5F6] focus:outline-none">
@@ -797,10 +800,10 @@ function openInitiativeAI(id) {
 
     document.getElementById('initiative-ai-overlay')?.remove();
     const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4';
+    overlay.className = 'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4';
     overlay.id = 'initiative-ai-overlay';
     overlay.innerHTML = `
-        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+        <div class="bg-[#14161C] border border-[#353945] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
             <div class="flex justify-between items-center px-5 py-3.5 bg-[#111827] border-b border-[#353945] flex-shrink-0">
                 <h4 class="font-bold text-sm text-[#F4F5F6]">✨ AI Tư Vấn — ${item.code}: ${item.title || ''}</h4>
                 <button onclick="document.getElementById('initiative-ai-overlay').remove()" class="text-[#777E90] hover:text-rose-400 text-xl px-2">✕</button>

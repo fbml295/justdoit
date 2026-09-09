@@ -204,7 +204,12 @@ function renderRoadmapYearTabs() {
 
 function shiftRoadmapYears(direction) {
     state.roadmap.yearWindowStart = Math.max(0, Math.min(Math.max(0, state.roadmap.years.length - 5), state.roadmap.yearWindowStart + direction));
-    renderRoadmapYearTabs();
+    // Đổi năm active sang năm trong cửa sổ mới
+    const visible = state.roadmap.years.slice(state.roadmap.yearWindowStart, state.roadmap.yearWindowStart + 5);
+    if (visible.length > 0 && !visible.includes(state.roadmap.activeYear)) {
+        state.roadmap.activeYear = visible[0];
+    }
+    renderRoadmapAll();
 }
 
 async function addRoadmapYear() {
@@ -389,9 +394,14 @@ function renderRoadmapMatrix() {
 }
 
 function renderRoadmapAll() {
-    renderRoadmapYearTabs();
-    renderRoadmapSlogan();
-    renderRoadmapMatrix();
+    if (typeof isMobileView === 'function' && isMobileView()) {
+        if (typeof renderRoadmapMobile === 'function') renderRoadmapMobile();
+        renderRoadmapSlogan();
+    } else {
+        renderRoadmapYearTabs();
+        renderRoadmapSlogan();
+        renderRoadmapMatrix();
+    }
 }
 
 // =============================================================
