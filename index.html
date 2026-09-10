@@ -90,20 +90,20 @@
         <main class="flex-1 md:pl-20 flex flex-col min-h-screen">
             
             <!-- TOP BAR -->
-            <header class="bg-[#14161C] border-b border-[#353945] px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-                <div>
-                    <h2 id="page-title" class="text-lg md:text-xl font-bold text-[#F4F5F6]">Bảng Điều Khiển Chỉ Số Vận Hành</h2>
-                    <p id="page-subtitle" class="text-xs text-[#777E90] mt-0.5">Mục tiêu OKRs, Tiến độ Dự án & Chỉ số Năng lượng</p>
+            <header class="bg-[#14161C] border-b border-[#353945] px-4 py-3 flex items-center justify-between sticky top-0 z-20 gap-2 overflow-hidden">
+                <div class="min-w-0 flex-1">
+                    <h2 id="page-title" class="text-sm md:text-xl font-bold text-[#F4F5F6] truncate">Bảng Điều Khiển Chỉ Số Vận Hành</h2>
+                    <p id="page-subtitle" class="text-[10px] md:text-xs text-[#777E90] mt-0.5 hidden sm:block truncate">Mục tiêu OKRs, Tiến độ Dự án & Chỉ số Năng lượng</p>
                 </div>
-                <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2 flex-shrink-0">
                     <button onclick="switchView('ai')" class="hidden sm:flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#B6FF2E]/15 text-[#B6FF2E] border border-[#B6FF2E]/40 hover:bg-[#B6FF2E]/25 transition">
                         <span>✨</span>
                         <span>Trợ Lý Gemini</span>
                     </button>
-                    <button onclick="switchView('config'); switchConfigSubTab('api')" id="btn-connect-folder" class="flex items-center space-x-2 text-xs font-mono px-3 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/40 transition shadow-[0_0_10px_rgba(182,255,46,0.1)]">
+                    <button onclick="switchView('config'); switchConfigSubTab('api')" id="btn-connect-folder" class="flex items-center space-x-1.5 text-xs font-mono px-2.5 py-1.5 rounded-xl bg-[#23262F] hover:bg-[#353945] text-[#B6FF2E] border border-[#B6FF2E]/40 transition shadow-[0_0_10px_rgba(182,255,46,0.1)]">
                         <span id="storage-icon">☁️</span>
                         <span id="sync-status-dot" class="w-1.5 h-1.5 rounded-full bg-[#353945] flex-shrink-0"></span>
-                        <span id="folder-status-text">Cấu Hình Sheets API</span>
+                        <span id="folder-status-text" class="hidden sm:inline">Cấu Hình Sheets API</span>
                     </button>
                     <button onclick="reloadFromSheets()" id="btn-header-reload" title="Tải lại từ Google Sheets" class="hidden text-[#B6FF2E] hover:text-white text-sm transition leading-none px-1">&#x21BB;</button>
                     <div class="w-10 h-10 rounded-xl bg-[#353945] border border-[#353945] flex items-center justify-center font-bold text-[#B6FF2E]">
@@ -236,21 +236,13 @@
 
                 <!-- 2. CÔNG VIỆC -->
                 <section id="view-tasks" class="view-section space-y-5 hidden">
-                    <div class="bg-[#14161C] border border-[#353945] rounded-2xl px-5 py-4 flex items-center justify-center gap-3 md:gap-8 overflow-hidden">
-                        <span class="text-sm md:text-base font-extrabold text-[#F4F5F6] tracking-widest uppercase whitespace-nowrap">TINH GỌN</span>
-                        <span class="w-1 h-1 rounded-full bg-[#B6FF2E] flex-shrink-0"></span>
-                        <span class="text-sm md:text-base font-extrabold text-[#F4F5F6] tracking-widest uppercase whitespace-nowrap">CHÍNH XÁC</span>
-                        <span class="w-1 h-1 rounded-full bg-[#B6FF2E] flex-shrink-0"></span>
-                        <span class="text-sm md:text-base font-extrabold text-[#B6FF2E] tracking-widest uppercase whitespace-nowrap">TỐC ĐỘ</span>
-                        <span class="w-1 h-1 rounded-full bg-[#B6FF2E] flex-shrink-0"></span>
-                        <span class="text-sm md:text-base font-extrabold text-[#B6FF2E] tracking-widest uppercase whitespace-nowrap">HIỆU QUẢ</span>
-                    </div>
+
 
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#14161C] p-4 rounded-2xl border border-[#353945]">
                         <div class="flex items-center gap-2 flex-wrap">
                             <div class="flex bg-[#23262F] p-1.5 rounded-xl border border-[#353945]">
-                                <button onclick="switchTaskSubView('list')" id="btn-subview-list" class="px-5 py-2 text-xs md:text-sm font-semibold rounded-lg bg-[#B6FF2E] text-[#14161C] transition">📋 Danh Sách</button>
-                                <button onclick="switchTaskSubView('calendar')" id="btn-subview-calendar" class="px-5 py-2 text-xs md:text-sm font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition">📅 Lịch</button>
+                                <button onclick="switchTaskSubView('list')" id="btn-subview-list" class="px-3 py-2 text-xs font-semibold rounded-lg bg-[#B6FF2E] text-[#14161C] transition">📋 Danh Sách</button>
+                                <button onclick="switchTaskSubView('calendar')" id="btn-subview-calendar" class="px-3 py-2 text-xs font-medium rounded-lg text-[#777E90] hover:text-[#F4F5F6] transition">📅 Lịch</button>
                             </div>
                             <button onclick="openCreateTaskModal()" class="px-4 py-2 rounded-xl bg-[#B6FF2E] text-[#14161C] font-bold text-xs hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)] flex items-center gap-1.5 whitespace-nowrap">
                                 <span>+</span><span>Tạo công việc</span>
@@ -272,11 +264,11 @@
                                 <div id="deadline-reminder-list" class="space-y-0.5"></div>
                             </div>
 
-                            <div class="flex bg-[#14161C] p-1.5 rounded-2xl border border-[#353945]">
-                                <button onclick="filterTasks('all')" id="tab-all" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]">Tất Cả</button>
-                                <button onclick="filterTasks('my-task')" id="tab-my-task" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">Tôi Làm</button>
-                                <button onclick="filterTasks('boss-assign')" id="tab-boss-assign" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">Sếp Giao</button>
-                                <button onclick="filterTasks('delegate')" id="tab-delegate" class="task-tab flex-1 py-2 text-center text-[11px] md:text-xs font-medium rounded-xl text-[#777E90] hover:text-[#F4F5F6]">Giao Xuống</button>
+                            <div class="flex bg-[#14161C] p-1 rounded-2xl border border-[#353945]">
+                                <button onclick="filterTasks('all')" id="tab-all" class="task-tab flex-1 py-2 text-center text-[11px] font-semibold rounded-xl bg-[#B6FF2E] text-[#14161C]">Tất Cả</button>
+                                <button onclick="filterTasks('my-task')" id="tab-my-task" class="task-tab flex-1 py-2 text-center text-[11px] font-medium rounded-xl text-[#777E90]">Tôi Làm</button>
+                                <button onclick="filterTasks('boss-assign')" id="tab-boss-assign" class="task-tab flex-1 py-2 text-center text-[11px] font-medium rounded-xl text-[#777E90]">Sếp Giao</button>
+                                <button onclick="filterTasks('delegate')" id="tab-delegate" class="task-tab flex-1 py-2 text-center text-[11px] font-medium rounded-xl text-[#777E90]">Giao</button>
                             </div>
 
                             <div class="flex gap-2 items-start">
@@ -394,8 +386,8 @@
                     </div>
 
                     <!-- Modal: TẠO CÔNG VIỆC MỚI (2 cột) -->
-                    <div id="create-task-modal-overlay" class="hidden fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                        <div class="bg-[#14161C] border border-[#353945] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+                    <div id="create-task-modal-overlay" class="hidden fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4">
+                        <div class="bg-[#14161C] border border-[#353945] rounded-t-2xl sm:rounded-2xl w-full sm:max-w-5xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
                             <!-- Header -->
                             <div class="flex items-center justify-between px-5 py-4 bg-[#111827] border-b border-[#353945] flex-shrink-0">
                                 <h4 class="font-bold text-sm text-[#F4F5F6]">🎯 Tạo Công Việc Mới</h4>
