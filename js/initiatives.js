@@ -129,7 +129,7 @@ function renderInitiativeStats() {
     const totalMonthly = hasFinancial.reduce((s, i) => s + calcFinancial(i.financial).monthly, 0);
 
     el.innerHTML = `
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <div class="bg-[#14161C] border border-[#353945] rounded-xl p-3 text-center">
                 <div class="text-2xl font-extrabold text-[#F4F5F6]">${total}</div>
                 <div class="text-[#777E90] mt-0.5">Tổng sáng kiến</div>
@@ -199,17 +199,21 @@ function renderInitiativeCards() {
 
         if (!isExpanded) {
             card.innerHTML = `
-                <button onclick="toggleInitiativeExpand('${item.id}')" class="w-full flex items-center justify-between px-4 py-3 hover:bg-[#1B1E26] transition text-left gap-3">
-                    <div class="flex items-center gap-2 min-w-0">
-                        <span class="text-[10px] font-mono text-[#777E90] flex-shrink-0">${item.code || ''}</span>
-                        <span class="font-bold text-sm text-[#F4F5F6] truncate">${item.title || '(Chưa có tiêu đề)'}</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded border font-mono flex-shrink-0 ${typeDef.color}">${typeDef.label}</span>
-                    </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        ${item.approved ? '<span class="text-[10px] text-emerald-400">✅ Đã duyệt</span>' : ''}
-                        <span class="text-[10px] px-2 py-0.5 rounded border font-mono ${statusDef.color}">${statusDef.label}</span>
-                        ${fin ? `<span class="text-[10px] text-amber-400 font-mono">${fmtMoney(fin.monthly)}/th</span>` : ''}
-                        <span class="text-[#777E90] text-[10px]">▼</span>
+                <button onclick="toggleInitiativeExpand('${item.id}')" class="w-full px-4 py-3 hover:bg-[#1B1E26] transition text-left">
+                    <div class="flex items-start justify-between gap-2 w-full">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                                <span class="text-[10px] font-mono text-[#777E90]">${item.code || ''}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded border font-mono ${typeDef.color}">${typeDef.label}</span>
+                                ${item.approved ? '<span class="text-[10px] text-emerald-400">✅</span>' : ''}
+                            </div>
+                            <p class="font-bold text-sm text-[#F4F5F6] leading-snug break-words">${item.title || '(Chưa có tiêu đề)'}</p>
+                            <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                <span class="text-[10px] px-1.5 py-0.5 rounded border font-mono ${statusDef.color}">${statusDef.label}</span>
+                                ${fin ? `<span class="text-[10px] text-amber-400 font-mono">${fmtMoney(fin.monthly)}/th</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="text-[#777E90] text-sm flex-shrink-0 mt-1">▼</span>
                     </div>
                 </button>
             `;
@@ -272,10 +276,10 @@ function renderInitiativeCards() {
                 ${renderInitiativeApproval(item)}
 
                 <!-- Đổi trạng thái -->
-                <div class="flex items-center gap-2 pt-2 border-t border-[#353945] flex-wrap">
-                    <span class="text-[10px] text-[#777E90]">Trạng thái:</span>
+                <div class="flex items-center gap-1.5 pt-2 border-t border-[#353945] flex-wrap">
+                    <span class="text-[10px] text-[#777E90] w-full mb-1">Đổi trạng thái:</span>
                     ${Object.entries(INITIATIVE_STATUSES).map(([k, v]) =>
-                        `<button onclick="setInitiativeStatus('${item.id}','${k}')" class="text-[10px] px-2.5 py-1 rounded-full border transition ${item.status === k ? v.color + ' font-bold' : 'bg-[#23262F] text-[#777E90] border-[#353945] hover:border-[#B6FF2E]/30'}">${v.label}</button>`
+                        `<button onclick="setInitiativeStatus('${item.id}','${k}')" class="text-[10px] px-2 py-1 rounded-full border transition ${item.status === k ? v.color + ' font-bold' : 'bg-[#23262F] text-[#777E90] border-[#353945]'}">${v.label}</button>`
                     ).join('')}
                 </div>
             </div>
@@ -317,15 +321,15 @@ function renderInitiativeFinancialCard(item) {
             </div>
             <div class="grid grid-cols-3 gap-2 pt-2 border-t border-[#353945]">
                 <div class="text-center bg-[#14161C] rounded-lg p-2">
-                    <div class="text-sm font-extrabold text-[#B6FF2E]">${fmtPayback(fin.payback)}</div>
+                    <div class="text-xs font-extrabold text-[#B6FF2E]">${fmtPayback(fin.payback)}</div>
                     <div class="text-[10px] text-[#777E90]">Hoàn vốn</div>
                 </div>
                 <div class="text-center bg-[#14161C] rounded-lg p-2">
-                    <div class="text-sm font-extrabold text-amber-400">${fmtMoney(fin.yearly)}</div>
+                    <div class="text-xs font-extrabold text-amber-400">${fmtMoney(fin.yearly)}</div>
                     <div class="text-[10px] text-[#777E90]">Lợi ích/năm</div>
                 </div>
                 <div class="text-center bg-[#14161C] rounded-lg p-2">
-                    <div class="text-sm font-extrabold text-purple-400">${fmtROI(fin.roi)}</div>
+                    <div class="text-xs font-extrabold text-purple-400">${fmtROI(fin.roi)}</div>
                     <div class="text-[10px] text-[#777E90]">ROI năm 1</div>
                 </div>
             </div>
@@ -371,7 +375,7 @@ function renderInitiativeApproval(item) {
                 <span class="text-[#F4F5F6] font-semibold">Đã được phê duyệt (sau khi có chữ ký)</span>
             </label>
             ${item.approved ? `
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                     <label class="block text-[10px] text-[#777E90] mb-1">NGÀY PHÊ DUYỆT</label>
                     <input type="date" value="${item.approvedDate || ''}" onchange="updateInitiativeField('${item.id}','approvedDate',this.value)" class="w-full bg-[#14161C] border border-[#353945] rounded-lg px-2 py-1.5 text-[#F4F5F6] text-[11px] focus:outline-none">
