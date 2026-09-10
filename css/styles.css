@@ -104,10 +104,27 @@
         /* =====================================================
            FIX OVERFLOW MOBILE — ngăn trang bị scale sang desktop
            ===================================================== */
+
+        /* Rule quan trọng nhất — áp dụng mọi lúc, không chỉ mobile */
+        html {
+            overflow-x: hidden;
+        }
+
         @media (max-width: 767px) {
             html, body {
                 max-width: 100vw;
                 overflow-x: hidden;
+            }
+
+            /* Main content area không được rộng hơn viewport */
+            main {
+                overflow-x: hidden;
+                max-width: 100vw;
+            }
+
+            header {
+                overflow: hidden;
+                max-width: 100vw;
             }
 
             .view-section {
@@ -116,40 +133,36 @@
                 overflow-x: hidden;
             }
 
+            /* Mọi element con không được tràn ngang */
             .view-section * {
                 min-width: 0;
+                max-width: 100%;
+                box-sizing: border-box;
             }
 
-            /* Sáng kiến — ngăn tất cả nội dung tràn ngang */
+            /* Sáng kiến — fix cứng */
             #view-kaizen,
             #initiatives-render-area,
             #initiative-stats,
             #initiatives-render-area > div,
-            #initiatives-render-area > div * {
+            #initiatives-render-area button {
                 max-width: 100% !important;
                 box-sizing: border-box !important;
                 word-break: break-word;
+                white-space: normal !important;
             }
 
-            /* Các nút action trong thẻ sáng kiến không được đẩy rộng thẻ */
-            #initiatives-render-area button {
-                white-space: normal;
-                min-width: 0;
-            }
-
-            /* Ẩn bảng ma trận desktop trên mobile */
-            #roadmap-matrix-container {
+            /* Ẩn bảng ma trận desktop 3250px trên mobile */
+            #roadmap-matrix-container,
+            #roadmap-desktop-view {
                 display: none !important;
             }
 
             /* Modal overlay luôn fit màn hình */
             #initiative-edit-overlay > div,
-            #initiative-ai-overlay > div {
+            #initiative-ai-overlay > div,
+            #create-task-modal-overlay > div {
                 max-width: 100vw !important;
                 width: 100% !important;
-            }
-
-            .flex.flex-wrap {
-                flex-wrap: wrap !important;
             }
         }
