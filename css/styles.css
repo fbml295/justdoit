@@ -105,42 +105,51 @@
            FIX OVERFLOW MOBILE — ngăn trang bị scale sang desktop
            ===================================================== */
         @media (max-width: 767px) {
-            /* Đảm bảo toàn bộ trang không vượt quá viewport */
             html, body {
                 max-width: 100vw;
                 overflow-x: hidden;
             }
 
-            /* Các section view không được rộng hơn viewport */
             .view-section {
                 min-width: 0 !important;
                 max-width: 100% !important;
                 overflow-x: hidden;
             }
 
-            /* Fix flex/grid bị tràn */
             .view-section * {
                 min-width: 0;
             }
 
-            /* Ẩn bảng ma trận desktop (có min-width 3250px) trên mobile */
+            /* Sáng kiến — ngăn tất cả nội dung tràn ngang */
+            #view-kaizen,
+            #initiatives-render-area,
+            #initiative-stats,
+            #initiatives-render-area > div,
+            #initiatives-render-area > div * {
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+                word-break: break-word;
+            }
+
+            /* Các nút action trong thẻ sáng kiến không được đẩy rộng thẻ */
+            #initiatives-render-area button {
+                white-space: normal;
+                min-width: 0;
+            }
+
+            /* Ẩn bảng ma trận desktop trên mobile */
             #roadmap-matrix-container {
                 display: none !important;
             }
 
-            /* Sáng kiến: đảm bảo thẻ không tràn */
-            #initiatives-render-area > div {
-                max-width: 100%;
-                overflow: hidden;
+            /* Modal overlay luôn fit màn hình */
+            #initiative-edit-overlay > div,
+            #initiative-ai-overlay > div {
+                max-width: 100vw !important;
+                width: 100% !important;
             }
 
-            /* Đảm bảo các nút action trong thẻ wrap đúng */
             .flex.flex-wrap {
                 flex-wrap: wrap !important;
-            }
-
-            /* Modal overlay luôn fit màn hình */
-            .fixed.inset-0 > div {
-                max-width: 100vw;
             }
         }
