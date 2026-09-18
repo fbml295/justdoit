@@ -354,7 +354,6 @@ YÊU CẦU: Hãy đóng vai Giám Đốc Vận Hành (COO) để viết 1 BÁO C
                 tasks: { title: "Quản Lý Công Việc & Lịch Trình", subtitle: "Phân loại phân quyền và theo dõi tiến độ công việc" },
                 ai: { title: "Trợ Lý AI Gemini 3.1 & Imagen", subtitle: "Tổng hợp báo cáo điều hành, lập kế hoạch Kaizen & Đọc giọng nói TTS" },
                 roadmap: { title: "Kế Hoạch Năm", subtitle: "Ma trận mục tiêu năm — tháng — tuần, kéo thả lập kế hoạch, theo dõi tiến độ tự động" },
-                tpm: { title: "Chương Trình TPM & Tiêu Chuẩn 5S", subtitle: "Phát hành danh mục công việc chuẩn hóa xuống trực tiếp các bộ phận" },
                 kaizen: { title: "Sáng Kiến Kaizen & Dự Án Cải Tiến", subtitle: "Đề xuất và theo dõi tiến độ các dự án tiết kiệm năng lượng" },
                 logs: { title: "Nhật Ký Công Việc Hàng Ngày", subtitle: "Ghi chép tiến độ, kết quả xử lý công việc và báo cáo tuần" },
                 config: { title: "Cấu Hình Hệ Thống", subtitle: "Quản lý Nhà máy, Phân xưởng, Phòng ban, Tổ chuyên trách và Danh bạ" }

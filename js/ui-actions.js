@@ -316,18 +316,6 @@
             };
         }
 
-        function dispatchStandardTPMTasks() {
-            const tpmTasks = [
-                { id: 'T' + (state.tasks.length + 1), title: 'Kiểm tra định kỳ độ rung quạt sấy chính', category: 'tpm-5s', relation: 'delegate', assignee: 'Tổ Cơ Điện', priority: 'High', status: 'Todo', deadline: new Date().toISOString().split('T')[0] },
-                { id: 'T' + (state.tasks.length + 2), title: 'Vệ sinh bề mặt rulo dây chuyền ép & Sắp xếp 5S', category: 'tpm-5s', relation: 'delegate', assignee: 'Xưởng Sản Xuất', priority: 'Medium', status: 'Todo', deadline: new Date().toISOString().split('T')[0] },
-                { id: 'T' + (state.tasks.length + 3), title: 'Kiểm tra định kỳ hệ thống bình chữa cháy & HSE', category: 'tpm-5s', relation: 'delegate', assignee: 'Ban HSE', priority: 'High', status: 'Todo', deadline: new Date().toISOString().split('T')[0] }
-            ];
-            state.tasks.push(...tpmTasks);
-            showNotification('Đã phát hành 3 công việc TPM & 5S mẫu xuống hệ thống!', 'success');
-            renderTasks();
-            updateDashboardMetrics();
-            syncStateToCSV();
-        }
 
         function generateWeeklyReport() {
             if (state.logs.length === 0 && state.tasks.length === 0) {
