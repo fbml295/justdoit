@@ -46,7 +46,7 @@
                 <div class="w-10 h-10 rounded-xl bg-[#B6FF2E] text-[#14161C] flex items-center justify-center font-extrabold text-sm shadow-[0_0_15px_rgba(182,255,46,0.3)]">
                     WE
                 </div>
-
+                <span class="text-[9px] text-[#B6FF2E] font-semibold tracking-wider uppercase mt-1">v2.0 Sheets</span>
             </div>
 
             <nav class="flex-1 p-2 space-y-2.5 overflow-y-auto">
@@ -62,6 +62,10 @@
                     <span class="text-xl">🗺️</span>
                     <span class="text-[10px] leading-tight text-center">Kế Hoạch Năm</span>
                 </button>
+                <button onclick="switchView('tpm')" id="btn-side-tpm" class="nav-item-side w-full flex flex-col items-center justify-center py-2.5 px-1 rounded-xl text-[#777E90] hover:bg-[#353945] hover:text-[#F4F5F6] font-medium transition space-y-1">
+                    <span class="text-xl">🛠️</span>
+                    <span class="text-[10px] leading-tight text-center">TPM & 5S</span>
+                </button>
                 <button onclick="switchView('kaizen')" id="btn-side-kaizen" class="nav-item-side w-full flex flex-col items-center justify-center py-2.5 px-1 rounded-xl text-[#777E90] hover:bg-[#353945] hover:text-[#F4F5F6] font-medium transition space-y-1">
                     <span class="text-xl">💡</span>
                     <span class="text-[10px] leading-tight text-center">Sáng Kiến</span>
@@ -76,7 +80,11 @@
                 </button>
             </nav>
 
-
+            <div class="p-2 border-t border-[#353945]">
+                <div class="bg-[#23262F] py-2 px-1 rounded-xl border border-[#353945] text-center">
+                    <span class="text-[9px] text-[#B6FF2E] font-mono font-bold block">v2.0 SHEETS</span>
+                </div>
+            </div>
         </aside>
 
         <main class="flex-1 md:pl-20 flex flex-col min-h-screen">
@@ -265,6 +273,13 @@
 
                             <div class="flex gap-2 items-start">
                                 <input id="task-search-input" oninput="renderTasks()" type="text" placeholder="&#x1F50D; Tìm theo tên, danh mục, thẻ..." class="flex-1 min-w-0 bg-[#14161C] border border-[#353945] rounded-xl px-3 py-2 text-xs text-[#F4F5F6] focus:outline-none focus:ring-1 focus:ring-[#B6FF2E]">
+
+                                <button id="btn-task-compact-toggle"
+                                    onclick="toggleTaskCompactMode()"
+                                    title="Chuyển chế độ hiển thị"
+                                    class="flex-shrink-0 h-full px-3 py-2 rounded-xl bg-[#14161C] border text-xs font-semibold transition hover:border-[#B6FF2E]/40 text-[#777E90] border-[#353945] whitespace-nowrap">
+                                    ⊟ Compact
+                                </button>
 
                                 <div class="relative flex-shrink-0">
                                     <button type="button" id="btn-task-filter-toggle"
@@ -726,7 +741,66 @@
                     </div>
                 </section>
 
-                <!-- 4. SÁNG KIẾN KAIZEN v2 -->
+                <!-- 4. TPM & 5S -->
+                <section id="view-tpm" class="view-section space-y-6 hidden">
+                    <div class="bg-[#14161C] p-6 rounded-2xl border border-[#353945] space-y-5">
+                        <div class="flex flex-col md:flex-row justify-between md:items-center border-b border-[#353945] pb-4 gap-4">
+                            <div>
+                                <h3 class="font-bold text-[#F4F5F6] text-lg">Khung Chương Trình TPM & Tiêu Chuẩn 5S</h3>
+                                <p class="text-xs text-[#777E90] mt-0.5">Phát hành danh mục công việc chuẩn hóa xuống trực tiếp các bộ phận phụ trách</p>
+                            </div>
+                            <button onclick="dispatchStandardTPMTasks()" class="bg-[#B6FF2E] text-[#14161C] font-bold text-xs px-4 py-2.5 rounded-xl hover:opacity-90 transition shadow-[0_0_12px_rgba(182,255,46,0.2)]">🚀 Phát Hành Công Việc TPM & 5S Mẫu</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
+                                <div class="flex justify-between items-center border-b border-[#353945] pb-2">
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">⚡</span> Bộ Phận Cơ Điện (TPM - PM/AM)</h4>
+                                    <span class="text-[10px] bg-[#B6FF2E]/10 text-[#B6FF2E] px-2 py-0.5 rounded font-mono">Bảo trì phòng ngừa</span>
+                                </div>
+                                <ul class="space-y-2 text-xs text-[#777E90]">
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Kiểm tra định kỳ độ rung bạc đạn động cơ quạt sấy chính</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Căn chỉnh sai số cảm biến nhiệt độ gia nhiệt bàn ép MDF</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Vệ sinh và thay dầu bôi trơn máy nén khí trung tâm A</li>
+                                </ul>
+                            </div>
+                            <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
+                                <div class="flex justify-between items-center border-b border-[#353945] pb-2">
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">🏭</span> Phân Xưởng Sản Xuất (5S Nhà Máy)</h4>
+                                    <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded font-mono">Sàng lọc & Sắp xếp</span>
+                                </div>
+                                <ul class="space-y-2 text-xs text-[#777E90]">
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Quy hoạch lại khu vực chứa phế liệu và dăm gỗ dư thừa</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Vệ sinh bề mặt rulo dây chuyền ép sau mỗi mẻ sản xuất</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Sơn lại vạch kẻ lối đi an toàn khu vực máy chà nhám</li>
+                                </ul>
+                            </div>
+                            <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
+                                <div class="flex justify-between items-center border-b border-[#353945] pb-2">
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">🏢</span> Khối Văn Phòng & QA (5S Số)</h4>
+                                    <span class="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded font-mono">Chuẩn hóa hồ sơ</span>
+                                </div>
+                                <ul class="space-y-2 text-xs text-[#777E90]">
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Số hóa 100% hồ sơ nghiệm thu kỹ thuật lên hệ thống</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Sắp xếp lại kho lưu trữ mẫu thử sản phẩm chất lượng</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Tối ưu không gian làm việc gọn gàng theo tiêu chuẩn 5S</li>
+                                </ul>
+                            </div>
+                            <div class="bg-[#23262F] p-5 rounded-xl border border-[#353945] space-y-3">
+                                <div class="flex justify-between items-center border-b border-[#353945] pb-2">
+                                    <h4 class="font-bold text-sm text-[#F4F5F6] flex items-center"><span class="mr-2">🛡️</span> Ban An Toàn & Môi Trường (HSE)</h4>
+                                    <span class="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded font-mono">An toàn lao động</span>
+                                </div>
+                                <ul class="space-y-2 text-xs text-[#777E90]">
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Kiểm tra định kỳ hệ thống bình chữa cháy và áp suất nước</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Trang bị đầy đủ đồ bảo hộ lao động (PPE) cho công nhân ca</li>
+                                    <li class="flex items-start"><span class="text-[#B6FF2E] mr-2">✔</span> Diễn tập phương án ứng phó sự cố rò rỉ hóa chất keo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. SÁNG KIẾN KAIZEN v2 -->
                 <section id="view-kaizen" class="view-section space-y-5 hidden">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#14161C] p-4 rounded-2xl border border-[#353945]">
                         <div>
@@ -1099,6 +1173,14 @@
                     </div>
                 </button>
 
+                <button onclick="switchViewMobile('tpm')" id="btn-mobile-tpm"
+                    class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
+                    <span class="text-2xl w-8 text-center">🛠️</span>
+                    <div class="text-left">
+                        <div class="font-bold text-base leading-tight">TPM & 5S</div>
+                        <div class="text-xs text-[#777E90] mt-0.5">Bảo trì & tiêu chuẩn</div>
+                    </div>
+                </button>
 
                 <button onclick="switchViewMobile('kaizen')" id="btn-mobile-kaizen"
                     class="mobile-menu-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition active:scale-[0.98] bg-[#23262F] text-[#F4F5F6]">
@@ -1178,7 +1260,7 @@
             }
 
             function updateMobileMenuHighlight(viewName) {
-                const views = ['dashboard','tasks','roadmap','kaizen','logs','config'];
+                const views = ['dashboard','tasks','roadmap','tpm','kaizen','logs','config'];
                 views.forEach(v => {
                     const btn = document.getElementById('btn-mobile-' + v);
                     if (!btn) return;
