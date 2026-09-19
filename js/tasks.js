@@ -449,10 +449,40 @@
                 : '');
         }
 
+        // =============================================================
+        // COMPACT / FULL TOGGLE — lưu preference vào localStorage
+        // =============================================================
+        const LS_TASK_COMPACT = 'wms_task_compact';
+        let taskCompactMode = localStorage.getItem(LS_TASK_COMPACT) === '1';
+
+        function toggleTaskCompactMode() {
+            taskCompactMode = !taskCompactMode;
+            localStorage.setItem(LS_TASK_COMPACT, taskCompactMode ? '1' : '0');
+            _updateCompactToggleBtn();
+            renderTasks();
+        }
+
+        function _updateCompactToggleBtn() {
+            const btn = document.getElementById('btn-task-compact-toggle');
+            if (!btn) return;
+            if (taskCompactMode) {
+                btn.textContent = '⊞ Đầy đủ';
+                btn.title = 'Đang xem compact — bấm để xem đầy đủ';
+                btn.classList.add('text-[#B6FF2E]', 'border-[#B6FF2E]/40');
+                btn.classList.remove('text-[#777E90]', 'border-[#353945]');
+            } else {
+                btn.textContent = '⊟ Compact';
+                btn.title = 'Đang xem đầy đủ — bấm để thu gọn';
+                btn.classList.remove('text-[#B6FF2E]', 'border-[#B6FF2E]/40');
+                btn.classList.add('text-[#777E90]', 'border-[#353945]');
+            }
+        }
+
         function renderTasks() {
             const container = document.getElementById('tasks-render-area');
             if (!container) return;
             container.innerHTML = '';
+            _updateCompactToggleBtn();
             renderTaskCategoryFilterChips();
             renderDeadlineReminderBanner();
             updateTaskFilterBadge();
@@ -513,8 +543,66 @@
             }
 
             filteredList.forEach(task => {
-                const isDone     = task.status === 'Done';
-                const overdue    = !isDone && isOverdue(task.deadline);
+                const isDone  = task.status === 'Done';
+                const overdue = !isDone && isOverdue(task.deadline);
+                const borderColor = overdue ? 'border-rose-500/40' : (isDone ? 'border-[#353945]' : 'border-[#353945] hover:border-[#B6FF2E]/30');
+                const card = document.createElement('div');
+
+                // ── CHẾ ĐỘ COMPACT ──────────────────────────────────────────
+                if (taskCompactMode) {
+                    const planProg = calcPlanProgress(task.plan);
+                    const planBar = planProg.total > 0
+                        ? `<div class="mt-1.5 h-1 rounded-full bg-[#353945] overflow-hidden" title="${planProg.done}/${planProg.total} bước kế hoạch">
+                               <div class="h-full rounded-full transition-all ${overdue ? 'bg-rose-500' : 'bg-[#B6FF2E]'}" style="width:${planProg.percent}%"></div>
+                           </div>`
+                        : '';
+
+                    const dlBadge = task.deadline
+                        ? `<span class="${overdue ? 'text-rose-400 font-bold' : 'text-[#777E90]'} text-[10px] flex-shrink-0">${overdue ? '⚠️' : '📅'} ${fmtDate(task.deadline)}</span>`
+                        : '';
+
+                    const prioBadgeMap = {
+                        Q1: 'bg-rose-500/15 text-rose-400',
+                        Q2: 'bg-amber-500/15 text-amber-400',
+                        Q3: 'bg-blue-500/15 text-blue-400',
+                        Q4: 'bg-[#353945] text-[#777E90]',
+                        High:   'bg-rose-500/15 text-rose-400',
+                        Medium: 'bg-amber-500/15 text-amber-400',
+                        Low:    'bg-[#353945] text-[#777E90]'
+                    };
+                    const prioBadge = task.priority
+                        ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-mono flex-shrink-0 ${prioBadgeMap[task.priority] || prioBadgeMap.Q2}">${task.priority}</span>`
+                        : '';
+
+                    let relIcon = '👤';
+                    if (task.relation === 'boss-assign') relIcon = '⬇️';
+                    if (task.relation === 'delegate')    relIcon = '➡️';
+
+                    card.className = `bg-[#14161C] px-3 py-2.5 rounded-xl border ${borderColor} transition ${isDone ? 'opacity-50' : ''}`;
+                    card.innerHTML = `
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')"
+                                class="w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
+                            <span class="text-[10px] flex-shrink-0" title="${task.relation}">${relIcon}</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-semibold text-[#F4F5F6] ${isDone ? 'line-through text-[#777E90]' : ''} leading-snug truncate">${task.title}</span>
+                                    ${prioBadge}
+                                    ${dlBadge}
+                                </div>
+                                ${planBar}
+                            </div>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <button onclick="openEditTaskModal('${task.id}')" title="Sửa" class="text-[#777E90] hover:text-[#B6FF2E] text-xs px-1.5 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-[#B6FF2E]/30 transition">✏️</button>
+                                <button onclick="deleteTask('${task.id}')" title="Xoá" class="text-[#777E90] hover:text-rose-400 text-xs px-1.5 py-1 bg-[#23262F] rounded-lg border border-[#353945] hover:border-rose-500/30 transition">✕</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                    return;
+                }
+
+                // ── CHẾ ĐỘ ĐẦY ĐỦ (giữ nguyên) ────────────────────────────
                 const areaBadge  = getAreaBadge(task);
 
                 let relLabel = 'Cá nhân';
@@ -539,13 +627,9 @@
                        </div>`
                     : '';
 
-                const borderColor = overdue ? 'border-rose-500/40' : (isDone ? 'border-[#353945]' : 'border-[#353945] hover:border-[#B6FF2E]/30');
-
-                const card = document.createElement('div');
                 card.className = `bg-[#14161C] p-3.5 rounded-xl border ${borderColor} transition ${isDone ? 'opacity-50' : ''}`;
                 card.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                        <!-- NGĂN TRÁI - rộng hơn: tên + nội dung -->
                         <div class="md:col-span-7 flex items-start gap-2.5 min-w-0">
                             <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="mt-1 w-4 h-4 rounded accent-[#B6FF2E] cursor-pointer flex-shrink-0">
                             <div class="min-w-0">
@@ -554,7 +638,6 @@
                                 ${renderTaskPlanSection(task)}
                             </div>
                         </div>
-                        <!-- NGĂN PHẢI - hẹp hơn: thông tin còn lại -->
                         <div class="md:col-span-5 space-y-1.5 md:border-l md:border-[#23262F] md:pl-3">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="flex flex-wrap items-center gap-1.5">
